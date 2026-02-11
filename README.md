@@ -4,10 +4,11 @@ A CS+SG project for the Undergraduate Senate at UNC Chapel Hill.
 
 ## Contributors
 
-| Name        | Role            |
-| ----------- | --------------- |
-| Caleb Han   | Tech Lead       |
-| Mason Mines | Project Manager |
+| Name          | Role            |
+| ------------- | --------------- |
+| Caleb Han     | Tech Lead       |
+| Mason Mines   | Project Manager |
+| Gabriel Great | Developer       |
 
 ## About the Undergraduate Senate
 
