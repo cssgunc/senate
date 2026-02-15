@@ -4,14 +4,15 @@ A CS+SG project for the Undergraduate Senate at UNC Chapel Hill.
 
 ## Contributors
 
-| Name          | Role            |
-| ------------- | --------------- |
-| Caleb Han     | Tech Lead       |
-| Mason Mines   | Project Manager |
-| Xander Pak    | Developer       |
-| Gabriel Great | Developer       |
-| Chris Kim     | Developer       |
-| Emily Jon     | Developer       |
+| Name            | Role            |
+| -------------   | --------------- |
+| Caleb Han       | Tech Lead       |
+| Mason Mines     | Project Manager |
+| Xander Pak      | Developer       |
+| Gabriel Great   | Developer       |
+| Chris Kim       | Developer       |
+| Emily Jon       | Developer       |
+| Sonal Mahapatra | Developer       |
 
 ## About the Undergraduate Senate
 
