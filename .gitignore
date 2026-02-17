@@ -232,3 +232,6 @@ next-env.d.ts
 
 # DS_Store (macOS)
 .DS_Store
+
+# Test results
+test-results.xml

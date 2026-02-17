@@ -6,8 +6,9 @@ uvicorn[standard]==0.34.0
 sqlalchemy==2.0.38
 pyodbc==5.3.0
 
-# Development
+# Development & Testing
 pytest==8.3.5
 pytest-asyncio==0.25.2
 httpx==0.28.1
 ruff==0.9.3
+junitparser==3.2.0
