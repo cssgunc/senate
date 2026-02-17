@@ -1,0 +1,31 @@
+repos:
+  - repo: local
+    hooks:
+      - id: backend-ruff
+        name: Backend ruff check
+        entry: ruff check backend
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^backend/
+      - id: backend-pytest
+        name: Backend pytest
+        entry: pytest -c backend/pyproject.toml --junitxml=backend/test-results.xml
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^backend/
+      - id: frontend-tsc
+        name: Frontend type check
+        entry: npx --prefix frontend tsc --noEmit -p frontend/tsconfig.json
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^frontend/
+      - id: frontend-build
+        name: Frontend build
+        entry: npm --prefix frontend run build
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^frontend/

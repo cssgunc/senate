@@ -10,10 +10,12 @@ Usage:
 Environment:
     Set DB_NAME=senate_test when running tests to use this database.
 """
-import sys
-import pyodbc
-from app.database import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
+import sys
+
+import pyodbc
+
+from app.database import DB_HOST, DB_PASSWORD, DB_PORT, DB_USER
 
 TEST_DB_NAME = "senate_test"
 
@@ -43,9 +45,7 @@ def create_test_database():
         cursor = conn.cursor()
 
         # Check if database exists
-        cursor.execute(
-            f"SELECT database_id FROM sys.databases WHERE name = '{TEST_DB_NAME}'"
-        )
+        cursor.execute(f"SELECT database_id FROM sys.databases WHERE name = '{TEST_DB_NAME}'")
         if cursor.fetchone():
             print(f"Test database '{TEST_DB_NAME}' already exists")
         else:

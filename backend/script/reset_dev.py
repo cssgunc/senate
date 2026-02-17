@@ -27,11 +27,11 @@ Data seeded (based on TDD Section 4.4):
     - Finance hearing config
     - App configuration
 """
+
 import sys
-from datetime import datetime, timedelta, date, time
-from decimal import Decimal
-from sqlalchemy.orm import Session
-from app.database import SessionLocal, Base, engine
+from datetime import datetime
+
+from app.database import Base, SessionLocal, engine
 
 
 def reset_database():
@@ -61,14 +61,12 @@ def seed_data():
     All data is realistic and centered around today's date.
     """
     db = SessionLocal()
-    today = date.today()
-    now = datetime.now()
-    current_session = 107  # 107th Senate session
 
     try:
         # Check if models are implemented
         try:
             from app.models import __all__ as model_names
+
             if not model_names:
                 print("No models found - skipping data seeding")
                 print("  Implement models in app/models/__init__.py first")
@@ -147,6 +145,7 @@ def seed_data():
         db.rollback()
         print(f"Error seeding data: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
     finally:

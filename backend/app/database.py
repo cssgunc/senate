@@ -1,8 +1,9 @@
 """Database configuration and session management"""
+
 import os
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 # SQL Server connection string
 # Format: mssql+pyodbc://username:password@host:port/database?driver=ODBC+Driver+18+for+SQL+Server

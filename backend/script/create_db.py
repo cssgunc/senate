@@ -6,9 +6,12 @@ It should be run once during initial setup or when resetting the development env
 Usage:
     python -m script.create_db
 """
+
 import sys
+
 import pyodbc
-from app.database import engine, Base, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
+
+from app.database import DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, Base, engine
 
 
 def create_database():
@@ -31,9 +34,7 @@ def create_database():
         cursor = conn.cursor()
 
         # Check if database exists
-        cursor.execute(
-            f"SELECT database_id FROM sys.databases WHERE name = '{DB_NAME}'"
-        )
+        cursor.execute(f"SELECT database_id FROM sys.databases WHERE name = '{DB_NAME}'")
         if cursor.fetchone():
             print(f"Database '{DB_NAME}' already exists")
         else:
@@ -85,6 +86,7 @@ def create_tables():
         # This import will fail gracefully if models aren't implemented yet
         try:
             from app.models import __all__ as model_names
+
             if model_names:
                 print(f"Found {len(model_names)} model(s) to create")
         except (ImportError, AttributeError):
@@ -97,7 +99,9 @@ def create_tables():
 
     except Exception as e:
         print(f"Error creating tables: {e}")
-        print("\nIf you see 'no such table' errors, make sure models are defined in app/models/__init__.py")
+        print(
+            "\nIf you see 'no such table' errors, make sure models are defined in app/models/__init__.py"
+        )
         sys.exit(1)
 
 
