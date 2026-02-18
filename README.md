@@ -12,6 +12,7 @@ A CS+SG project for the Undergraduate Senate at UNC Chapel Hill.
 | Gabriel Great   | Developer       |
 | Chris Kim       | Developer       |
 | Emily Jon       | Developer       |
+| Grace Wu        | Developer       |
 | Sonal Mahapatra | Developer       |
 
 ## About the Undergraduate Senate
