@@ -49,7 +49,12 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+			carolina: {
+				blue: '#4B9CD3',
+				white: '#FFFFFF',
+				black: '#000000'
+			}
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
