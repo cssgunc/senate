@@ -60,15 +60,9 @@ class Senator(Base):
     )
 
 
-# Import CMS models after stubs are registered so relationship strings resolve
-from app.models.cms import (  # noqa: E402
-    AppConfig,
-    Committee,
-    CommitteeMembership,
-    News,
-    Staff,
-    StaticPageContent,
-)
+# Import Committee after stubs are registered so the relationship string resolves.
+# All other CMS models are imported directly in test_cms_models.py where they are used.
+from app.models.cms import Committee  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Shared in-memory SQLite engine (session-scoped — created once per test run)

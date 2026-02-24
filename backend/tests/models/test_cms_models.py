@@ -15,11 +15,18 @@ Coverage:
 from datetime import datetime
 
 import pytest
-from sqlalchemy import inspect as sa_inspect, text, update
+from sqlalchemy import inspect as sa_inspect
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 
-from app.models.cms import AppConfig, Committee, CommitteeMembership, News, Staff, StaticPageContent
-
+from app.models.cms import (
+    AppConfig,
+    Committee,
+    CommitteeMembership,
+    News,
+    Staff,
+    StaticPageContent,
+)
 
 # ===========================================================================
 # Table creation
