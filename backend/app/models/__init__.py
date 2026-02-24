@@ -1,6 +1,7 @@
 """SQLAlchemy models"""
 
 from app.models.cms import AppConfig, Committee, CommitteeMembership, News, Staff, StaticPageContent
+
 from .Admin import Admin
 from .base import Base
 from .BudgetData import BudgetData
