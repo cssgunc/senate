@@ -132,12 +132,12 @@ def test_budgetdata_self_reference(session):
     session.add(child)
     session.commit()
 
-    # Fetch child and verify parent link
+    # Fetchs child and verify parent link
     fetched_child = session.query(BudgetData).filter_by(id=child.id).one()
     assert fetched_child.parent_category_id == parent.id
 
-    # Using ORM relationship if defined
+    # Using ORM relationship, if defined
     if hasattr(fetched_child, "parent_category"):
         assert fetched_child.parent_category.category == "Parent Category"
-        # Also test reverse backref
+        # Tests reverse backref
         assert fetched_child in parent.subcategories
