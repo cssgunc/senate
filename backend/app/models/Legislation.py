@@ -1,8 +1,9 @@
-from .base import Base
 from datetime import date, datetime
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
-from sqlalchemy import Enum, Integer, String, Text, Date, DateTime, ForeignKey, func
-import enum
+
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column
+
+from .base import Base
 
 legislation_status_values = ["Introduced", "In Committee", "Passed", "Failed"]
 

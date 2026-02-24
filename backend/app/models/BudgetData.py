@@ -1,7 +1,10 @@
-from .base import Base
 from datetime import datetime
+
+from sqlalchemy import DECIMAL, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, Text, String, DateTime, DECIMAL, ForeignKey, func
+
+from .base import Base
+
 
 class BudgetData(Base):
     __tablename__ = "budget_data"

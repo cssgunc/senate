@@ -1,7 +1,9 @@
+from datetime import date, datetime
+
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, func
+from sqlalchemy.orm import Mapped, mapped_column
+
 from .base import Base
-from datetime import datetime, date
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
-from sqlalchemy import Integer, Date, DateTime, Boolean, ForeignKey, func
 
 
 class FinanceHearingConfig(Base):

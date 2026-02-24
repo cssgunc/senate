@@ -1,7 +1,10 @@
-from .base import Base
 from datetime import date
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
-from sqlalchemy import Integer, String, Text, Date, ForeignKey
+
+from sqlalchemy import Date, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column
+
+from .base import Base
+
 
 class LegislationAction(Base):
     __tablename__ = "legislation_action"

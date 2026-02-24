@@ -1,7 +1,9 @@
-from .base import Base
 from datetime import date, time
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
-from sqlalchemy import Integer, Date, Time, Boolean, Text, String
+
+from sqlalchemy import Boolean, Date, Integer, String, Text, Time
+from sqlalchemy.orm import Mapped, mapped_column
+
+from .base import Base
 
 # effectively a singleton row
 
