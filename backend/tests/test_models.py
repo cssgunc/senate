@@ -13,9 +13,13 @@ from app.models import (
 # Imports models
 from app.models import BudgetData, Legislation, LegislationAction, Base
 
+# Imports models
+from app.models import Base, BudgetData, Legislation, LegislationAction
+
 # ------------------------------
 # Pytest Fixtures
 # ------------------------------
+
 
 @pytest.fixture(scope="module")
 def engine():
@@ -43,6 +47,7 @@ def session(engine, tables):
 # Table existence tests
 # ------------------------------
 
+
 def test_tables_exist(engine, tables):
     inspector = inspect(engine)
     table_names = inspector.get_table_names()
@@ -53,7 +58,7 @@ def test_tables_exist(engine, tables):
         "carousel_slide",
         "finance_hearing_config",
         "finance_hearing_date",
-        "budget_data"
+        "budget_data",
     ]
     print(table_names)
     for table in expected_tables:
@@ -63,6 +68,7 @@ def test_tables_exist(engine, tables):
 # ------------------------------
 # Legislation → LegislationAction one-to-many relationship
 # ------------------------------
+
 
 def test_legislation_action_relationship(session):
     # Create legislation
@@ -87,14 +93,14 @@ def test_legislation_action_relationship(session):
         action_date=date(2026, 1, 3),
         description="First Action",
         action_type="Committee",
-        display_order=1
+        display_order=1,
     )
     action2 = LegislationAction(
         legislation_id=leg.id,
         action_date=date(2026, 1, 4),
         description="Second Action",
         action_type="Vote",
-        display_order=2
+        display_order=2,
     )
     session.add_all([action1, action2])
     session.commit()
@@ -110,13 +116,10 @@ def test_legislation_action_relationship(session):
 # BudgetData self-referential FK
 # ------------------------------
 
+
 def test_budgetdata_self_reference(session):
     parent = BudgetData(
-        fiscal_year=2026,
-        category="Parent Category",
-        amount=1000.00,
-        display_order=1,
-        updated_by=1
+        fiscal_year=2026, category="Parent Category", amount=1000.00, display_order=1, updated_by=1
     )
     session.add(parent)
     session.commit()
@@ -127,7 +130,7 @@ def test_budgetdata_self_reference(session):
         amount=500.00,
         parent_category_id=parent.id,
         display_order=2,
-        updated_by=1
+        updated_by=1,
     )
     session.add(child)
     session.commit()
