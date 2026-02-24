@@ -3,7 +3,6 @@
 from app.models.cms import AppConfig, Committee, CommitteeMembership, News, Staff, StaticPageContent
 from .Admin import Admin
 from .base import Base
-from .Admin import Admin
 from .BudgetData import BudgetData
 from .CalendarEvent import CalendarEvent
 from .CarouselSlide import CarouselSlide
