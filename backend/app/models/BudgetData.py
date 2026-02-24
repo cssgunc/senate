@@ -10,7 +10,7 @@ class BudgetData(Base):
     __tablename__ = "budget_data"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    fiscal_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    fiscal_year: Mapped[str] = mapped_column(String(20), nullable=False)
     category: Mapped[str] = mapped_column(String(255), nullable=False)
     amount: Mapped[float] = mapped_column(DECIMAL(12, 2), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
