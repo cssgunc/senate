@@ -10,6 +10,9 @@ from app.models import (
     BudgetData
 )
 
+# Imports models
+from app.models import BudgetData, Legislation, LegislationAction, Base
+
 # ------------------------------
 # Pytest Fixtures
 # ------------------------------
