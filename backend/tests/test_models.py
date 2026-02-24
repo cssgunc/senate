@@ -1,19 +1,11 @@
 """Tests for SQL Alchemy models, explicitly Legislation, Events, Carousel, Finance, Budget"""
-
 from datetime import date
 
+import pytest
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.orm import sessionmaker
+
 # Import your models
-from app.models import (
-    Base,
-    Legislation,
-    LegislationAction,
-    BudgetData
-)
-
-# Imports models
-from app.models import BudgetData, Legislation, LegislationAction, Base
-
-# Imports models
 from app.models import Base, BudgetData, Legislation, LegislationAction
 
 # ------------------------------
