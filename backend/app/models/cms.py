@@ -13,7 +13,7 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, Uni
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
-from app.database import Base
+from app.models.base import Base
 
 # Admin and Senator are defined in the Core Entities models (issue #3).
 # TYPE_CHECKING imports are never executed at runtime, so there is no circular

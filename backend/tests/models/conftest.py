@@ -1,68 +1,19 @@
-"""Fixtures for CMS model tests.
+"""Fixtures for model tests.
 
 Uses an in-memory SQLite database so tests run without a SQL Server connection.
-Stub Admin and Senator models satisfy the FK constraints referenced in cms.py.
-These stubs will be replaced by real models once issue #3 is merged.
 """
 
 import pytest
-from sqlalchemy import Integer, String, create_engine, event
-from sqlalchemy.orm import Mapped, mapped_column, relationship, sessionmaker
+from sqlalchemy import CheckConstraint, create_engine, event
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.database import Base
-
-# ---------------------------------------------------------------------------
-# Stub models — FK targets defined in cms.py that come from issue #3.
-# Must be registered with Base BEFORE cms.py models are imported so that
-# SQLAlchemy's mapper can resolve the relationship strings.
-# ---------------------------------------------------------------------------
-
-
-class Admin(Base):
-    """Minimal Admin stub to satisfy FKs: author_id, last_edited_by, updated_by."""
-
-    __tablename__ = "admin"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
-
-    # back_populates counterparts required by cms.py relationship declarations
-    news_articles = relationship(
-        "News", back_populates="author", foreign_keys="[News.author_id]"
-    )
-    edited_pages = relationship(
-        "StaticPageContent",
-        back_populates="editor",
-        foreign_keys="[StaticPageContent.last_edited_by]",
-    )
-    config_updates = relationship(
-        "AppConfig", back_populates="updater", foreign_keys="[AppConfig.updated_by]"
-    )
-
-
-class Senator(Base):
-    """Minimal Senator stub to satisfy FKs: senator_id, chair_senator_id."""
-
-    __tablename__ = "senator"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
-
-    # back_populates counterpart required by CommitteeMembership.senator
-    committee_memberships = relationship(
-        "CommitteeMembership",
-        back_populates="senator",
-        foreign_keys="[CommitteeMembership.senator_id]",
-    )
-
-
-# Import Committee after stubs are registered so the relationship string resolves.
-# All other CMS models are imported directly in test_cms_models.py where they are used.
-from app.models.cms import Committee  # noqa: E402
+# Import all models so they are registered with Base before create_all
+import app.models  # noqa: F401
+from app.models import Admin, Senator
+from app.models.base import Base
+from app.models.cms import Committee
+from app.models.District import District
 
 # ---------------------------------------------------------------------------
 # Shared in-memory SQLite engine (session-scoped — created once per test run)
@@ -85,6 +36,12 @@ def engine():
         cursor = dbapi_conn.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
+
+    # Remove SQL Server-specific CHECK constraints before creating tables on SQLite
+    for table in Base.metadata.tables.values():
+        table.constraints = {
+            c for c in table.constraints if not isinstance(c, CheckConstraint)
+        }
 
     Base.metadata.create_all(bind=_engine)
     yield _engine
@@ -117,18 +74,39 @@ def session(engine):
 
 
 @pytest.fixture()
+def district(session):
+    """A flushed District instance available as a FK target in tests."""
+    d = District(district_name="District 1", description="Test district")
+    session.add(d)
+    session.flush()
+    return d
+
+
+@pytest.fixture()
 def admin(session):
     """A flushed Admin instance available as a FK target in tests."""
-    a = Admin(email="test.admin@unc.edu", first_name="Test", last_name="Admin")
+    a = Admin(
+        email="test.admin@unc.edu",
+        first_name="Test",
+        last_name="Admin",
+        pid="123456789",
+        role="admin",
+    )
     session.add(a)
     session.flush()
     return a
 
 
 @pytest.fixture()
-def senator(session):
+def senator(session, district):
     """A flushed Senator instance available as a FK target in tests."""
-    s = Senator(first_name="Jane", last_name="Doe")
+    s = Senator(
+        first_name="Jane",
+        last_name="Doe",
+        email="jane.doe@unc.edu",
+        district=district.id,
+        session_number=1,
+    )
     session.add(s)
     session.flush()
     return s
