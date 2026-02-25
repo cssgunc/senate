@@ -39,16 +39,7 @@ class TestAdminModel:
 
     def test_columns_exist(self):
         cols = get_columns(Admin)
-        expected = {
-            "id",
-            "email",
-            "first_name",
-            "last_name",
-            "pid",
-            "role",
-            "created_at",
-            "updated_at",
-        }
+        expected = {"id", "email", "first_name", "last_name", "pid", "role", "created_at", "updated_at"}
         assert expected == set(cols.keys())
 
     def test_pid_is_char_9(self):
@@ -58,8 +49,9 @@ class TestAdminModel:
     def test_pid_check_constraint(self):
         # Verify via __table_args__ (table.constraints may be modified by test conftest for SQLite)
         from sqlalchemy import CheckConstraint
-
-        check_constraints = [c for c in Admin.__table_args__ if isinstance(c, CheckConstraint)]
+        check_constraints = [
+            c for c in Admin.__table_args__ if isinstance(c, CheckConstraint)
+        ]
         assert len(check_constraints) == 1
         assert check_constraints[0].name == "ck_admin_pid_format"
 
@@ -119,16 +111,8 @@ class TestSenatorModel:
     def test_columns_exist(self):
         cols = get_columns(Senator)
         expected = {
-            "id",
-            "first_name",
-            "last_name",
-            "email",
-            "headshot_url",
-            "district",
-            "is_active",
-            "session_number",
-            "created_at",
-            "updated_at",
+            "id", "first_name", "last_name", "email", "headshot_url",
+            "district", "is_active", "session_number", "created_at", "updated_at",
         }
         assert expected == set(cols.keys())
 
@@ -154,17 +138,8 @@ class TestLeadershipModel:
     def test_columns_exist(self):
         cols = get_columns(Leadership)
         expected = {
-            "id",
-            "senator_id",
-            "title",
-            "first_name",
-            "last_name",
-            "email",
-            "headshot_url",
-            "is_active",
-            "session_number",
-            "created_at",
-            "updated_at",
+            "id", "senator_id", "title", "first_name", "last_name", "email",
+            "headshot_url", "is_active", "session_number", "created_at", "updated_at",
         }
         assert expected == set(cols.keys())
 
@@ -217,14 +192,5 @@ class TestAdminSectionsModel:
 
 def test_all_core_models_exported():
     from app import models
-
-    expected = {
-        "Admin",
-        "District",
-        "DistrictMapping",
-        "Senator",
-        "Leadership",
-        "Sections",
-        "AdminSections",
-    }
+    expected = {"Admin", "District", "DistrictMapping", "Senator", "Leadership", "Sections", "AdminSections"}
     assert expected.issubset(set(models.__all__))
