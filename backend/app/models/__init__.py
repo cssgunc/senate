@@ -7,10 +7,13 @@ from .base import Base
 from .BudgetData import BudgetData
 from .CalendarEvent import CalendarEvent
 from .CarouselSlide import CarouselSlide
+from .District import District, DistrictMapping
 from .FinanceHearingConfig import FinanceHearingConfig
 from .FinanceHearingDate import FinanceHearingDate
+from .Leadership import Leadership
 from .Legislation import Legislation
 from .LegislationAction import LegislationAction
+from .Sections import AdminSections, Sections
 from .Senator import Senator
 
 __all__ = [
@@ -29,5 +32,10 @@ __all__ = [
     "FinanceHearingDate",
     "BudgetData",
     "CalendarEvent",
-    "CarouselSlide"
+    "CarouselSlide",
+    "District",
+    "DistrictMapping",
+    "Leadership",
+    "Sections",
+    "AdminSections",
 ]
