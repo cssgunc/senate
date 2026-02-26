@@ -16,6 +16,7 @@ Full-stack web application for the UNC Chapel Hill Undergraduate Senate (CS+SG p
 This project uses VS Code Dev Containers (Docker-based). The dev container runs Python 3.13-slim with Node.js 24 LTS, SQL Server Express 2022, and auto-installs all dependencies via `post_create.sh`.
 
 Environment files must exist before building the container:
+
 - `backend/.env` (copy from `backend/.env.example`)
 - `frontend/.env.local` (copy from `frontend/.env.local.example`)
 
@@ -64,6 +65,13 @@ python -m script.create_test_db     # Create test database
 python -m script.reset_dev          # Reset dev DB with mock data (interactive confirmation)
 ```
 
+### Pre-commit
+
+```bash
+# From /workspace:
+pre-commit run --all # Ensure all files are formatted and linted before committing
+```
+
 ## Architecture
 
 ### Backend (`backend/`)
@@ -71,6 +79,7 @@ python -m script.reset_dev          # Reset dev DB with mock data (interactive c
 FastAPI app with entry point at `app/main.py`. Routers are registered via `app.include_router()`. Database sessions are injected via FastAPI's `Depends(get_db)` from `app/database.py`.
 
 Key directories:
+
 - `app/models/` — SQLAlchemy models (inherit from `app.database.Base`)
 - `app/routers/` — API route modules
 - `app/schemas/` — Pydantic request/response models
@@ -84,6 +93,7 @@ API docs available at `http://localhost:8000/docs` when running.
 Next.js App Router with pages in `src/app/`. Uses `"use client"` directive for interactive components.
 
 Key conventions:
+
 - `src/lib/api.ts` — centralized `fetchAPI()` helper; all backend calls go through this
 - `src/components/` — reusable React components
 - Import alias: `@/` maps to `./src/`

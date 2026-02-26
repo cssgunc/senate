@@ -21,7 +21,7 @@ from app.models.base import Base
 # that every annotation in this file is evaluated lazily (as a string), so
 # Mapped[Admin] and Mapped[Senator] also do not raise NameError at runtime.
 if TYPE_CHECKING:
-    from app.models.core import Admin, Senator  # type: ignore[import-not-found]  # noqa: F401
+    from app.models import Admin, Senator  # noqa: F401
 
 
 class News(Base):
@@ -157,9 +157,7 @@ class StaticPageContent(Base):
     page_slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
-    last_edited_by: Mapped[int] = mapped_column(
-        Integer, ForeignKey("admin.id", ondelete="RESTRICT"), nullable=False
-    )
+    last_edited_by: Mapped[int] = mapped_column(Integer, ForeignKey("admin.id"), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
