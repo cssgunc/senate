@@ -1,3 +1,10 @@
-from sqlalchemy.orm import declarative_base
+"""Shared SQLAlchemy Base for models.
 
-Base = declarative_base()
+Keep a single Base instance across the app so metadata is centralized.
+"""
+
+from app.database import Base as _Base
+
+Base = _Base
+
+__all__ = ["Base"]
