@@ -30,6 +30,10 @@ class Admin(Base):
             "pid LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'",
             name="ck_admin_pid_format",
         ),
+        CheckConstraint(
+            "role IN ('admin', 'staff')",
+            name="ck_admin_role",
+        ),
     )
 
     # Relationships (referenced by cms.py)

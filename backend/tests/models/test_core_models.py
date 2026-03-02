@@ -52,8 +52,16 @@ class TestAdminModel:
         check_constraints = [
             c for c in Admin.__table_args__ if isinstance(c, CheckConstraint)
         ]
-        assert len(check_constraints) == 1
-        assert check_constraints[0].name == "ck_admin_pid_format"
+        names = {c.name for c in check_constraints}
+        assert "ck_admin_pid_format" in names
+
+    def test_role_check_constraint(self):
+        from sqlalchemy import CheckConstraint
+        check_constraints = [
+            c for c in Admin.__table_args__ if isinstance(c, CheckConstraint)
+        ]
+        names = {c.name for c in check_constraints}
+        assert "ck_admin_role" in names
 
     def test_email_is_unique(self):
         cols = get_columns(Admin)
