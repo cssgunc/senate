@@ -19,16 +19,6 @@ from app.schemas import (
     StaticPageDTO,
 )
 
-
-# ------------------------
-# Mock ORM helper
-# ------------------------
-class MockAdmin:
-    def __init__(self, first_name: str, last_name: str):
-        self.first_name = first_name
-        self.last_name = last_name
-
-
 # ------------------------
 # Test CommitteeDTO
 # ------------------------
@@ -70,7 +60,14 @@ def test_committee_dto_serialization():
 # Test NewsDTO with computed field
 # ------------------------
 def test_news_dto_computed_author():
-    admin = MockAdmin(first_name="Alice", last_name="Admin")
+    admin = AccountDTO(
+        id=1,
+        email="user@example.com",
+        pid="pid123",
+        first_name="Mock",
+        last_name="Admin",
+        role="admin"
+    )
 
     news = NewsDTO(
         id=1,
@@ -84,7 +81,7 @@ def test_news_dto_computed_author():
     )
 
     data = news.model_dump()
-    assert data["author_name"] == "Alice Admin"
+    assert data["author_name"] == "Mock Admin"
 
 
 # ------------------------

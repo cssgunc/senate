@@ -3,6 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, computed_field
 
+from .AccountDTO import AccountDTO
 
 class NewsDTO(BaseModel):
     id: int
@@ -13,7 +14,7 @@ class NewsDTO(BaseModel):
     date_published: datetime
     date_last_edited: datetime
 
-    admin: Optional[object] = None
+    admin: Optional["AccountDTO"] = None
 
     model_config = ConfigDict(from_attributes=True)
 
