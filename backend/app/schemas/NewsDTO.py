@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, computed_field
 
 from .AccountDTO import AccountDTO
 
+
 class NewsDTO(BaseModel):
     id: int
     title: str
