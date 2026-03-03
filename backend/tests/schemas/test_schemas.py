@@ -1,7 +1,5 @@
 from datetime import date, datetime, time
 
-import pytest
-
 from app.schemas import (
     AccountDTO,
     BudgetDataDTO,
