@@ -1,65 +1,37 @@
-"""Pydantic schemas — input and output DTOs."""
+"""Pydantic schemas"""
 
-from app.schemas.account import AccountDTO, CreateAccountDTO
-from app.schemas.budget import BudgetDataDTO, CreateBudgetDataDTO
-from app.schemas.calendar_event import CreateCalendarEventDTO
-from app.schemas.carousel import CarouselSlideDTO, CreateCarouselSlideDTO
-from app.schemas.committee import AssignCommitteeMemberDTO, CommitteeDTO, CreateCommitteeDTO
-from app.schemas.district import DistrictDTO, DistrictLookupDTO
-from app.schemas.finance import (
-    CreateFinanceHearingDateDTO,
-    FinanceHearingConfigDTO,
-    FinanceHearingDateDTO,
-    UpdateFinanceHearingConfigDTO,
-)
-from app.schemas.leadership import LeadershipDTO
-from app.schemas.legislation import (
-    CreateLegislationActionDTO,
-    CreateLegislationDTO,
-    LegislationActionDTO,
-    LegislationDTO,
-)
-from app.schemas.news import CreateNewsDTO, NewsDTO, UpdateNewsDTO
-from app.schemas.senator import (
-    CommitteeAssignmentDTO,
-    CreateSenatorDTO,
-    SenatorDTO,
-    UpdateSenatorDTO,
-)
-from app.schemas.staff import CreateStaffDTO, StaffDTO
-from app.schemas.static_page import StaticPageDTO, UpdateStaticPageDTO
+from .AccountDTO import AccountDTO
+from .BudgetDataDTO import BudgetDataDTO
+from .CalendarEventDTO import CalendarEventDTO
+from .CarouselSlideDTO import CarouselSlideDTO
+from .CommitteeAssignmentDTO import CommitteeAssignmentDTO
+from .CommitteeDTO import CommitteeDTO
+from .DistrictDTO import DistrictDTO
+from .FinanceHearingConfigDTO import FinanceHearingConfigDTO
+from .FinanceHearingDateDTO import FinanceHearingDateDTO
+from .LeadershipDTO import LeadershipDTO
+from .LegislationActionDTO import LegislationActionDTO
+from .LegislationDTO import LegislationDTO
+from .NewsDTO import NewsDTO
+from .SenatorDTO import SenatorDTO
+from .StaffDTO import StaffDTO
+from .StaticPageDTO import StaticPageDTO
 
 __all__ = [
+    "SenatorDTO",
     "AccountDTO",
-    "AssignCommitteeMemberDTO",
     "BudgetDataDTO",
+    "CalendarEventDTO",
     "CarouselSlideDTO",
     "CommitteeAssignmentDTO",
     "CommitteeDTO",
-    "CreateAccountDTO",
-    "CreateBudgetDataDTO",
-    "CreateCalendarEventDTO",
-    "CreateCarouselSlideDTO",
-    "CreateCommitteeDTO",
-    "CreateFinanceHearingDateDTO",
-    "CreateLegislationActionDTO",
-    "CreateLegislationDTO",
-    "CreateNewsDTO",
-    "CreateSenatorDTO",
-    "CreateStaffDTO",
     "DistrictDTO",
-    "DistrictLookupDTO",
     "FinanceHearingConfigDTO",
-    "FinanceHearingDateDTO",
     "LeadershipDTO",
+    "FinanceHearingDateDTO",
     "LegislationActionDTO",
     "LegislationDTO",
     "NewsDTO",
-    "SenatorDTO",
     "StaffDTO",
     "StaticPageDTO",
-    "UpdateFinanceHearingConfigDTO",
-    "UpdateNewsDTO",
-    "UpdateSenatorDTO",
-    "UpdateStaticPageDTO",
 ]
