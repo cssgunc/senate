@@ -14,7 +14,5 @@ class FinanceHearingConfig(Base):
     season_end: Mapped[date | None] = mapped_column(Date, nullable=True)
     updated_by: Mapped[int] = mapped_column(ForeignKey("admin.id"), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=func.now(),
-        onupdate=func.now()
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
     )

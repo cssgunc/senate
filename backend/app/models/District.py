@@ -1,6 +1,5 @@
 """District and DistrictMapping models."""
 
-
 from typing import Optional
 
 from sqlalchemy import ForeignKey, Integer, String
@@ -21,7 +20,5 @@ class DistrictMapping(Base):
     __tablename__ = "district_mapping"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    district_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("district.id"), nullable=False
-    )
+    district_id: Mapped[int] = mapped_column(Integer, ForeignKey("district.id"), nullable=False)
     mapping_value: Mapped[str] = mapped_column(String(500), nullable=False)

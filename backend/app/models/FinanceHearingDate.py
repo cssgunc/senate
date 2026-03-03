@@ -7,6 +7,7 @@ from .base import Base
 
 # effectively a singleton row
 
+
 class FinanceHearingDate(Base):
     __tablename__ = "finance_hearing_date"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

@@ -17,9 +17,5 @@ class AdminSections(Base):
     __tablename__ = "admin_sections"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    section_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("sections.id"), nullable=False
-    )
-    admin_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("admin.id"), nullable=False
-    )
+    section_id: Mapped[int] = mapped_column(Integer, ForeignKey("sections.id"), nullable=False)
+    admin_id: Mapped[int] = mapped_column(Integer, ForeignKey("admin.id"), nullable=False)

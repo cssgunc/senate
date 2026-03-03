@@ -50,16 +50,28 @@ class TestTableCreation:
         inspector = sa_inspect(engine)
         cols = {c["name"] for c in inspector.get_columns("news")}
         assert cols >= {
-            "id", "title", "body", "summary", "image_url",
-            "author_id", "date_published", "date_last_edited", "is_published",
+            "id",
+            "title",
+            "body",
+            "summary",
+            "image_url",
+            "author_id",
+            "date_published",
+            "date_last_edited",
+            "is_published",
         }
 
     def test_committee_columns_exist(self, engine):
         inspector = sa_inspect(engine)
         cols = {c["name"] for c in inspector.get_columns("committee")}
         assert cols >= {
-            "id", "name", "description", "chair_senator_id",
-            "chair_name", "chair_email", "is_active",
+            "id",
+            "name",
+            "description",
+            "chair_senator_id",
+            "chair_name",
+            "chair_email",
+            "is_active",
         }
 
     def test_committee_membership_columns_exist(self, engine):
@@ -71,8 +83,14 @@ class TestTableCreation:
         inspector = sa_inspect(engine)
         cols = {c["name"] for c in inspector.get_columns("staff")}
         assert cols >= {
-            "id", "first_name", "last_name", "title",
-            "email", "photo_url", "display_order", "is_active",
+            "id",
+            "first_name",
+            "last_name",
+            "title",
+            "email",
+            "photo_url",
+            "display_order",
+            "is_active",
         }
 
     def test_static_page_content_columns_exist(self, engine):
@@ -169,9 +187,7 @@ class TestNewsModel:
 
         # Force date_last_edited to a known past date so the comparison is clear
         old_date = datetime(2020, 1, 1, 0, 0, 0)
-        session.execute(
-            update(News).where(News.id == article.id).values(date_last_edited=old_date)
-        )
+        session.execute(update(News).where(News.id == article.id).values(date_last_edited=old_date))
         session.refresh(article)
         assert article.date_last_edited == old_date
 
@@ -309,7 +325,9 @@ class TestCommitteeMembershipModel:
     def test_composite_unique_constraint_prevents_duplicate(self, session, senator, committee):
         """A senator cannot be assigned to the same committee twice."""
         m1 = CommitteeMembership(senator_id=senator.id, committee_id=committee.id, role="Member")
-        m2 = CommitteeMembership(senator_id=senator.id, committee_id=committee.id, role="Vice Chair")
+        m2 = CommitteeMembership(
+            senator_id=senator.id, committee_id=committee.id, role="Vice Chair"
+        )
         session.add(m1)
         session.flush()
         session.add(m2)
@@ -392,7 +410,9 @@ class TestStaffModel:
         assert s.display_order == 0
 
     def test_staff_repr(self):
-        s = Staff(first_name="Alice", last_name="Nguyen", title="T", email="e@e.com", display_order=1)
+        s = Staff(
+            first_name="Alice", last_name="Nguyen", title="T", email="e@e.com", display_order=1
+        )
         assert "Alice" in repr(s)
         assert "Nguyen" in repr(s)
 
@@ -543,9 +563,7 @@ class TestAppConfigModel:
         session.flush()
 
         old_date = datetime(2020, 3, 15)
-        session.execute(
-            update(AppConfig).where(AppConfig.id == cfg.id).values(updated_at=old_date)
-        )
+        session.execute(update(AppConfig).where(AppConfig.id == cfg.id).values(updated_at=old_date))
         session.refresh(cfg)
         assert cfg.updated_at == old_date
 

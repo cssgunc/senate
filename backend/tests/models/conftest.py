@@ -39,9 +39,7 @@ def engine():
 
     # Remove SQL Server-specific CHECK constraints before creating tables on SQLite
     for table in Base.metadata.tables.values():
-        table.constraints = {
-            c for c in table.constraints if not isinstance(c, CheckConstraint)
-        }
+        table.constraints = {c for c in table.constraints if not isinstance(c, CheckConstraint)}
 
     Base.metadata.create_all(bind=_engine)
     yield _engine
