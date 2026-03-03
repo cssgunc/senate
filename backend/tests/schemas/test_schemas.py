@@ -25,9 +25,7 @@ from app.schemas import (
 # ------------------------
 def test_committee_dto_serialization():
     committee_assignment = CommitteeAssignmentDTO(
-        committee_id=1,
-        committee_name="Finance",
-        role="Member"
+        committee_id=1, committee_name="Finance", role="Member"
     )
 
     senator = SenatorDTO(
@@ -39,7 +37,7 @@ def test_committee_dto_serialization():
         district_id=100,
         is_active=True,
         session_number=2026,
-        committees=[committee_assignment]
+        committees=[committee_assignment],
     )
 
     committee = CommitteeDTO(
@@ -49,7 +47,7 @@ def test_committee_dto_serialization():
         chair_name="Jane Chair",
         chair_email="chair@example.com",
         members=[senator],
-        is_active=True
+        is_active=True,
     )
 
     data = committee.model_dump()
@@ -67,7 +65,7 @@ def test_news_dto_computed_author():
         pid="pid123",
         first_name="Mock",
         last_name="Admin",
-        role="admin"
+        role="admin",
     )
 
     news = NewsDTO(
@@ -78,7 +76,7 @@ def test_news_dto_computed_author():
         image_url=None,
         date_published=datetime(2026, 3, 3, 10, 0),
         date_last_edited=datetime(2026, 3, 3, 11, 0),
-        admin=admin
+        author=admin,
     )
 
     data = news.model_dump()
@@ -97,7 +95,7 @@ def test_leadership_dto():
         email="bob@example.com",
         photo_url=None,
         session_number=2026,
-        is_current=True
+        is_current=True,
     )
 
     data = leadership.model_dump()
@@ -113,7 +111,7 @@ def test_legislation_dto():
         id=1,
         action_date=date(2026, 1, 1),
         description="Introduced",
-        action_type="Bill Introduction"
+        action_type="Bill Introduction",
     )
 
     legislation = LegislationDTO(
@@ -128,7 +126,7 @@ def test_legislation_dto():
         type="Bill",
         date_introduced=date(2026, 1, 1),
         date_last_action=date(2026, 1, 2),
-        actions=[action]
+        actions=[action],
     )
 
     data = legislation.model_dump()
@@ -145,7 +143,7 @@ def test_carousel_slide_dto():
         overlay_text="Overlay",
         link_url="https://example.com",
         display_order=1,
-        is_active=True
+        is_active=True,
     )
 
     data = slide.model_dump()
@@ -162,14 +160,14 @@ def test_finance_hearing_dtos():
         hearing_time=time(14, 0),
         location="Room 101",
         description="Budget Hearing",
-        is_full=False
+        is_full=False,
     )
 
     config = FinanceHearingConfigDTO(
         is_active=True,
         season_start=date(2026, 1, 1),
         season_end=date(2026, 12, 31),
-        dates=[hearing_date]
+        dates=[hearing_date],
     )
 
     data = config.model_dump()
@@ -186,7 +184,7 @@ def test_staff_dto():
         last_name="Staff",
         title="Manager",
         email="sally@example.com",
-        photo_url=None
+        photo_url=None,
     )
 
     data = staff.model_dump()
@@ -206,15 +204,10 @@ def test_district_dto():
         district_id=100,
         is_active=True,
         session_number=2026,
-        committees=[]
+        committees=[],
     )
 
-    district = DistrictDTO(
-        id=1,
-        district_name="District 1",
-        description=None,
-        senator=[senator]
-    )
+    district = DistrictDTO(id=1, district_name="District 1", description=None, senator=[senator])
 
     data = district.model_dump()
     assert data["senator"][0]["last_name"] == "Doe"
@@ -230,7 +223,7 @@ def test_budget_dto_recursive():
         category="Subcategory",
         amount=100.0,
         description=None,
-        children=[]
+        children=[],
     )
 
     parent_budget = BudgetDataDTO(
@@ -239,7 +232,7 @@ def test_budget_dto_recursive():
         category="Main",
         amount=1000.0,
         description="Main budget",
-        children=[child_budget]
+        children=[child_budget],
     )
 
     data = parent_budget.model_dump()
@@ -251,11 +244,7 @@ def test_budget_dto_recursive():
 # ------------------------
 def test_static_page_dto():
     page = StaticPageDTO(
-        id=1,
-        page_slug="about",
-        title="About Us",
-        body="Content",
-        updated_at=datetime.now()
+        id=1, page_slug="about", title="About Us", body="Content", updated_at=datetime.now()
     )
 
     data = page.model_dump()
@@ -272,11 +261,12 @@ def test_account_dto():
         pid="pid123",
         first_name="User",
         last_name="Example",
-        role="admin"
+        role="admin",
     )
 
     data = account.model_dump()
     assert data["role"] == "admin"
+
 
 # ------------------------
 # Test CalendarEventDTO
@@ -289,7 +279,7 @@ def test_calendar_event_dto():
         start_datetime=datetime(2026, 3, 10, 9, 0),
         end_datetime=datetime(2026, 3, 10, 11, 0),
         location="Room 101",
-        event_type="Hearing"
+        event_type="Hearing",
     )
 
     data = event.model_dump()
