@@ -19,6 +19,7 @@ from app.schemas import (
     StaticPageDTO,
 )
 
+
 # ------------------------
 # Test CommitteeDTO
 # ------------------------
