@@ -1,3 +1,6 @@
+# Pydantic
+pydantic[email]==2.12.5
+
 # FastAPI and server
 fastapi==0.115.12
 uvicorn[standard]==0.34.0
@@ -13,6 +16,3 @@ httpx==0.28.1
 pre-commit==3.7.1
 ruff==0.9.3
 junitparser==3.2.0
-
-# Pydantic (ships with fastapi)
-pydantic>=2.8,<3.0.0

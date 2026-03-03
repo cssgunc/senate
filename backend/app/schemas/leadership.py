@@ -1,4 +1,4 @@
-from typing import Optional
+"""Leadership schemas — output DTOs."""
 
 from pydantic import BaseModel, ConfigDict
 
@@ -9,7 +9,7 @@ class LeadershipDTO(BaseModel):
     first_name: str
     last_name: str
     email: str
-    photo_url: Optional[str] = None
+    photo_url: str | None
     session_number: int
     is_current: bool
 
