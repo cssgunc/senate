@@ -1,8 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { getNews } from "@/lib/api";
 import { format } from "date-fns";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 
 export default async function NewsPage({
   searchParams,
@@ -11,7 +11,10 @@ export default async function NewsPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const pageParam = resolvedSearchParams.page;
-  const page = parseInt(Array.isArray(pageParam) ? pageParam[0] : pageParam || "1", 10);
+  const page = parseInt(
+    Array.isArray(pageParam) ? pageParam[0] : pageParam || "1",
+    10,
+  );
   const newsData = await getNews(page, 10);
 
   return (
@@ -29,7 +32,9 @@ export default async function NewsPage({
                 />
               </div>
               <h2 className="text-lg font-bold mb-2">{article.title}</h2>
-              <p className="text-sm text-gray-600 mb-2 line-clamp-3">{article.description}</p>
+              <p className="text-sm text-gray-600 mb-2 line-clamp-3">
+                {article.description}
+              </p>
               <p className="text-xs text-gray-500 mt-auto">
                 {format(new Date(article.date_published), "MMMM d, yyyy")}
               </p>
