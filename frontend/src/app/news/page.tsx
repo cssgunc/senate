@@ -66,6 +66,7 @@ export default async function NewsPage({
           Next
         </Link>
       </div>
+
     </div>
   );
 }

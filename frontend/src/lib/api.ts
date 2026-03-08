@@ -20,10 +20,21 @@ export async function getNews(page: number = 1, limit: number = 10) {
   try {
     const data = await fetchAPI(`/news?page=${page}&limit=${limit}`);
     return data;
-  } catch (error) {
-    console.error("Failed to fetch news, falling back to mock data", error);
+  } catch {
+    console.warn("[API] Backend unavailable — using mock news data");
     const { mockNews } = await import("@/lib/mock/news");
     const start = (page - 1) * limit;
     return mockNews.slice(start, start + limit);
+  }
+}
+
+export async function getNewsById(id: string) {
+  try {
+    const data = await fetchAPI(`/news/${id}`);
+    return data;
+  } catch {
+    console.warn("[API] Backend unavailable — using mock news article");
+    const { mockNews } = await import("@/lib/mock/news");
+    return mockNews.find((article) => article.id === id) ?? null;
   }
 }
