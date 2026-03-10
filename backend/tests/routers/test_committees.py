@@ -86,16 +86,16 @@ def seeded_data(test_db):
 
     # --- Create Memberships ---
     m1 = CommitteeMembership(
-        senator_id=s1.id, 
-        committee_id=c1.id, 
-        role="Chair", 
+        senator_id=s1.id,
+        committee_id=c1.id,
+        role="Chair",
         committee=c1,
         senator=s1
         )
     m2 = CommitteeMembership(
-        senator_id=s2.id, 
-        committee_id=c1.id, 
-        role="Member", 
+        senator_id=s2.id,
+        committee_id=c1.id,
+        role="Member",
         committee=c1,
         senator=s2
         )

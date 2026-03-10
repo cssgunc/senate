@@ -5,7 +5,6 @@ from app.database import get_db
 from app.models import Committee, CommitteeMembership
 from app.schemas import CommitteeDTO
 
-
 router = APIRouter(prefix="/committees", tags=["committees"])
 
 @router.get("/", response_model=list[CommitteeDTO])
@@ -81,7 +80,7 @@ def get_committee(id: int, db: Session = Depends(get_db)):
             "district_id": senator.district_id,
             "is_active": senator.is_active,
             "session_number": senator.session_number,
-            "committees": [ 
+            "committees": [
                 {
                     "committee_id": membership.committee.id,
                     "committee_name": membership.committee.name,

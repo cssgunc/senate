@@ -4,7 +4,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-
 from app.database import Base, get_db
 from app.main import app  # your FastAPI app
 from app.models import Leadership
@@ -85,7 +84,7 @@ def test_get_all_active_leadership(client, seeded_data):
     data = response.json()
 
     # Only active records should be returned
-    titles = [l["title"] for l in data]
+    titles = [leader["title"] for leader in data]
     assert "Speaker" in titles
     assert "Whip" in titles
     assert "Minority Leader" not in titles
@@ -96,8 +95,8 @@ def test_get_leadership_by_session_number(client, seeded_data):
     data = response.json()
 
     # Should return only records with session_number=2025
-    assert all(l["session_number"] == 2025 for l in data)
-    titles = [l["title"] for l in data]
+    assert all(leader["session_number"] == 2025 for leader in data)
+    titles = [leader["title"] for leader in data]
     assert set(titles) == {"Speaker", "Whip"}
 
 def test_get_leadership_by_id_success(client, seeded_data):

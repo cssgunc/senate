@@ -5,7 +5,6 @@ from app.database import get_db
 from app.models import Leadership
 from app.schemas import LeadershipDTO
 
-
 router = APIRouter(prefix="/leadership", tags=["leadership"])
 
 @router.get("/", response_model=list[LeadershipDTO])
@@ -21,8 +20,8 @@ def get_leadership(session_number: int | None = None, db: Session = Depends(get_
     leadership = query.order_by(Leadership.title).all()
 
     # dynamically add is_current based on is_active
-    for l in leadership:
-        l.is_current = l.is_active
+    for leader in leadership:
+        leader.is_current = leader.is_active
 
     return leadership
 
@@ -38,7 +37,7 @@ def get_leadership_by_id(id: int, db: Session = Depends(get_db)):
 
     if leadership is None:
         raise HTTPException(status_code=404, detail="Leadership record not found")
-    
+
     leadership.is_current = leadership.is_active
 
     return leadership
