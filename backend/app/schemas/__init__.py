@@ -3,7 +3,6 @@
 from .account import AccountDTO, CreateAccountDTO
 from .budget import BudgetDataDTO, CreateBudgetDataDTO
 from .calendar_event import CalendarEventDTO, CreateCalendarEventDTO
-from .calendar_event import CalendarEventDTO, CreateCalendarEventDTO
 from .carousel import CarouselSlideDTO, CreateCarouselSlideDTO
 from .committee import (
     AssignCommitteeMemberDTO,

@@ -3,7 +3,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import budget, carousel, districts, events, finance, health, news, pages, senators, staff
+from app.routers import (
+    budget,
+    carousel,
+    districts,
+    events,
+    finance,
+    health,
+    news,
+    pages,
+    senators,
+    staff,
+)
 
 app = FastAPI(
     title="Senate API",
