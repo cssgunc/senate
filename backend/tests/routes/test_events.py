@@ -1,7 +1,5 @@
 """Integration tests for GET /api/events (TDD Section 4.5.2)."""
 
-from datetime import datetime
-
 
 class TestListEvents:
     def test_returns_200(self, client):
