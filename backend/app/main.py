@@ -3,7 +3,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+<<<<<<< gabriel
 from app.routers import committees, health, leadership, news, senators
+=======
+from app.routers import (
+    budget,
+    carousel,
+    districts,
+    events,
+    finance,
+    health,
+    news,
+    pages,
+    senators,
+    staff,
+)
+>>>>>>> main
 
 app = FastAPI(
     title="Senate API",
@@ -24,9 +39,19 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(news.router)
 app.include_router(senators.router)
+<<<<<<< gabriel
 app.include_router(leadership.router)
 app.include_router(committees.router)
 
+=======
+app.include_router(carousel.router)
+app.include_router(districts.router)
+app.include_router(staff.router)
+app.include_router(finance.router)
+app.include_router(budget.router)
+app.include_router(pages.router)
+app.include_router(events.router)
+>>>>>>> main
 
 
 @app.get("/")
