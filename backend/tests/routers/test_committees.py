@@ -47,7 +47,7 @@ def seeded_data(test_db):
         last_name="Doe",
         email="john@example.com",
         headshot_url=None,
-        district_id=1,
+        district=1,
         is_active=True,
         session_number=2016,
     )
@@ -57,7 +57,7 @@ def seeded_data(test_db):
         last_name="Doe",
         email="jane@example.com",
         headshot_url=None,
-        district_id=2,
+        district=2,
         is_active=True,
         session_number=2025
     )

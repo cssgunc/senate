@@ -34,7 +34,7 @@ def get_committees(db: Session = Depends(get_db)):
                 "last_name": senator.last_name,
                 "email": senator.email,
                 "headshot_url": senator.headshot_url,
-                "district_id": senator.district_id,
+                "district_id": senator.district,
                 "is_active": senator.is_active,
                 "session_number": senator.session_number,
                 "committees": committees_list
@@ -77,7 +77,7 @@ def get_committee(id: int, db: Session = Depends(get_db)):
             "last_name": senator.last_name,
             "email": senator.email,
             "headshot_url": senator.headshot_url,
-            "district_id": senator.district_id,
+            "district_id": senator.district,
             "is_active": senator.is_active,
             "session_number": senator.session_number,
             "committees": [
