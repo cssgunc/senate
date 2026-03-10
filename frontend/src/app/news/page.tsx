@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
+import type { NewsArticle } from "@/lib/api";
 import { getNews } from "@/lib/api";
-import type { NewsArticle } from "@/lib/mock/news";
 import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,8 +16,9 @@ export default async function NewsPage({
     Array.isArray(pageParam) ? pageParam[0] : pageParam || "1",
     10,
   );
+  const safePage = Number.isFinite(page) && page > 0 ? page : 1;
   const pageSize = 10;
-  const newsData: NewsArticle[] = await getNews(page, pageSize);
+  const newsData: NewsArticle[] = await getNews(safePage, pageSize);
   const hasNextPage = newsData.length === pageSize;
 
   return (
@@ -47,9 +48,9 @@ export default async function NewsPage({
       </div>
 
       <div className="flex justify-between items-center mt-8">
-        {page > 1 ? (
+        {safePage > 1 ? (
           <Link
-            href={`/news?page=${page - 1}`}
+            href={`/news?page=${safePage - 1}`}
             className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200"
           >
             Previous
@@ -60,11 +61,11 @@ export default async function NewsPage({
           </div>
         )}
 
-        <span className="font-medium">Page {page}</span>
+        <span className="font-medium">Page {safePage}</span>
 
         {hasNextPage ? (
           <Link
-            href={`/news?page=${page + 1}`}
+            href={`/news?page=${safePage + 1}`}
             className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200"
           >
             Next

@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
+import type { NewsArticle } from "@/lib/api";
 import { getNews } from "@/lib/api";
-import Link from "next/link";
-import Image from "next/image";
 import { format } from "date-fns";
+import Image from "next/image";
+import Link from "next/link";
 
 export default async function RecentNews() {
   const newsData = await getNews(1, 3);
@@ -11,7 +12,7 @@ export default async function RecentNews() {
     <div className="recent-news">
       <h2 className="text-2xl font-bold mb-4">Recent News</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {newsData.map((article: any) => (
+        {newsData.map((article: NewsArticle) => (
           <Link href={`/news/${article.id}`} key={article.id}>
             <Card className="p-4 h-full transition-shadow hover:shadow-lg flex flex-col">
               <div className="relative w-full h-48 mb-4">

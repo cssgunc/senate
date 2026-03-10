@@ -1,5 +1,6 @@
 import { getNewsById } from "@/lib/api";
 import { format } from "date-fns";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 export default async function NewsDetailPage({
@@ -29,15 +30,16 @@ export default async function NewsDetailPage({
         )}
       </div>
       {article.image_url && (
-        <div className="relative w-full h-64 mb-4">
-          <img
+        <div className="relative w-full h-80 mb-4">
+          <Image
             src={article.image_url}
             alt={article.title}
-            className="object-cover w-full h-full rounded-md"
+            fill
+            className="object-cover rounded-md"
           />
         </div>
       )}
-      <div className="prose max-w-none">
+      <div className="prose max-w-none whitespace-pre-line">
         <p>{article.body}</p>
       </div>
     </div>
