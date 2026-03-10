@@ -3,10 +3,10 @@
 GET /api/budget — hierarchical BudgetData; filterable by fiscal_year; defaults to most recent
 """
 
+import re
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -14,6 +14,13 @@ from app.models.BudgetData import BudgetData
 from app.schemas.budget import BudgetDataDTO
 
 router = APIRouter(prefix="/api/budget", tags=["budget"])
+
+
+def _fiscal_year_sort_key(fiscal_year: str) -> tuple[int, str]:
+    """Sort fiscal year labels by numeric suffix first, then raw value."""
+    matches = re.findall(r"\d+", fiscal_year)
+    numeric_year = int(matches[-1]) if matches else -1
+    return numeric_year, fiscal_year
 
 
 def _build_tree(
@@ -41,9 +48,10 @@ def list_budget(
     db: Session = Depends(get_db),
 ):
     if fiscal_year is None:
-        fiscal_year = db.query(func.max(BudgetData.fiscal_year)).scalar()
-        if fiscal_year is None:
+        fiscal_years = [row[0] for row in db.query(BudgetData.fiscal_year).distinct().all()]
+        if not fiscal_years:
             return []
+        fiscal_year = max(fiscal_years, key=_fiscal_year_sort_key)
 
     rows = (
         db.query(BudgetData)

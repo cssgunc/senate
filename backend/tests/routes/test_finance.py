@@ -1,5 +1,7 @@
 """Integration tests for GET /api/finance-hearings (TDD Section 4.5.2)."""
 
+from app.models.FinanceHearingConfig import FinanceHearingConfig
+
 
 class TestGetFinanceHearings:
     def test_returns_200(self, client):
@@ -42,3 +44,12 @@ class TestGetFinanceHearings:
         data = client.get("/api/finance-hearings").json()
         full_dates = [d for d in data["dates"] if d["is_full"]]
         assert len(full_dates) == 1
+
+    def test_inactive_config_returns_empty_dates(self, client, db_session):
+        config = db_session.query(FinanceHearingConfig).first()
+        config.is_active = False
+        db_session.commit()
+
+        data = client.get("/api/finance-hearings").json()
+        assert data["is_active"] is False
+        assert data["dates"] == []

@@ -390,3 +390,15 @@ def client(seeded_engine):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.pop(get_db, None)
+
+
+@pytest.fixture(scope="function")
+def db_session(seeded_engine):
+    """Direct DB session for targeted edge-case test setup."""
+    TestSession = sessionmaker(bind=seeded_engine)
+    db = TestSession()
+    try:
+        yield db
+        db.commit()
+    finally:
+        db.close()

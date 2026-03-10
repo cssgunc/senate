@@ -19,16 +19,11 @@ from app.schemas.district import DistrictDTO
 router = APIRouter(prefix="/api/districts", tags=["districts"])
 
 
-def _senator_to_dict(senator: Senator, db: Session) -> dict[str, Any]:
-    memberships = (
-        db.query(CommitteeMembership).filter(CommitteeMembership.senator_id == senator.id).all()
-    )
-    committee_ids = [m.committee_id for m in memberships]
-    committees_by_id = (
-        {c.id: c.name for c in db.query(Committee).filter(Committee.id.in_(committee_ids)).all()}
-        if committee_ids
-        else {}
-    )
+def _senator_to_dict(
+    senator: Senator,
+    memberships: list[CommitteeMembership],
+    committees_by_id: dict[int, str],
+) -> dict[str, Any]:
     return {
         "id": senator.id,
         "first_name": senator.first_name,
@@ -49,16 +44,60 @@ def _senator_to_dict(senator: Senator, db: Session) -> dict[str, Any]:
     }
 
 
-def _district_to_dict(district: District, db: Session) -> dict[str, Any]:
+def _districts_to_dto(districts: list[District], db: Session) -> list[DistrictDTO]:
+    if not districts:
+        return []
+
+    district_ids = [district.id for district in districts]
     senators = (
-        db.query(Senator).filter(Senator.district == district.id, Senator.is_active.is_(True)).all()
+        db.query(Senator)
+        .filter(Senator.district.in_(district_ids), Senator.is_active.is_(True))
+        .all()
     )
-    return {
-        "id": district.id,
-        "district_name": district.district_name,
-        "description": district.description,
-        "senator": [_senator_to_dict(s, db) for s in senators],
-    }
+
+    senators_by_district: dict[int, list[Senator]] = {district.id: [] for district in districts}
+    for senator in senators:
+        senators_by_district.setdefault(senator.district, []).append(senator)
+
+    senator_ids = [senator.id for senator in senators]
+    memberships: list[CommitteeMembership] = []
+    if senator_ids:
+        memberships = (
+            db.query(CommitteeMembership)
+            .filter(CommitteeMembership.senator_id.in_(senator_ids))
+            .all()
+        )
+
+    memberships_by_senator: dict[int, list[CommitteeMembership]] = {senator_id: [] for senator_id in senator_ids}
+    for membership in memberships:
+        memberships_by_senator.setdefault(membership.senator_id, []).append(membership)
+
+    committee_ids = list({membership.committee_id for membership in memberships})
+    committees_by_id: dict[int, str] = {}
+    if committee_ids:
+        committees_by_id = {
+            committee.id: committee.name
+            for committee in db.query(Committee).filter(Committee.id.in_(committee_ids)).all()
+        }
+
+    return [
+        DistrictDTO.model_validate(
+            {
+                "id": district.id,
+                "district_name": district.district_name,
+                "description": district.description,
+                "senator": [
+                    _senator_to_dict(
+                        senator,
+                        memberships_by_senator.get(senator.id, []),
+                        committees_by_id,
+                    )
+                    for senator in senators_by_district.get(district.id, [])
+                ],
+            }
+        )
+        for district in districts
+    ]
 
 
 @router.get("/lookup", response_model=list[DistrictDTO])
@@ -76,10 +115,10 @@ def lookup_district(
     if not district_ids:
         return []
     districts = db.query(District).filter(District.id.in_(district_ids)).all()
-    return [DistrictDTO.model_validate(_district_to_dict(d, db)) for d in districts]
+    return _districts_to_dto(districts, db)
 
 
 @router.get("", response_model=list[DistrictDTO])
 def list_districts(db: Session = Depends(get_db)):
     districts = db.query(District).all()
-    return [DistrictDTO.model_validate(_district_to_dict(d, db)) for d in districts]
+    return _districts_to_dto(districts, db)

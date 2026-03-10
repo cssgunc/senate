@@ -1,5 +1,8 @@
 """Integration tests for GET /api/budget (TDD Section 4.5.2)."""
 
+from app.models import Admin
+from app.models.BudgetData import BudgetData
+
 
 class TestListBudget:
     def test_returns_200(self, client):
@@ -62,3 +65,23 @@ class TestListBudget:
     def test_amount_is_numeric(self, client):
         data = client.get("/api/budget").json()
         assert isinstance(data[0]["amount"], (int, float))
+
+    def test_default_year_not_lexicographic(self, client, db_session):
+        """Adding FY9 should not override FY2026 as the default year."""
+        admin = db_session.query(Admin).first()
+        db_session.add(
+            BudgetData(
+                fiscal_year="FY9",
+                category="Legacy",
+                amount=1.00,
+                description=None,
+                parent_category_id=None,
+                display_order=99,
+                updated_by=admin.id,
+            )
+        )
+        db_session.commit()
+
+        data = client.get("/api/budget").json()
+        assert len(data) >= 1
+        assert all(item["fiscal_year"] == "FY2026" for item in data)
