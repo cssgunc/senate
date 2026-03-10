@@ -5,13 +5,13 @@ Database-dependent fixtures are gated behind the 'integration' marker
 so unit tests can run without a SQL Server connection (e.g., in CI).
 """
 
-# import pytest
-# from fastapi.testclient import TestClient
+import pytest
+from fastapi.testclient import TestClient
 
-# from app.main import app
+from app.main import app
 
 
-# @pytest.fixture()
-# def client():
-#     """FastAPI test client (no DB required). This can be removed upon actual test implementations."""
-#     return TestClient(app)
+@pytest.fixture()
+def client():
+    """FastAPI test client (no DB required). This can be removed upon actual test implementations."""
+    return TestClient(app)
