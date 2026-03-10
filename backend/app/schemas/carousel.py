@@ -6,8 +6,8 @@ from pydantic import BaseModel, ConfigDict
 class CarouselSlideDTO(BaseModel):
     id: int
     image_url: str
-    overlay_text: str
-    link_url: str
+    overlay_text: str | None
+    link_url: str | None
     display_order: int
     is_active: bool
 

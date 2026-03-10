@@ -1,8 +1,20 @@
-"""Calendar event schemas — input DTOs."""
+"""Calendar event schemas — input and output DTOs."""
 
 from datetime import datetime
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
+
+
+class CalendarEventDTO(BaseModel):
+    id: int
+    title: str
+    description: str | None
+    start_datetime: datetime
+    end_datetime: datetime
+    location: str | None
+    event_type: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CreateCalendarEventDTO(BaseModel):
