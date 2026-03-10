@@ -18,7 +18,7 @@ class Senator(Base):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     headshot_url: Mapped[Optional[str]] = mapped_column(CHAR(500), nullable=True)
-    district: Mapped[int] = mapped_column(Integer, ForeignKey("district.id"), nullable=False)
+    district_id: Mapped[int] = mapped_column(Integer, ForeignKey("district.id"), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     session_number: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(

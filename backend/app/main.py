@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import health, news, senators
+from app.routers import leadership
+from app.routers import committees
 
 app = FastAPI(
     title="Senate API",
@@ -24,6 +26,9 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(news.router)
 app.include_router(senators.router)
+app.include_router(leadership.router)
+app.include_router(committees.router)
+
 
 
 @app.get("/")
