@@ -22,6 +22,7 @@ def get_leadership(session_number: int | None = None, db: Session = Depends(get_
     # dynamically add is_current based on is_active
     for leader in leadership:
         leader.is_current = leader.is_active
+        leader.photo_url = leader.headshot_url
 
     return leadership
 
@@ -39,5 +40,6 @@ def get_leadership_by_id(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Leadership record not found")
 
     leadership.is_current = leadership.is_active
+    leadership.photo_url = leadership.headshot_url
 
     return leadership
