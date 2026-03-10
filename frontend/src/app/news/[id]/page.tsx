@@ -5,14 +5,13 @@ import { notFound } from "next/navigation";
 export default async function NewsDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
   const article = await getNewsById(id);
 
   if (!article) {
     notFound();
-    return null;
   }
 
   return (
@@ -20,9 +19,13 @@ export default async function NewsDetailPage({
       <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
       <div className="text-sm text-gray-600 mb-4">
         <p>By {article.author || "Unknown Author"}</p>
-        <p>Published: {format(new Date(article.date_published), "MMMM d, yyyy")}</p>
+        <p>
+          Published: {format(new Date(article.date_published), "MMMM d, yyyy")}
+        </p>
         {article.date_edited && (
-          <p>Last Edited: {format(new Date(article.date_edited), "MMMM d, yyyy")}</p>
+          <p>
+            Last Edited: {format(new Date(article.date_edited), "MMMM d, yyyy")}
+          </p>
         )}
       </div>
       {article.image_url && (

@@ -225,7 +225,15 @@ export function Header() {
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                
+                <Link
+                  href="/"
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
+                  )}
+                >
+                  Home
+                </Link>
               </NavigationMenuItem>
 
               <NavigationMenuItem>
