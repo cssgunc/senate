@@ -20,6 +20,7 @@ class NewsDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     @computed_field
+    @property
     def author_name(self) -> str:
         if self.admin:
             return f"{self.admin.first_name} {self.admin.last_name}"
