@@ -6,10 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import (
     budget,
     carousel,
+    committees,
     districts,
     events,
     finance,
     health,
+    leadership,
     legislation,
     news,
     pages,
@@ -36,6 +38,8 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(news.router)
 app.include_router(senators.router)
+app.include_router(leadership.router)
+app.include_router(committees.router)
 app.include_router(carousel.router)
 app.include_router(districts.router)
 app.include_router(staff.router)
