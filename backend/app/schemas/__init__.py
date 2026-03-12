@@ -21,7 +21,9 @@ from .legislation import (
     CreateLegislationActionDTO,
     CreateLegislationDTO,
     LegislationActionDTO,
+    LegislationDetailDTO,
     LegislationDTO,
+    LegislationListDTO,
 )
 from .news import CreateNewsDTO, NewsDTO, UpdateNewsDTO
 from .senator import (
@@ -64,7 +66,9 @@ __all__ = [
     "CreateLegislationActionDTO",
     "CreateLegislationDTO",
     "LegislationActionDTO",
+    "LegislationDetailDTO",
     "LegislationDTO",
+    "LegislationListDTO",
     # News
     "CreateNewsDTO",
     "NewsDTO",

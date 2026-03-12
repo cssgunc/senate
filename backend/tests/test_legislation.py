@@ -77,6 +77,7 @@ def test_list_legislation_search_by_title(integration_client, db_session):
     items = resp.json()["items"]
     assert len(items) == 1
     assert items[0]["title"] == "Budget Reform Act"
+    assert "actions" not in items[0]
 
 
 def test_list_legislation_search_by_bill_number(integration_client, db_session):
@@ -143,6 +144,51 @@ def test_list_legislation_filter_by_sponsor(integration_client, db_session):
     items = resp.json()["items"]
     assert len(items) == 1
     assert items[0]["sponsor_name"] == "Alice Smith"
+
+
+def test_list_legislation_combines_multiple_filters(integration_client, db_session):
+    db_session.add(
+        make_legislation(
+            session=2,
+            title="Campus Housing Funding Act",
+            summary="Allocates new housing funds",
+            status="Passed",
+            type="Bill",
+            sponsor_name="Alice Johnson",
+        )
+    )
+    db_session.add(
+        make_legislation(
+            session=2,
+            title="Campus Housing Funding Act",
+            summary="Allocates new housing funds",
+            status="Introduced",
+            type="Bill",
+            sponsor_name="Alice Johnson",
+            bill_number="SB-002",
+        )
+    )
+    db_session.add(
+        make_legislation(
+            session=1,
+            title="Campus Housing Funding Act",
+            summary="Allocates new housing funds",
+            status="Passed",
+            type="Bill",
+            sponsor_name="Alice Johnson",
+            bill_number="SB-003",
+        )
+    )
+    db_session.commit()
+
+    resp = integration_client.get(
+        "/api/legislation?session=2&search=housing&status=Passed&type=Bill&sponsor=alice"
+    )
+    assert resp.status_code == 200
+    items = resp.json()["items"]
+    assert len(items) == 1
+    assert items[0]["status"] == "Passed"
+    assert items[0]["session_number"] == 2
 
 
 def test_list_legislation_pagination(integration_client, db_session):
@@ -257,6 +303,7 @@ def test_get_recent_legislation_default_limit(integration_client, db_session):
     resp = integration_client.get("/api/legislation/recent")
     assert resp.status_code == 200
     assert len(resp.json()) == 10
+    assert "actions" not in resp.json()[0]
 
 
 def test_get_recent_legislation_custom_limit(integration_client, db_session):

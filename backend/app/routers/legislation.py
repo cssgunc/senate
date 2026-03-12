@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.Legislation import Legislation
 from app.models.LegislationAction import LegislationAction
-from app.schemas.legislation import LegislationActionDTO, LegislationDTO
+from app.schemas.legislation import LegislationActionDTO, LegislationDetailDTO, LegislationListDTO
 from app.schemas.pagination import PaginatedResponse
 from app.utils.pagination import paginate
 
@@ -28,13 +28,7 @@ def _current_session(db: Session) -> int:
     return result or 1
 
 
-def _legislation_to_dict(leg: Legislation, db: Session) -> dict:
-    actions = (
-        db.query(LegislationAction)
-        .filter(LegislationAction.legislation_id == leg.id)
-        .order_by(LegislationAction.display_order)
-        .all()
-    )
+def _legislation_base_dict(leg: Legislation) -> dict:
     return {
         "id": leg.id,
         "title": leg.title,
@@ -47,8 +41,19 @@ def _legislation_to_dict(leg: Legislation, db: Session) -> dict:
         "type": leg.type,
         "date_introduced": leg.date_introduced,
         "date_last_action": leg.date_last_action,
-        "actions": [LegislationActionDTO.model_validate(a, from_attributes=True) for a in actions],
     }
+
+
+def _legislation_detail_dict(leg: Legislation, db: Session) -> dict:
+    actions = (
+        db.query(LegislationAction)
+        .filter(LegislationAction.legislation_id == leg.id)
+        .order_by(LegislationAction.display_order)
+        .all()
+    )
+    data = _legislation_base_dict(leg)
+    data["actions"] = [LegislationActionDTO.model_validate(a, from_attributes=True) for a in actions]
+    return data
 
 
 # /recent BEFORE /{id}
@@ -63,7 +68,7 @@ def get_recent_legislation(
     if type is not None:
         query = query.filter(Legislation.type == type)
     items = query.limit(limit).all()
-    return [LegislationDTO.model_validate(_legislation_to_dict(leg, db)) for leg in items]
+    return [LegislationListDTO.model_validate(_legislation_base_dict(leg)) for leg in items]
 
 
 @router.get("")
@@ -105,7 +110,7 @@ def list_legislation(
 
     query = query.order_by(Legislation.date_introduced.desc())
     items, total = paginate(query, page=page, limit=limit)
-    validated = [LegislationDTO.model_validate(_legislation_to_dict(leg, db)) for leg in items]
+    validated = [LegislationListDTO.model_validate(_legislation_base_dict(leg)) for leg in items]
     return PaginatedResponse(items=validated, total=total, page=page, limit=limit)
 
 
@@ -115,4 +120,4 @@ def get_legislation(legislation_id: int, db: Session = Depends(get_db)):
     leg = db.query(Legislation).filter(Legislation.id == legislation_id).first()
     if leg is None:
         raise HTTPException(status_code=404, detail="Legislation not found")
-    return LegislationDTO.model_validate(_legislation_to_dict(leg, db))
+    return LegislationDetailDTO.model_validate(_legislation_detail_dict(leg, db))
