@@ -10,6 +10,7 @@ from app.routers import (
     events,
     finance,
     health,
+    legislation,
     news,
     pages,
     senators,
@@ -42,6 +43,7 @@ app.include_router(finance.router)
 app.include_router(budget.router)
 app.include_router(pages.router)
 app.include_router(events.router)
+app.include_router(legislation.router)
 
 
 @app.get("/")
