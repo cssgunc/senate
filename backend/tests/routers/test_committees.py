@@ -12,7 +12,7 @@ def client(test_db):
 def test_get_committee_by_id(client, seeded_committees):
     committee = seeded_committees["committees"][0]
 
-    response = client.get(f"/committees/{committee.id}")
+    response = client.get(f"/api/committees/{committee.id}")
     assert response.status_code == 200
 
     data = response.json()
@@ -23,12 +23,12 @@ def test_get_committee_by_id(client, seeded_committees):
     assert roles == {"Chair", "Member"}
 
 def test_get_committee_not_found(client, test_db):
-    response = client.get("/committees/999")
+    response = client.get("/api/committees/999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Committee not found"
 
 def test_get_all_active_committees(client, seeded_committees):
-    response = client.get("/committees/")
+    response = client.get("/api/committees/")
     assert response.status_code == 200
 
     data = response.json()

@@ -1,21 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Leadership
 from app.schemas import LeadershipDTO
 
-router = APIRouter(prefix="/leadership", tags=["leadership"])
+router = APIRouter(prefix="/api/leadership", tags=["leadership"])
+
+
+def _current_session(db: Session) -> int:
+    """Return the highest session_number in the leadership table."""
+    result = db.query(func.max(Leadership.session_number)).scalar()
+    return result or 1
 
 @router.get("/", response_model=list[LeadershipDTO])
 def get_leadership(session_number: int | None = None, db: Session = Depends(get_db)):
 
-    query = db.query(Leadership)
-
-    if session_number:
-        query = query.filter(Leadership.session_number == session_number)
-    else:
-        query = query.filter(Leadership.is_active)
+    target_session = session_number if session_number is not None else _current_session(db)
+    query = db.query(Leadership).filter(Leadership.session_number == target_session)
 
     leadership = query.order_by(Leadership.title).all()
 

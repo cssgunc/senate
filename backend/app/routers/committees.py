@@ -5,12 +5,16 @@ from app.database import get_db
 from app.models import Committee, CommitteeMembership
 from app.schemas import CommitteeDTO
 
-router = APIRouter(prefix="/committees", tags=["committees"])
+router = APIRouter(prefix="/api/committees", tags=["committees"])
 
 @router.get("/", response_model=list[CommitteeDTO])
 def get_committees(db: Session = Depends(get_db)):
     committees = (
         db.query(Committee)
+        .options(
+            selectinload(Committee.memberships)
+            .selectinload(CommitteeMembership.senator)
+        )
         .filter(Committee.is_active)
         .order_by(Committee.name)
         .all()
