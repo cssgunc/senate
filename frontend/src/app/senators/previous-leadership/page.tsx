@@ -1,5 +1,6 @@
+export const dynamic = "force-dynamic";
 
-import { getLeadership } from "@/lib/api" // adjust path as needed
+import { getLeadership } from "@/lib/api"
 import { Leadership } from "@/types"
 
 // unused since seems unnecessary with current api setup but was in important notes
