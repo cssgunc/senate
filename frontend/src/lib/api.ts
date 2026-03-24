@@ -86,21 +86,10 @@ export async function getNews(
   page: number = 1,
   limit: number = 10,
 ): Promise<NewsArticle[]> {
-  try {
-    const data = await fetchAPI<PaginatedResponse<NewsApiArticle>>(
-      `/news?page=${page}&limit=${limit}`,
-    );
-    return sortMostRecentFirst(data.items.map(mapNewsArticle));
-  } catch (error) {
-    if (error instanceof ApiError && error.status < 500) {
-      throw error;
-    }
-
-    console.warn("[API] Backend unavailable — using mock news data");
-    const { mockNews } = await import("@/lib/mock/news");
-    const start = (page - 1) * limit;
-    return sortMostRecentFirst(mockNews).slice(start, start + limit);
-  }
+  const data = await fetchAPI<PaginatedResponse<NewsApiArticle>>(
+    `/news?page=${page}&limit=${limit}`,
+  );
+  return sortMostRecentFirst(data.items.map(mapNewsArticle));
 }
 
 export async function getNewsById(id: string): Promise<NewsArticle | null> {
@@ -116,8 +105,6 @@ export async function getNewsById(id: string): Promise<NewsArticle | null> {
       throw error;
     }
 
-    console.warn("[API] Backend unavailable — using mock news article");
-    const { mockNews } = await import("@/lib/mock/news");
-    return mockNews.find((article) => article.id === id) ?? null;
+    throw error;
   }
 }

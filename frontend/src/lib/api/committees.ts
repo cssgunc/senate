@@ -1,3 +1,5 @@
+import { fetchAPI } from "@/lib/api";
+
 export type Member = {
   id: string;
   name: string;
@@ -18,38 +20,65 @@ export type Committee = {
   members: Member[];
 };
 
-const MOCK_COMMITTEES: Committee[] = [
-  {
-    id: "academic-affairs",
-    name: "Academic Affairs",
-    isActive: true,
-    shortDescription:
-      "Focuses on curriculum, graduation requirements, and academic policies.",
-    fullDescription:
-      "The Academic Affairs committee works closely with faculty to ensure that the student body's academic needs are met. This includes policy reviews, course evaluations, and grading systems.",
-    chair: { name: "Jane Doe", email: "jane.doe@example.edu" },
-    members: [
-      {
-        id: "1",
-        name: "John Smith",
-        role: "Vice Chair",
-        email: "john@example.edu",
-      },
-      {
-        id: "2",
-        name: "Alice Johnson",
-        role: "Member",
-        email: "alice@example.edu",
-      },
-    ],
-  },
-];
+type CommitteeApiMember = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  committees?: Array<{
+    role?: string;
+  }>;
+};
+
+type CommitteeApiResponse = {
+  id: number;
+  name: string;
+  description: string;
+  chair_name: string;
+  chair_email: string;
+  is_active: boolean;
+  members: CommitteeApiMember[];
+};
+
+function mapCommittee(apiCommittee: CommitteeApiResponse): Committee {
+  return {
+    id: String(apiCommittee.id),
+    name: apiCommittee.name,
+    isActive: apiCommittee.is_active,
+    shortDescription: apiCommittee.description,
+    fullDescription: apiCommittee.description,
+    chair: {
+      name: apiCommittee.chair_name,
+      email: apiCommittee.chair_email,
+    },
+    members: apiCommittee.members.map((member) => ({
+      id: String(member.id),
+      name: `${member.first_name} ${member.last_name}`,
+      role: member.committees?.[0]?.role ?? "Member",
+      email: member.email,
+    })),
+  };
+}
 
 export async function getCommittees(): Promise<Committee[]> {
-  return MOCK_COMMITTEES.filter((committee) => committee.isActive);
+  const committees = await fetchAPI<CommitteeApiResponse[]>("/committees/");
+  return committees
+    .filter((committee) => committee.is_active)
+    .map(mapCommittee);
 }
 
 export async function getCommitteeById(id: string): Promise<Committee | null> {
-  const committee = MOCK_COMMITTEES.find((c) => c.id === id);
-  return committee || null;
+  const numericId = Number.parseInt(id, 10);
+  if (!Number.isFinite(numericId)) {
+    return null;
+  }
+
+  try {
+    const committee = await fetchAPI<CommitteeApiResponse>(
+      `/committees/${numericId}`,
+    );
+    return mapCommittee(committee);
+  } catch {
+    return null;
+  }
 }
