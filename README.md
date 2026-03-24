@@ -100,7 +100,7 @@ Or you can do the actions manually. Then,
 
 ## Running The App
 
-_If you haven't run in a day or more, run `python -m script.reset_dev` from the `/backend` directory to ensure all mock data is updated to be centered around today's date_
+_If you haven't run in a day or more, run `python -m script.seed_data` from the `/backend` directory to refresh mock data centered around today's date._
 
 ### VSCode Debugger (Recommended)
 
@@ -168,4 +168,16 @@ Before first use, create the database and tables:
 cd backend
 python -m script.create_db
 python -m script.create_test_db  # Optional: for running tests
+```
+
+## Seeding Development Data
+
+Use the following commands from [backend](backend):
+
+```bash
+# Re-seed all tables with realistic sample data (idempotent clear + seed)
+python -m script.seed_data
+
+# Drop/recreate tables, then seed from scratch
+python -m script.reset_dev
 ```
