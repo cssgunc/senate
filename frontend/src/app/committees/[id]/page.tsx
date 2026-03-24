@@ -1,13 +1,24 @@
 // src/app/committees/[id]/page.tsx
-import { notFound } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { getCommitteeById } from "@/lib/api/committees";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { notFound } from "next/navigation";
 
-export default async function CommitteeDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  // Await params for Next.js 15+ 
+export default async function CommitteeDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  // Await params for Next.js 15+
   const resolvedParams = await params;
-  
+
   const committee = await getCommitteeById(resolvedParams.id);
 
   // Handle invalid IDs
@@ -31,7 +42,10 @@ export default async function CommitteeDetailPage({ params }: { params: Promise<
         </CardHeader>
         <CardContent>
           <p className="font-semibold text-lg">{committee.chair.name}</p>
-          <a href={`mailto:${committee.chair.email}`} className="text-primary hover:underline">
+          <a
+            href={`mailto:${committee.chair.email}`}
+            className="text-primary hover:underline"
+          >
             {committee.chair.email}
           </a>
         </CardContent>
@@ -55,7 +69,10 @@ export default async function CommitteeDetailPage({ params }: { params: Promise<
                   <TableCell className="font-medium">{member.name}</TableCell>
                   <TableCell>{member.role}</TableCell>
                   <TableCell>
-                    <a href={`mailto:${member.email}`} className="text-primary hover:underline">
+                    <a
+                      href={`mailto:${member.email}`}
+                      className="text-primary hover:underline"
+                    >
                       {member.email}
                     </a>
                   </TableCell>
@@ -63,7 +80,10 @@ export default async function CommitteeDetailPage({ params }: { params: Promise<
               ))}
               {committee.members.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-4">
+                  <TableCell
+                    colSpan={3}
+                    className="text-center text-muted-foreground py-4"
+                  >
                     No active members found.
                   </TableCell>
                 </TableRow>
