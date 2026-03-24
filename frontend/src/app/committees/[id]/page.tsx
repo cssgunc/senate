@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getCommitteeById } from "@/lib/api/committees";
+import { ApiError, getCommitteeById } from "@/lib/api";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -20,12 +20,15 @@ export default async function CommitteeDetailPage({
 }) {
   // Await params for Next.js 15+
   const resolvedParams = await params;
+  let committee;
 
-  const committee = await getCommitteeById(resolvedParams.id);
-
-  // Handle invalid IDs
-  if (!committee) {
-    notFound();
+  try {
+    committee = await getCommitteeById(resolvedParams.id);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      notFound();
+    }
+    throw error;
   }
 
   return (
@@ -33,7 +36,7 @@ export default async function CommitteeDetailPage({
       <div>
         <h1 className="text-4xl font-bold">{committee.name}</h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          {committee.fullDescription}
+          {committee.description}
         </p>
       </div>
 
@@ -43,12 +46,12 @@ export default async function CommitteeDetailPage({
           <CardTitle className="text-xl">Committee Chair</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="font-semibold text-lg">{committee.chair.name}</p>
+          <p className="font-semibold text-lg">{committee.chair_name}</p>
           <a
-            href={`mailto:${committee.chair.email}`}
+            href={`mailto:${committee.chair_email}`}
             className="text-primary hover:underline"
           >
-            {committee.chair.email}
+            {committee.chair_email}
           </a>
         </CardContent>
       </Card>
@@ -68,8 +71,12 @@ export default async function CommitteeDetailPage({
             <TableBody>
               {committee.members.map((member) => (
                 <TableRow key={member.id}>
-                  <TableCell className="font-medium">{member.name}</TableCell>
-                  <TableCell>{member.role}</TableCell>
+                  <TableCell className="font-medium">
+                    {member.first_name} {member.last_name}
+                  </TableCell>
+                  <TableCell>
+                    {member.committees[0]?.role ?? "Member"}
+                  </TableCell>
                   <TableCell>
                     <a
                       href={`mailto:${member.email}`}

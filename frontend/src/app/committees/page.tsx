@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getCommittees } from "@/lib/api/committees";
+import { getCommittees } from "@/lib/api";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -23,12 +23,12 @@ export default async function CommitteesPage() {
             <CardHeader>
               <CardTitle>{committee.name}</CardTitle>
               <CardDescription className="line-clamp-2">
-                {committee.shortDescription}
+                {committee.description}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm font-medium text-muted-foreground">
-                Chair: {committee.chair.name}
+                Chair: {committee.chair_name}
               </p>
             </CardContent>
             <CardFooter>
