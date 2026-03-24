@@ -14,7 +14,7 @@ class LegislationActionDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class LegislationDTO(BaseModel):
+class LegislationListDTO(BaseModel):
     id: int
     title: str
     bill_number: str
@@ -26,9 +26,16 @@ class LegislationDTO(BaseModel):
     type: str
     date_introduced: date
     date_last_action: date
-    actions: list[LegislationActionDTO]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class LegislationDetailDTO(LegislationListDTO):
+    actions: list[LegislationActionDTO]
+
+
+class LegislationDTO(LegislationDetailDTO):
+    """Backward-compatible alias for detailed legislation responses."""
 
 
 class CreateLegislationDTO(BaseModel):

@@ -2,7 +2,7 @@
 
 from .account import AccountDTO, CreateAccountDTO
 from .budget import BudgetDataDTO, CreateBudgetDataDTO
-from .calendar_event import CreateCalendarEventDTO
+from .calendar_event import CalendarEventDTO, CreateCalendarEventDTO
 from .carousel import CarouselSlideDTO, CreateCarouselSlideDTO
 from .committee import (
     AssignCommitteeMemberDTO,
@@ -21,7 +21,9 @@ from .legislation import (
     CreateLegislationActionDTO,
     CreateLegislationDTO,
     LegislationActionDTO,
+    LegislationDetailDTO,
     LegislationDTO,
+    LegislationListDTO,
 )
 from .news import CreateNewsDTO, NewsDTO, UpdateNewsDTO
 from .senator import (
@@ -41,6 +43,7 @@ __all__ = [
     "BudgetDataDTO",
     "CreateBudgetDataDTO",
     # Calendar Event
+    "CalendarEventDTO",
     "CreateCalendarEventDTO",
     # Carousel
     "CarouselSlideDTO",
@@ -63,7 +66,9 @@ __all__ = [
     "CreateLegislationActionDTO",
     "CreateLegislationDTO",
     "LegislationActionDTO",
+    "LegislationDetailDTO",
     "LegislationDTO",
+    "LegislationListDTO",
     # News
     "CreateNewsDTO",
     "NewsDTO",

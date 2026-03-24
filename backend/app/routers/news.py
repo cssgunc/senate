@@ -29,9 +29,9 @@ router = APIRouter(prefix="/api/news", tags=["news"])
 
 
 def _news_to_dict(news: News) -> dict[str, Any]:
-    """Convert a News ORM row to a dict compatible with PR #37's NewsDTO.
+    """Convert a News ORM row to a dict compatible with NewsDTO.
 
-    PR #37's NewsDTO expects a field called ``admin`` (not ``author``) so we
+    NewsDTO expects a field called ``admin`` (not ``author``) so we
     remap the relationship here rather than in the model.
     """
     return {
@@ -42,9 +42,7 @@ def _news_to_dict(news: News) -> dict[str, Any]:
         "image_url": news.image_url,
         "date_published": news.date_published,
         "date_last_edited": news.date_last_edited,
-        # PR #37's NewsDTO has a computed ``author_name`` field; provide it here
-        # so model_validate() can pick it up once the schema is available.
-        "author_name": f"{news.author.first_name} {news.author.last_name}" if news.author else "Unknown",
+        "admin": news.author,
     }
 
 
