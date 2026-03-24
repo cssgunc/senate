@@ -11,6 +11,7 @@ DTO validation is applied automatically once the schemas are available.
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import true
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -55,7 +56,7 @@ def list_news(
     """Return a paginated list of published news articles, most recent first."""
     query = (
         db.query(News)
-        .filter(News.is_published.is_(True))
+        .filter(News.is_published == true())
         .order_by(News.date_published.desc())
     )
     items, total = paginate(query, page=page, limit=limit)
@@ -75,7 +76,7 @@ def get_news(news_id: int, db: Session = Depends(get_db)):
     """Return a single published news article by ID, or 404."""
     news = (
         db.query(News)
-        .filter(News.id == news_id, News.is_published.is_(True))
+        .filter(News.id == news_id, News.is_published == true())
         .first()
     )
     if news is None:

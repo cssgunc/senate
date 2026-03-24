@@ -10,7 +10,7 @@ The try/except guard allows this module to be imported and tested before that PR
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, true
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -97,7 +97,7 @@ def list_senators(
     target_session = session if session is not None else _current_session(db)
 
     query = _base_query(db).filter(
-        Senator.is_active.is_(True),
+        Senator.is_active == true(),
         Senator.session_number == target_session,
     )
 

@@ -1,4 +1,4 @@
-import { getNewsById } from "@/lib/api";
+import { ApiError, getNewsById } from "@/lib/api";
 import { format } from "date-fns";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -11,23 +11,29 @@ export default async function NewsDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const article = await getNewsById(id);
+  let article;
 
-  if (!article) {
-    notFound();
+  try {
+    article = await getNewsById(id);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      notFound();
+    }
+    throw error;
   }
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
       <div className="text-sm text-gray-600 mb-4">
-        <p>By {article.author || "Unknown Author"}</p>
+        <p>By {article.author_name || "Unknown Author"}</p>
         <p>
           Published: {format(new Date(article.date_published), "MMMM d, yyyy")}
         </p>
-        {article.date_edited && (
+        {article.date_last_edited && (
           <p>
-            Last Edited: {format(new Date(article.date_edited), "MMMM d, yyyy")}
+            Last Edited:{" "}
+            {format(new Date(article.date_last_edited), "MMMM d, yyyy")}
           </p>
         )}
       </div>
