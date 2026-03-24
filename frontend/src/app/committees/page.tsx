@@ -30,9 +30,9 @@ export default async function CommitteesPage() {
               </p>
             </CardContent>
             <CardFooter>
-              <Link href={`/committees/${committee.id}`} passHref>
-                <Button>Learn More</Button>
-              </Link>
+              <Button asChild>
+                <Link href={`/committees/${committee.id}`}>Learn More</Link>
+              </Button>
             </CardFooter>
           </Card>
         ))}
