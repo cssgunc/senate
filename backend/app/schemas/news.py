@@ -1,8 +1,11 @@
 """News schemas — input and output DTOs."""
 
 from datetime import datetime
+from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
+
+from .account import AccountDTO
 
 
 class NewsDTO(BaseModel):
@@ -11,11 +14,18 @@ class NewsDTO(BaseModel):
     summary: str
     body: str
     image_url: str | None
-    author_name: str
     date_published: datetime
     date_last_edited: datetime
+    admin: Optional[AccountDTO] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+    @computed_field
+    @property
+    def author_name(self) -> str:
+        if self.admin:
+            return f"{self.admin.first_name} {self.admin.last_name}"
+        return "Unknown"
 
 
 class CreateNewsDTO(BaseModel):

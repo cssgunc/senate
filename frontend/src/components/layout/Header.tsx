@@ -225,28 +225,26 @@ export function Header() {
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link href="/" legacyBehavior passHref>
-                  <NavigationMenuLink
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
-                    )}
-                  >
-                    Home
-                  </NavigationMenuLink>
+                <Link
+                  href="/"
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
+                  )}
+                >
+                  Home
                 </Link>
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <Link href="/news" legacyBehavior passHref>
-                  <NavigationMenuLink
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
-                    )}
-                  >
-                    News
-                  </NavigationMenuLink>
+                <Link
+                  href="/news"
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
+                  )}
+                >
+                  News
                 </Link>
               </NavigationMenuItem>
 
@@ -268,15 +266,14 @@ export function Header() {
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <Link href="/committees" legacyBehavior passHref>
-                  <NavigationMenuLink
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
-                    )}
-                  >
-                    Committees
-                  </NavigationMenuLink>
+                <Link
+                  href="/committees"
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
+                  )}
+                >
+                  Committees
                 </Link>
               </NavigationMenuItem>
 
@@ -348,15 +345,14 @@ export function Header() {
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <Link href="/meetings" legacyBehavior passHref>
-                  <NavigationMenuLink
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
-                    )}
-                  >
-                    Meetings
-                  </NavigationMenuLink>
+                <Link
+                  href="/meetings"
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
+                  )}
+                >
+                  Meetings
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>
@@ -375,22 +371,20 @@ const ListItem = React.forwardRef<
     <li>
       <NavigationMenuLink asChild>
         {/* Wrap the accessible Shadcn a-tag in a Next.js Link to enable client-side routing */}
-        <Link href={href} legacyBehavior passHref>
-          <a
-            ref={ref}
-            className={cn(
-              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 focus:bg-white/10 text-white hover:text-white focus:text-white",
-              className,
-            )}
-            {...props}
-          >
-            <div className="text-sm font-medium leading-none">{title}</div>
-            {children && (
-              <p className="line-clamp-2 text-sm leading-snug text-gray-400 mt-1">
-                {children}
-              </p>
-            )}
-          </a>
+        <Link
+          href={href}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 focus:bg-white/10 text-white hover:text-white focus:text-white",
+            className,
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          {children && (
+            <p className="line-clamp-2 text-sm leading-snug text-gray-400 mt-1">
+              {children}
+            </p>
+          )}
         </Link>
       </NavigationMenuLink>
     </li>
