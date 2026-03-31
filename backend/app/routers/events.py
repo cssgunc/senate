@@ -19,8 +19,12 @@ router = APIRouter(prefix="/api/events", tags=["events"])
 
 @router.get("", response_model=list[CalendarEventDTO])
 def list_events(
-    start_date: Optional[date] = Query(default=None, description="Include events on or after this date"),
-    end_date: Optional[date] = Query(default=None, description="Include events on or before this date"),
+    start_date: Optional[date] = Query(
+        default=None, description="Include events on or after this date"
+    ),
+    end_date: Optional[date] = Query(
+        default=None, description="Include events on or before this date"
+    ),
     event_type: Optional[str] = Query(default=None, description="Filter by event type"),
     db: Session = Depends(get_db),
 ):

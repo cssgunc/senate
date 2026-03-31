@@ -8,6 +8,7 @@ from app.main import app  # your FastAPI app
 def client(test_db):
     return TestClient(app)
 
+
 # --- Tests ---
 def test_get_all_active_leadership(client, seeded_leadership):
     response = client.get("/api/leadership/")
@@ -20,6 +21,7 @@ def test_get_all_active_leadership(client, seeded_leadership):
     assert "Whip" in titles
     assert "Minority Leader" not in titles
 
+
 def test_get_leadership_by_session_number(client, seeded_leadership):
     response = client.get("/api/leadership/?session_number=2025")
     assert response.status_code == 200
@@ -30,6 +32,7 @@ def test_get_leadership_by_session_number(client, seeded_leadership):
     titles = [leader["title"] for leader in data]
     assert set(titles) == {"Speaker", "Whip"}
 
+
 def test_get_leadership_by_id_success(client, seeded_leadership):
     leadership = seeded_leadership["records"][0]  # Speaker
     response = client.get(f"/api/leadership/{leadership.id}")
@@ -37,6 +40,7 @@ def test_get_leadership_by_id_success(client, seeded_leadership):
     data = response.json()
     assert data["id"] == leadership.id
     assert data["title"] == leadership.title
+
 
 def test_get_leadership_by_id_not_found(client):
     response = client.get("/api/leadership/999")

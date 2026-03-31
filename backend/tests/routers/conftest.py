@@ -18,6 +18,7 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 # --- Override FastAPI get_db dependency ---
 def override_get_db():
     db = TestingSessionLocal()
@@ -26,9 +27,11 @@ def override_get_db():
     finally:
         db.close()
 
+
 app.dependency_overrides[get_db] = override_get_db
 
 # --- Fixtures ---
+
 
 @pytest.fixture(scope="module")
 def test_db():
@@ -39,10 +42,12 @@ def test_db():
     db.close()
     Base.metadata.drop_all(bind=engine)
 
+
 @pytest.fixture
 def client(test_db):
     """FastAPI TestClient using the test_db."""
     return TestClient(app)
+
 
 @pytest.fixture
 def seeded_committees(test_db):
