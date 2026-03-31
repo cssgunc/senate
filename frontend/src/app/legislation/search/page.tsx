@@ -18,12 +18,12 @@ import type { Legislation } from "@/types";
 import type { PaginatedResponse } from "@/types/api";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 
 const STATUS_OPTIONS = ["Introduced", "In Committee", "Passed", "Failed"];
 const TYPE_OPTIONS = ["Bill", "Resolution", "Nomination"];
 
-export default function LegislationPage() {
+function LegislationSearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -367,5 +367,19 @@ export default function LegislationPage() {
         </Card>
       )}
     </div>
+  );
+}
+
+export default function LegislationPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto py-8">
+          <p className="text-center text-muted-foreground">Loading...</p>
+        </div>
+      }
+    >
+      <LegislationSearchContent />
+    </Suspense>
   );
 }
