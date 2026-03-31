@@ -1,12 +1,15 @@
+import re
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
-from app.models import Committee, CommitteeMembership, Leadership, Senator
+from app.models import Admin, Committee, CommitteeMembership, Leadership, Senator
 
 # --- Setup shared in-memory database ---
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -29,6 +32,19 @@ def override_get_db():
 
 
 app.dependency_overrides[get_db] = override_get_db
+
+# -----------------------------
+# Adds REGEXP support for SQLite with seeded_admin
+# -----------------------------
+@event.listens_for(Engine, "connect")
+def sqlite_regexp(dbapi_connection, connection_record):
+    def regexp(expr, item):
+        if item is None:
+            return False
+        return bool(re.fullmatch(expr, str(item)))
+
+    dbapi_connection.create_function("REGEXP", 2, regexp)
+
 
 # --- Fixtures ---
 
@@ -138,3 +154,25 @@ def seeded_leadership(test_db):
     test_db.commit()
 
     yield {"records": [l1, l2, l3]}
+
+@pytest.fixture(scope="module")
+def seeded_admins(test_db):
+    admin = Admin(
+        id=1,
+        email="admin@test.com",
+        first_name="Admin",
+        last_name="Tester",
+        pid="123456789",
+        role="admin"
+    )
+    user = Admin(
+        id=2,
+        email="user@test.com",
+        first_name="Normal",
+        last_name="User",
+        pid="987654321",
+        role="staff"
+    )
+    test_db.add_all([admin, user])
+    test_db.commit()
+    return {"admin": admin, "user": user}

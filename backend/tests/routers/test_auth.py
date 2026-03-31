@@ -1,88 +1,14 @@
-import re
 from datetime import datetime, timedelta, timezone
 
-from fastapi.testclient import TestClient
 from jose import jwt
-from sqlalchemy import create_engine, event
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from app.config import ACCESS_TOKEN_EXPIRE_HOURS, JWT_ALGORITHM, JWT_SECRET
-from app.database import Base, get_db
-from app.main import app
-from app.models import Admin
-
-# -----------------------------
-# Setup in-memory test database
-# -----------------------------
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-# -----------------------------
-# Adds REGEXP support for SQLite
-# -----------------------------
-@event.listens_for(Engine, "connect")
-def sqlite_regexp(dbapi_connection, connection_record):
-    def regexp(expr, item):
-        if item is None:
-            return False
-        return bool(re.fullmatch(expr, str(item)))
-
-    dbapi_connection.create_function("REGEXP", 2, regexp)
-
-
-# Override get_db dependency
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-# Create tables and test users
-Base.metadata.create_all(bind=engine)
-
-# Seed a test user
-db = TestingSessionLocal()
-
-test_admin = Admin(
-    id=1,
-    email="admin@test.com",
-    first_name="Admin",
-    last_name="Tester",
-    pid="123456789",
-    role="admin",
-)
-
-test_user = Admin(
-    id=2,
-    email="user@test.com",
-    first_name="Normal",
-    last_name="User",
-    pid="987654321",
-    role="staff",
-)
-
-db.add_all([test_admin, test_user])
-db.commit()
-db.close()
-
-client = TestClient(app)
 
 # -----------------------------
 # Tests
 # -----------------------------
 
-
-def test_valid_login():
+def test_valid_login(client, seeded_admins):
     response = client.post(
         "/api/auth/login", params={"email": "admin@test.com", "pid": "123456789"}
     )
@@ -92,7 +18,7 @@ def test_valid_login():
     assert data["token_type"] == "bearer"
 
 
-def test_invalid_credentials():
+def test_invalid_credentials(client, seeded_admins):
     response = client.post("/api/auth/login", params={"email": "admin@test.com", "pid": "wrong"})
     assert response.status_code == 401
 
@@ -102,7 +28,7 @@ def test_invalid_credentials():
     assert response2.status_code == 401
 
 
-def test_me_endpoint_with_valid_token():
+def test_me_endpoint_with_valid_token(client, seeded_admins):
     login = client.post("/api/auth/login", params={"email": "admin@test.com", "pid": "123456789"})
     token = login.json()["access_token"]
 
@@ -113,7 +39,7 @@ def test_me_endpoint_with_valid_token():
     assert data["role"] == "admin"
 
 
-def test_expired_token():
+def test_expired_token(client, seeded_admins):
     expired_token = jwt.encode(
         {
             "sub": "1",
@@ -126,7 +52,7 @@ def test_expired_token():
     assert response.status_code == 401
 
 
-def test_role_check():
+def test_role_check(client, seeded_admins):
     # login as a normal user
     login = client.post("/api/auth/login", params={"email": "user@test.com", "pid": "987654321"})
     token = login.json()["access_token"]
