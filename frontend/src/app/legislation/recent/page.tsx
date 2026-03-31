@@ -1,4 +1,6 @@
 import { getRecentLegislation } from "@/lib/api";
+
+export const dynamic = "force-dynamic";
 import type { Legislation } from "@/types";
 import { format } from "date-fns";
 import Link from "next/link";

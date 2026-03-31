@@ -1,4 +1,6 @@
 import { getLegislationById } from "@/lib/api";
+
+export const dynamic = "force-dynamic";
 import type { Legislation, LegislationAction } from "@/types";
 import { format } from "date-fns";
 import { notFound } from "next/navigation";
