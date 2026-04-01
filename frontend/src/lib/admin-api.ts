@@ -1,0 +1,346 @@
+import { getToken, setToken, clearToken } from "./token";
+import type {
+  Account,
+  AssignCommitteeMember,
+  CreateAccount,
+  CreateBudgetData,
+  CreateCalendarEvent,
+  CreateCarouselSlide,
+  CreateCommittee,
+  CreateFinanceHearingDate,
+  CreateLegislation,
+  CreateLegislationAction,
+  CreateNews,
+  CreateSenator,
+  CreateStaff,
+  LoginCredentials,
+  LoginResponse,
+  UpdateFinanceHearingConfig,
+  UpdateNews,
+  UpdateSenator,
+  UpdateStaticPage,
+} from "@/types/admin";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+
+type AdminResource = Record<string, unknown>;
+
+function authHeaders(): HeadersInit {
+  const token = getToken();
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers: {
+      ...authHeaders(),
+      ...(init?.headers ?? {}),
+    },
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(
+      `Admin API request failed (${res.status} ${res.statusText}): ${errorText}`,
+    );
+  }
+
+  // Some DELETE endpoints might return empty body
+  if (res.status === 204) return undefined as T;
+  return (await res.json()) as T;
+}
+
+// Auth
+export async function login(email: string, pid: string): Promise<LoginResponse> {
+  const body: LoginCredentials = { email, pid };
+  const data = await request<LoginResponse>("/admin/login", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  setToken(data.access_token);
+  return data;
+}
+
+export async function getMe(): Promise<Account> {
+  return request<Account>("/admin/me", { method: "GET" });
+}
+
+export function logout(): void {
+  clearToken();
+}
+
+// News
+export async function createNews(data: CreateNews): Promise<AdminResource> {
+  return request("/admin/news", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateNews(
+  id: number,
+  data: UpdateNews,
+): Promise<AdminResource> {
+  return request(`/admin/news/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteNews(id: number) {
+  return request<void>(`/admin/news/${id}`, { method: "DELETE" });
+}
+
+// Senators
+export async function createSenator(data: CreateSenator): Promise<AdminResource> {
+  return request("/admin/senators", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateSenator(
+  id: number,
+  data: UpdateSenator,
+): Promise<AdminResource> {
+  return request(`/admin/senators/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteSenator(id: number) {
+  return request<void>(`/admin/senators/${id}`, { method: "DELETE" });
+}
+
+// Legislation
+export async function createLegislation(
+  data: CreateLegislation,
+): Promise<AdminResource> {
+  return request("/admin/legislation", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateLegislation(
+  id: number,
+  data: CreateLegislation,
+): Promise<AdminResource> {
+  return request(`/admin/legislation/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteLegislation(id: number): Promise<void> {
+  return request<void>(`/admin/legislation/${id}`, { method: "DELETE" });
+}
+
+export async function createLegislationAction(
+  data: CreateLegislationAction,
+): Promise<AdminResource> {
+  return request("/admin/legislation/actions", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteLegislationAction(id: number): Promise<void> {
+  return request<void>(`/admin/legislation/actions/${id}`, { method: "DELETE" });
+}
+
+// Calendar events
+export async function createCalendarEvent(
+  data: CreateCalendarEvent,
+): Promise<AdminResource> {
+  return request("/admin/events", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateCalendarEvent(
+  id: number,
+  data: CreateCalendarEvent,
+): Promise<AdminResource> {
+  return request(`/admin/events/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteCalendarEvent(id: number): Promise<void> {
+  return request<void>(`/admin/events/${id}`, { method: "DELETE" });
+}
+
+// Carousel slides
+export async function createCarouselSlide(
+  data: CreateCarouselSlide,
+): Promise<AdminResource> {
+  return request("/admin/carousel", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateCarouselSlide(
+  id: number,
+  data: CreateCarouselSlide,
+): Promise<AdminResource> {
+  return request(`/admin/carousel/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteCarouselSlide(id: number): Promise<void> {
+  return request<void>(`/admin/carousel/${id}`, { method: "DELETE" });
+}
+
+// Finance hearings
+export async function updateFinanceHearingConfig(
+  data: UpdateFinanceHearingConfig,
+): Promise<AdminResource> {
+  return request("/admin/finance-hearings/config", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function createFinanceHearingDate(
+  data: CreateFinanceHearingDate,
+): Promise<AdminResource> {
+  return request("/admin/finance-hearings/dates", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteFinanceHearingDate(id: number): Promise<void> {
+  return request<void>(`/admin/finance-hearings/dates/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// Committees
+export async function createCommittee(data: CreateCommittee): Promise<AdminResource> {
+  return request("/admin/committees", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateCommittee(
+  id: number,
+  data: CreateCommittee,
+): Promise<AdminResource> {
+  return request(`/admin/committees/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteCommittee(id: number): Promise<void> {
+  return request<void>(`/admin/committees/${id}`, { method: "DELETE" });
+}
+
+export async function assignCommitteeMember(
+  committeeId: number,
+  data: AssignCommitteeMember,
+): Promise<AdminResource> {
+  return request(`/admin/committees/${committeeId}/members`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function removeCommitteeMember(
+  committeeId: number,
+  senatorId: number,
+): Promise<void> {
+  return request<void>(`/admin/committees/${committeeId}/members/${senatorId}`, {
+    method: "DELETE",
+  });
+}
+
+// Staff
+export async function createStaff(data: CreateStaff): Promise<AdminResource> {
+  return request("/admin/staff", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateStaff(
+  id: number,
+  data: CreateStaff,
+): Promise<AdminResource> {
+  return request(`/admin/staff/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteStaff(id: number): Promise<void> {
+  return request<void>(`/admin/staff/${id}`, { method: "DELETE" });
+}
+
+// Budget
+export async function createBudgetData(data: CreateBudgetData): Promise<AdminResource> {
+  return request("/admin/budget", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateBudgetData(
+  id: number,
+  data: CreateBudgetData,
+): Promise<AdminResource> {
+  return request(`/admin/budget/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteBudgetData(id: number): Promise<void> {
+  return request<void>(`/admin/budget/${id}`, { method: "DELETE" });
+}
+
+// Static pages
+export async function updateStaticPage(
+  slug: string,
+  data: UpdateStaticPage,
+): Promise<AdminResource> {
+  return request(`/admin/pages/${slug}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+// Accounts
+export async function createAccount(data: CreateAccount): Promise<AdminResource> {
+  return request("/admin/accounts", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAccount(
+  id: number,
+  data: CreateAccount,
+): Promise<AdminResource> {
+  return request(`/admin/accounts/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteAccount(id: number): Promise<void> {
+  return request<void>(`/admin/accounts/${id}`, { method: "DELETE" });
+}
