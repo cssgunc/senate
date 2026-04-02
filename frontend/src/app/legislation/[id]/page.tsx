@@ -1,9 +1,9 @@
-import { getLegislationById } from "@/lib/api";
+import { ApiError, getLegislationById } from "@/lib/api";
+import type { Legislation, LegislationAction } from "@/types";
+import { format, parseISO } from "date-fns";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
-import type { Legislation, LegislationAction } from "@/types";
-import { format } from "date-fns";
-import { notFound } from "next/navigation";
 
 const STATUS_STYLES: Record<string, string> = {
   Passed: "bg-green-100 text-green-800",
@@ -15,7 +15,9 @@ const STATUS_STYLES: Record<string, string> = {
 function StatusBadge({ status }: { status: string }) {
   const styles = STATUS_STYLES[status] ?? "bg-gray-100 text-gray-700";
   return (
-    <span className={`inline-block px-2 py-0.5 rounded text-sm font-medium ${styles}`}>
+    <span
+      className={`inline-block px-2 py-0.5 rounded text-sm font-medium ${styles}`}
+    >
       {status}
     </span>
   );
@@ -34,7 +36,7 @@ function ActionTimeline({ actions }: { actions: LegislationAction[] }) {
               <span className="h-2 w-2 rounded-full bg-blue-500" />
             </span>
             <p className="text-xs text-gray-500 mb-0.5">
-              {format(new Date(action.action_date), "MMMM d, yyyy")} &middot;{" "}
+              {format(parseISO(action.action_date), "MMMM d, yyyy")} &middot;{" "}
               {action.action_type}
             </p>
             <p className="text-sm text-gray-800">{action.description}</p>
@@ -55,8 +57,11 @@ export default async function LegislationDetailPage({
   let legislation: Legislation;
   try {
     legislation = await getLegislationById(id);
-  } catch {
-    notFound();
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      notFound();
+    }
+    throw error;
   }
 
   return (
@@ -80,11 +85,11 @@ export default async function LegislationDetailPage({
         </p>
         <p>
           <span className="font-medium">Date Introduced:</span>{" "}
-          {format(new Date(legislation.date_introduced), "MMMM d, yyyy")}
+          {format(parseISO(legislation.date_introduced), "MMMM d, yyyy")}
         </p>
         <p>
           <span className="font-medium">Last Action:</span>{" "}
-          {format(new Date(legislation.date_last_action), "MMMM d, yyyy")}
+          {format(parseISO(legislation.date_last_action), "MMMM d, yyyy")}
         </p>
         <p>
           <span className="font-medium">Session:</span>{" "}
