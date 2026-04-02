@@ -46,11 +46,22 @@ def _make_engine():
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-    # Strip SQL Server-specific CHECK constraints before creating SQLite tables
-    for table in Base.metadata.tables.values():
-        table.constraints = {c for c in table.constraints if not isinstance(c, CheckConstraint)}
+    # Strip SQL Server-specific CHECK constraints only for table creation,
+    # then restore metadata so other test modules are unaffected.
+    original_constraints = {
+        table: set(table.constraints)
+        for table in Base.metadata.tables.values()
+    }
+    try:
+        for table in Base.metadata.tables.values():
+            table.constraints = {
+                c for c in table.constraints if not isinstance(c, CheckConstraint)
+            }
+        Base.metadata.create_all(bind=engine)
+    finally:
+        for table, constraints in original_constraints.items():
+            table.constraints = constraints
 
-    Base.metadata.create_all(bind=engine)
     return engine
 
 
@@ -300,12 +311,57 @@ class TestListAdminNews:
     def test_invalid_page_returns_422(self, admin_read_client):
         assert admin_read_client.get("/api/admin/news?page=0").status_code == 422
 
-    def test_unauthenticated_returns_501(self):
-        """Without auth override, the stub returns 501."""
+    def test_unauthenticated_is_rejected(self):
+        """Without auth override, unauthenticated requests must be rejected.
+
+        While #61 is pending, the stub returns 501. Once auth is implemented,
+        this should naturally become 401/403.
+        """
         saved = app.dependency_overrides.pop(get_current_user, None)
         try:
             with TestClient(app) as c:
-                assert c.get("/api/admin/news").status_code == 501
+                assert c.get("/api/admin/news").status_code in {401, 403, 501}
+        finally:
+            if saved is not None:
+                app.dependency_overrides[get_current_user] = saved
+
+    def test_unauthenticated_create_is_rejected(self):
+        saved = app.dependency_overrides.pop(get_current_user, None)
+        payload = {
+            "title": "New Article",
+            "body": "Body content.",
+            "summary": "A summary.",
+            "image_url": None,
+            "is_published": False,
+        }
+        try:
+            with TestClient(app) as c:
+                assert c.post("/api/admin/news", json=payload).status_code in {401, 403, 501}
+        finally:
+            if saved is not None:
+                app.dependency_overrides[get_current_user] = saved
+
+    def test_unauthenticated_update_is_rejected(self):
+        saved = app.dependency_overrides.pop(get_current_user, None)
+        payload = {
+            "title": "Updated Title",
+            "body": "Updated body.",
+            "summary": "Updated summary.",
+            "image_url": None,
+            "is_published": True,
+        }
+        try:
+            with TestClient(app) as c:
+                assert c.put("/api/admin/news/1", json=payload).status_code in {401, 403, 501}
+        finally:
+            if saved is not None:
+                app.dependency_overrides[get_current_user] = saved
+
+    def test_unauthenticated_delete_is_rejected(self):
+        saved = app.dependency_overrides.pop(get_current_user, None)
+        try:
+            with TestClient(app) as c:
+                assert c.delete("/api/admin/news/1").status_code in {401, 403, 501}
         finally:
             if saved is not None:
                 app.dependency_overrides[get_current_user] = saved
