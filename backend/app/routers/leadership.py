@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Leadership
-from app.schemas import LeadershipDTO
+from app.schemas.leadership import LeadershipDTO
 
 router = APIRouter(prefix="/api/leadership", tags=["leadership"])
 
@@ -13,6 +13,7 @@ def _current_session(db: Session) -> int:
     """Return the highest session_number in the leadership table."""
     result = db.query(func.max(Leadership.session_number)).scalar()
     return result or 1
+
 
 @router.get("/", response_model=list[LeadershipDTO])
 def get_leadership(session_number: int | None = None, db: Session = Depends(get_db)):
@@ -30,14 +31,10 @@ def get_leadership(session_number: int | None = None, db: Session = Depends(get_
     return leadership
 
 
-@router.get("/{id}",  response_model=LeadershipDTO)
+@router.get("/{id}", response_model=LeadershipDTO)
 def get_leadership_by_id(id: int, db: Session = Depends(get_db)):
 
-    leadership = (
-        db.query(Leadership)
-        .filter(Leadership.id == id)
-        .first()
-    )
+    leadership = db.query(Leadership).filter(Leadership.id == id).first()
 
     if leadership is None:
         raise HTTPException(status_code=404, detail="Leadership record not found")

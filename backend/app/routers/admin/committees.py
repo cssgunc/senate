@@ -7,12 +7,12 @@ from sqlalchemy.orm import Session, selectinload
 from app.database import get_db
 from app.models.cms import Committee, CommitteeMembership
 from app.models.Senator import Senator
+from app.schemas.committee import CommitteeDTO
 from app.schemas.committee_admin import (
     AssignCommitteeMemberDTO,
     CommitteeCreateDTO,
     CommitteeUpdateDTO,
 )
-from app.schemas.CommitteeDTO import CommitteeDTO
 
 router = APIRouter(
     prefix="/api/admin/committees",

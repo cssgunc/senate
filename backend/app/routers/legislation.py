@@ -52,7 +52,9 @@ def _legislation_detail_dict(leg: Legislation, db: Session) -> dict:
         .all()
     )
     data = _legislation_base_dict(leg)
-    data["actions"] = [LegislationActionDTO.model_validate(a, from_attributes=True) for a in actions]
+    data["actions"] = [
+        LegislationActionDTO.model_validate(a, from_attributes=True) for a in actions
+    ]
     return data
 
 
