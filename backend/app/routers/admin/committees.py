@@ -1,10 +1,10 @@
-from typing import Any
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
+from app.dependencies.auth import get_current_user, require_role
+from app.models.Admin import Admin
 from app.models.cms import Committee, CommitteeMembership
 from app.models.Senator import Senator
 from app.schemas.committee import CommitteeDTO
@@ -18,12 +18,6 @@ router = APIRouter(
     prefix="/api/admin/committees",
     tags=["admin", "committees"],
 )
-
-
-# Mock auth dependency since the auth ticket isn't ready
-def mock_auth_dependency() -> Any:
-    # TODO: Replace with actual JWT authentication when completed
-    return True
 
 
 def serialize_committee(committee: Committee) -> dict:
@@ -67,7 +61,7 @@ def serialize_committee(committee: Committee) -> dict:
 def create_committee(
     data: CommitteeCreateDTO,
     db: Session = Depends(get_db),
-    _auth: Any = Depends(mock_auth_dependency),
+    _current_user: Admin = Depends(get_current_user),
 ):
     new_committee = Committee(**data.model_dump())
     db.add(new_committee)
@@ -83,7 +77,7 @@ def update_committee(
     committee_id: int,
     data: CommitteeUpdateDTO,
     db: Session = Depends(get_db),
-    _auth: Any = Depends(mock_auth_dependency),
+    _current_user: Admin = Depends(get_current_user),
 ):
     committee = (
         db.query(Committee)
@@ -105,7 +99,9 @@ def update_committee(
 
 @router.delete("/{committee_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_committee(
-    committee_id: int, db: Session = Depends(get_db), _auth: Any = Depends(mock_auth_dependency)
+    committee_id: int,
+    db: Session = Depends(get_db),
+    _current_user: Admin = Depends(require_role("admin")),
 ):
     committee = db.query(Committee).filter(Committee.id == committee_id).first()
     if not committee:
@@ -121,7 +117,7 @@ def add_committee_member(
     committee_id: int,
     data: AssignCommitteeMemberDTO,
     db: Session = Depends(get_db),
-    _auth: Any = Depends(mock_auth_dependency),
+    _current_user: Admin = Depends(get_current_user),
 ):
     committee = db.query(Committee).filter(Committee.id == committee_id).first()
     if not committee:
@@ -167,7 +163,7 @@ def remove_committee_member(
     committee_id: int,
     senator_id: int,
     db: Session = Depends(get_db),
-    _auth: Any = Depends(mock_auth_dependency),
+    _current_user: Admin = Depends(require_role("admin")),
 ):
     membership = (
         db.query(CommitteeMembership)
