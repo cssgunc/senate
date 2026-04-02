@@ -1,4 +1,7 @@
+from hmac import compare_digest
+
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -8,11 +11,16 @@ from app.utils.auth import create_access_token, get_current_user, require_role
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
-@router.post("/login")
-def login(email: str, pid: str, db: Session = Depends(get_db)):
-    user = db.query(Admin).filter(Admin.email == email).first()
+class LoginRequest(BaseModel):
+    email: EmailStr
+    pid: str = Field(pattern=r"^\d{9}$")
 
-    if not user or user.pid != pid:
+
+@router.post("/login")
+def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(Admin).filter(Admin.email == payload.email).first()
+
+    if not user or not compare_digest(user.pid, payload.pid):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_access_token(data={"sub": str(user.id)})

@@ -5,8 +5,12 @@ Database-dependent fixtures are gated behind the 'integration' marker
 so unit tests can run without a SQL Server connection (e.g., in CI).
 """
 
+import os
+
 import pytest
 from fastapi.testclient import TestClient
+
+os.environ.setdefault("JWT_SECRET", "test-only-jwt-secret")
 
 from app.main import app
 
