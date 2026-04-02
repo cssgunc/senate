@@ -1,5 +1,6 @@
 """FastAPI application entry point"""
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,6 +22,8 @@ from app.routers import (
 )
 from app.routers.admin import committees as admin_committees
 from app.routers.admin import news as admin_news
+
+load_dotenv()
 
 app = FastAPI(
     title="Senate API",
