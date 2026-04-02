@@ -1,12 +1,4 @@
-import pytest
-from fastapi.testclient import TestClient
-
-from app.main import app  # your FastAPI app
-
-
-@pytest.fixture
-def client(test_db):
-    return TestClient(app)
+"""Leadership router tests."""
 
 
 # --- Tests ---

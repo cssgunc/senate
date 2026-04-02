@@ -19,6 +19,7 @@ from app.routers import (
     senators,
     staff,
 )
+from app.routers.admin import committees as admin_committees
 from app.routers.admin import news as admin_news
 
 app = FastAPI(
@@ -52,6 +53,9 @@ app.include_router(pages.router)
 app.include_router(events.router)
 app.include_router(legislation.router)
 app.include_router(admin_news.router)
+
+# Include Admin routers
+app.include_router(admin_committees.router)
 
 
 @app.get("/")

@@ -18,8 +18,8 @@ from app.models.cms import Committee, CommitteeMembership
 from app.models.Senator import Senator
 
 try:
-    from app.schemas import CommitteeAssignmentDTO as _CommitteeAssignmentDTO  # noqa: F401
-    from app.schemas import SenatorDTO as _SenatorDTO  # noqa: F401
+    from app.schemas.senator import CommitteeAssignmentDTO as _CommitteeAssignmentDTO  # noqa: F401
+    from app.schemas.senator import SenatorDTO as _SenatorDTO  # noqa: F401
 
     _SENATOR_DTO_AVAILABLE = True
 except ImportError:  # pragma: no cover — removed once PR #37 merges
@@ -123,7 +123,7 @@ def list_senators(
     dicts: list[Any] = [_senator_to_dict(s, db) for s in senators_orm]
 
     if _SENATOR_DTO_AVAILABLE:
-        from app.schemas import SenatorDTO
+        from app.schemas.senator import SenatorDTO
 
         return [SenatorDTO.model_validate(d) for d in dicts]
     return dicts
@@ -138,7 +138,7 @@ def get_senator(senator_id: int, db: Session = Depends(get_db)):
 
     data = _senator_to_dict(senator, db)
     if _SENATOR_DTO_AVAILABLE:
-        from app.schemas import SenatorDTO
+        from app.schemas.senator import SenatorDTO
 
         return SenatorDTO.model_validate(data)
     return data

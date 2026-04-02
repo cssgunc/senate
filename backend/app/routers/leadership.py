@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Leadership
-from app.schemas import LeadershipDTO
+from app.schemas.leadership import LeadershipDTO
 
 router = APIRouter(prefix="/api/leadership", tags=["leadership"])
 

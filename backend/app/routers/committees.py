@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.models import Committee, CommitteeMembership
-from app.schemas import CommitteeDTO
+from app.schemas.committee import CommitteeDTO
 
 router = APIRouter(prefix="/api/committees", tags=["committees"])
 

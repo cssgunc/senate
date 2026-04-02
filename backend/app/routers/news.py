@@ -20,7 +20,7 @@ from app.schemas.pagination import PaginatedResponse
 from app.utils.pagination import paginate
 
 try:
-    from app.schemas import NewsDTO as _NewsDTO
+    from app.schemas.news import NewsDTO as _NewsDTO
 
     _NEWS_DTO_AVAILABLE = True
 except ImportError:  # pragma: no cover — removed once PR #37 merges
@@ -60,7 +60,7 @@ def list_news(
     news_dicts = [_news_to_dict(n) for n in items]
 
     if _NEWS_DTO_AVAILABLE:
-        from app.schemas import NewsDTO
+        from app.schemas.news import NewsDTO
 
         validated: list[Any] = [NewsDTO.model_validate(d) for d in news_dicts]
     else:
@@ -78,7 +78,7 @@ def get_news(news_id: int, db: Session = Depends(get_db)):
 
     data = _news_to_dict(news)
     if _NEWS_DTO_AVAILABLE:
-        from app.schemas import NewsDTO
+        from app.schemas.news import NewsDTO
 
         return NewsDTO.model_validate(data)
     return data

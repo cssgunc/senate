@@ -4,7 +4,6 @@ import re
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import CheckConstraint, create_engine, event
-from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -33,13 +32,10 @@ def override_get_db():
     finally:
         db.close()
 
-
-app.dependency_overrides[get_db] = override_get_db
-
 # -----------------------------
 # Adds REGEXP support for SQLite with seeded_admin
 # -----------------------------
-@event.listens_for(Engine, "connect")
+@event.listens_for(engine, "connect")
 def sqlite_regexp(dbapi_connection, connection_record):
     def regexp(expr, item):
         if item is None:
@@ -69,7 +65,9 @@ def test_db():
 @pytest.fixture
 def client(test_db):
     """FastAPI TestClient using the test_db."""
-    return TestClient(app)
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    app.dependency_overrides.pop(get_db, None)
 
 
 @pytest.fixture
