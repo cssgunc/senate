@@ -18,7 +18,7 @@ import type { Legislation } from "@/types";
 import type { PaginatedResponse } from "@/types/api";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 const STATUS_OPTIONS = ["Introduced", "In Committee", "Passed", "Failed"];
 const TYPE_OPTIONS = ["Bill", "Resolution", "Nomination"];
@@ -39,6 +39,7 @@ function LegislationSearchContent() {
   const [data, setData] = useState<PaginatedResponse<Legislation> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
 
   // Initialize form state from URL params
   useEffect(() => {
@@ -60,6 +61,7 @@ function LegislationSearchContent() {
   // Fetch legislation when params change
   useEffect(() => {
     const fetchLegislation = async () => {
+      const requestId = ++requestIdRef.current;
       setIsLoading(true);
       setError(null);
 
@@ -72,15 +74,23 @@ function LegislationSearchContent() {
           page,
           limit,
         });
-        setData(result);
+        if (requestId === requestIdRef.current) {
+          setData(result);
+        }
       } catch (err) {
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
         if (err instanceof ApiError) {
           setError(`Failed to fetch legislation: ${err.message}`);
         } else {
           setError("An unexpected error occurred");
         }
       } finally {
-        setIsLoading(false);
+        if (requestId === requestIdRef.current) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -102,7 +112,7 @@ function LegislationSearchContent() {
 
       // Reset to page 1 when filters change
       params.set("page", "1");
-      router.push(`?${params.toString()}`);
+      router.replace(`?${params.toString()}`);
     },
     [searchParams, router],
   );
@@ -303,11 +313,12 @@ function LegislationSearchContent() {
                         </TableCell>
                         <TableCell>
                           {new Date(
-                            legislation.date_introduced,
+                            `${legislation.date_introduced}T00:00:00Z`,
                           ).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
+                            timeZone: "UTC",
                           })}
                         </TableCell>
                         <TableCell className="text-right">
