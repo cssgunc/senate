@@ -18,6 +18,7 @@ from app.routers import (
     senators,
     staff,
 )
+from app.routers.admin import news as admin_news
 
 app = FastAPI(
     title="Senate API",
@@ -48,6 +49,7 @@ app.include_router(budget.router)
 app.include_router(pages.router)
 app.include_router(events.router)
 app.include_router(legislation.router)
+app.include_router(admin_news.router)
 
 
 @app.get("/")
