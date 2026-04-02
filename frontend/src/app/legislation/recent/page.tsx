@@ -1,9 +1,9 @@
 import { getRecentLegislation } from "@/lib/api";
+import type { Legislation } from "@/types";
+import { format, parseISO } from "date-fns";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
-import type { Legislation } from "@/types";
-import { format } from "date-fns";
-import Link from "next/link";
 
 const STATUS_STYLES: Record<string, string> = {
   Passed: "bg-green-100 text-green-800",
@@ -41,7 +41,9 @@ export default async function RecentLegislationPage() {
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-4 hover:bg-gray-50 px-2 rounded-md transition-colors"
               >
                 <div className="flex flex-col gap-1">
-                  <span className="font-medium text-gray-900">{item.title}</span>
+                  <span className="font-medium text-gray-900">
+                    {item.title}
+                  </span>
                   <span className="text-sm text-gray-500 font-mono">
                     {item.bill_number}
                   </span>
@@ -49,7 +51,7 @@ export default async function RecentLegislationPage() {
                 <div className="flex items-center gap-3 sm:flex-shrink-0">
                   <StatusBadge status={item.status} />
                   <span className="text-sm text-gray-400 whitespace-nowrap">
-                    {format(new Date(item.date_introduced), "MMM d, yyyy")}
+                    {format(parseISO(item.date_introduced), "MMM d, yyyy")}
                   </span>
                 </div>
               </Link>
