@@ -1,12 +1,18 @@
+import os
+import re
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import CheckConstraint, create_engine, event
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+os.environ.setdefault("JWT_SECRET", "test-only-jwt-secret")
+
 from app.database import Base, get_db
 from app.main import app
-from app.models import Committee, CommitteeMembership, Leadership, Senator
+from app.models import Admin, Committee, CommitteeMembership, Leadership, Senator
 
 # --- Setup shared in-memory database ---
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -18,6 +24,7 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 # --- Override FastAPI get_db dependency ---
 def override_get_db():
     db = TestingSessionLocal()
@@ -26,23 +33,44 @@ def override_get_db():
     finally:
         db.close()
 
+
 app.dependency_overrides[get_db] = override_get_db
 
+# -----------------------------
+# Adds REGEXP support for SQLite with seeded_admin
+# -----------------------------
+@event.listens_for(Engine, "connect")
+def sqlite_regexp(dbapi_connection, connection_record):
+    def regexp(expr, item):
+        if item is None:
+            return False
+        return bool(re.fullmatch(expr, str(item)))
+
+    dbapi_connection.create_function("REGEXP", 2, regexp)
+
+
 # --- Fixtures ---
+
 
 @pytest.fixture(scope="module")
 def test_db():
     """Create all tables once per test module."""
+    # SQLite cannot evaluate SQL Server style CHECK constraints in model DDL.
+    for table in Base.metadata.tables.values():
+        table.constraints = {c for c in table.constraints if not isinstance(c, CheckConstraint)}
+
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     yield db
     db.close()
     Base.metadata.drop_all(bind=engine)
 
+
 @pytest.fixture
 def client(test_db):
     """FastAPI TestClient using the test_db."""
     return TestClient(app)
+
 
 @pytest.fixture
 def seeded_committees(test_db):
@@ -133,3 +161,25 @@ def seeded_leadership(test_db):
     test_db.commit()
 
     yield {"records": [l1, l2, l3]}
+
+@pytest.fixture(scope="module")
+def seeded_admins(test_db):
+    admin = Admin(
+        id=1,
+        email="admin@test.com",
+        first_name="Admin",
+        last_name="Tester",
+        pid="123456789",
+        role="admin"
+    )
+    user = Admin(
+        id=2,
+        email="user@test.com",
+        first_name="Normal",
+        last_name="User",
+        pid="987654321",
+        role="staff"
+    )
+    test_db.add_all([admin, user])
+    test_db.commit()
+    return {"admin": admin, "user": user}

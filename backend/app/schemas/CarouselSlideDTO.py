@@ -10,4 +10,3 @@ class CarouselSlideDTO(BaseModel):
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
-

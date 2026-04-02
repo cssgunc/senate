@@ -7,14 +7,12 @@ from app.schemas import CommitteeDTO
 
 router = APIRouter(prefix="/api/committees", tags=["committees"])
 
+
 @router.get("/", response_model=list[CommitteeDTO])
 def get_committees(db: Session = Depends(get_db)):
     committees = (
         db.query(Committee)
-        .options(
-            selectinload(Committee.memberships)
-            .selectinload(CommitteeMembership.senator)
-        )
+        .options(selectinload(Committee.memberships).selectinload(CommitteeMembership.senator))
         .filter(Committee.is_active)
         .order_by(Committee.name)
         .all()
@@ -29,40 +27,42 @@ def get_committees(db: Session = Depends(get_db)):
                 {
                     "committee_id": membership.committee.id,
                     "committee_name": membership.committee.name,
-                    "role": membership.role
+                    "role": membership.role,
                 }
             ]
-            members.append({
-                "id": senator.id,
-                "first_name": senator.first_name,
-                "last_name": senator.last_name,
-                "email": senator.email,
-                "headshot_url": senator.headshot_url,
-                "district_id": senator.district,
-                "is_active": senator.is_active,
-                "session_number": senator.session_number,
-                "committees": committees_list
-            })
-        result.append({
-            "id": committee.id,
-            "name": committee.name,
-            "description": committee.description,
-            "chair_name": committee.chair_name,
-            "chair_email": committee.chair_email,
-            "is_active": committee.is_active,
-            "members": members
-        })
+            members.append(
+                {
+                    "id": senator.id,
+                    "first_name": senator.first_name,
+                    "last_name": senator.last_name,
+                    "email": senator.email,
+                    "headshot_url": senator.headshot_url,
+                    "district_id": senator.district,
+                    "is_active": senator.is_active,
+                    "session_number": senator.session_number,
+                    "committees": committees_list,
+                }
+            )
+        result.append(
+            {
+                "id": committee.id,
+                "name": committee.name,
+                "description": committee.description,
+                "chair_name": committee.chair_name,
+                "chair_email": committee.chair_email,
+                "is_active": committee.is_active,
+                "members": members,
+            }
+        )
 
     return result
+
 
 @router.get("/{id}", response_model=CommitteeDTO)
 def get_committee(id: int, db: Session = Depends(get_db)):
     committee = (
         db.query(Committee)
-        .options(
-            selectinload(Committee.memberships)
-            .selectinload(CommitteeMembership.senator)
-        )
+        .options(selectinload(Committee.memberships).selectinload(CommitteeMembership.senator))
         .filter(Committee.id == id)
         .first()
     )
@@ -75,23 +75,25 @@ def get_committee(id: int, db: Session = Depends(get_db)):
     for membership in committee.memberships:
         senator = membership.senator
 
-        members.append({
-            "id": senator.id,
-            "first_name": senator.first_name,
-            "last_name": senator.last_name,
-            "email": senator.email,
-            "headshot_url": senator.headshot_url,
-            "district_id": senator.district,
-            "is_active": senator.is_active,
-            "session_number": senator.session_number,
-            "committees": [
-                {
-                    "committee_id": membership.committee.id,
-                    "committee_name": membership.committee.name,
-                    "role": membership.role
-                }
-            ]
-        })
+        members.append(
+            {
+                "id": senator.id,
+                "first_name": senator.first_name,
+                "last_name": senator.last_name,
+                "email": senator.email,
+                "headshot_url": senator.headshot_url,
+                "district_id": senator.district,
+                "is_active": senator.is_active,
+                "session_number": senator.session_number,
+                "committees": [
+                    {
+                        "committee_id": membership.committee.id,
+                        "committee_name": membership.committee.name,
+                        "role": membership.role,
+                    }
+                ],
+            }
+        )
 
     return {
         "id": committee.id,
@@ -100,5 +102,5 @@ def get_committee(id: int, db: Session = Depends(get_db)):
         "chair_name": committee.chair_name,
         "chair_email": committee.chair_email,
         "members": members,
-        "is_active": committee.is_active
+        "is_active": committee.is_active,
     }

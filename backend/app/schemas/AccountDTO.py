@@ -12,4 +12,3 @@ class AccountDTO(BaseModel):
     role: Literal["admin", "staff"]
 
     model_config = ConfigDict(from_attributes=True)
-

@@ -22,7 +22,15 @@ class TestListEvents:
 
     def test_event_fields_present(self, client):
         event = client.get("/api/events").json()[0]
-        for field in ("id", "title", "description", "start_datetime", "end_datetime", "location", "event_type"):
+        for field in (
+            "id",
+            "title",
+            "description",
+            "start_datetime",
+            "end_datetime",
+            "location",
+            "event_type",
+        ):
             assert field in event, f"Field '{field}' missing from event"
 
     def test_nullable_description(self, client):

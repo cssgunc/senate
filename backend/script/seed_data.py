@@ -593,11 +593,27 @@ def seed_budget_data(db: Session, admin: Admin) -> None:
     fiscal_year = f"FY{date.today().year}-{date.today().year + 1}"
 
     top_level_specs = [
-        ("Student Organization Allocations", Decimal("450000.00"), "Annual allocations for recognized student organizations."),
+        (
+            "Student Organization Allocations",
+            Decimal("450000.00"),
+            "Annual allocations for recognized student organizations.",
+        ),
         ("Campus Programming", Decimal("220000.00"), "Large-scale campus events and traditions."),
-        ("Wellness & Basic Needs", Decimal("180000.00"), "Mental health, food security, and wellbeing initiatives."),
-        ("Academic Support Initiatives", Decimal("150000.00"), "Peer tutoring, academic coaching, and learning resources."),
-        ("Operations & Administration", Decimal("95000.00"), "Administrative systems, staffing, and compliance costs."),
+        (
+            "Wellness & Basic Needs",
+            Decimal("180000.00"),
+            "Mental health, food security, and wellbeing initiatives.",
+        ),
+        (
+            "Academic Support Initiatives",
+            Decimal("150000.00"),
+            "Peer tutoring, academic coaching, and learning resources.",
+        ),
+        (
+            "Operations & Administration",
+            Decimal("95000.00"),
+            "Administrative systems, staffing, and compliance costs.",
+        ),
     ]
 
     top_level_rows: list[BudgetData] = []
@@ -621,12 +637,27 @@ def seed_budget_data(db: Session, admin: Admin) -> None:
         (0, "Small Requests", Decimal("190000.00"), "Rapid-response and small grant requests."),
         (1, "Homecoming", Decimal("90000.00"), "Homecoming week programming and logistics."),
         (1, "Carolina Week", Decimal("130000.00"), "University-wide spring programming."),
-        (2, "Mental Health Grants", Decimal("110000.00"), "Counseling and peer support initiatives."),
-        (2, "Food Access Programs", Decimal("70000.00"), "Campus pantry and meal support initiatives."),
+        (
+            2,
+            "Mental Health Grants",
+            Decimal("110000.00"),
+            "Counseling and peer support initiatives.",
+        ),
+        (
+            2,
+            "Food Access Programs",
+            Decimal("70000.00"),
+            "Campus pantry and meal support initiatives.",
+        ),
         (3, "Peer Tutoring", Decimal("85000.00"), "Department-linked tutoring programs."),
         (3, "Technology Access", Decimal("65000.00"), "Academic software and lending support."),
         (4, "Compliance & Audit", Decimal("45000.00"), "Required audit and compliance activities."),
-        (4, "Platform Maintenance", Decimal("50000.00"), "Web systems, forms, and automation tools."),
+        (
+            4,
+            "Platform Maintenance",
+            Decimal("50000.00"),
+            "Web systems, forms, and automation tools.",
+        ),
     ]
 
     sub_rows: list[BudgetData] = []
@@ -657,10 +688,14 @@ def seed_app_config(db: Session, admin: Admin) -> None:
 def print_summary(db: Session) -> None:
     print("Seeding complete. Created:")
     print(f"  Admin accounts: {db.query(Admin).count()}")
-    print(f"  Districts: {db.query(District).count()} (mappings: {db.query(DistrictMapping).count()})")
+    print(
+        f"  Districts: {db.query(District).count()} (mappings: {db.query(DistrictMapping).count()})"
+    )
     print(f"  Senators: {db.query(Senator).count()}")
     print(f"  Leadership positions: {db.query(Leadership).count()}")
-    print(f"  Committees: {db.query(Committee).count()} (memberships: {db.query(CommitteeMembership).count()})")
+    print(
+        f"  Committees: {db.query(Committee).count()} (memberships: {db.query(CommitteeMembership).count()})"
+    )
     print(f"  News articles: {db.query(News).count()}")
     print(
         f"  Legislation: {db.query(Legislation).count()} (actions: {db.query(LegislationAction).count()})"

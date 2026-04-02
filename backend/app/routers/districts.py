@@ -68,7 +68,9 @@ def _districts_to_dto(districts: list[District], db: Session) -> list[DistrictDT
             .all()
         )
 
-    memberships_by_senator: dict[int, list[CommitteeMembership]] = {senator_id: [] for senator_id in senator_ids}
+    memberships_by_senator: dict[int, list[CommitteeMembership]] = {
+        senator_id: [] for senator_id in senator_ids
+    }
     for membership in memberships:
         memberships_by_senator.setdefault(membership.senator_id, []).append(membership)
 
