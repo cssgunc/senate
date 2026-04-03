@@ -242,11 +242,11 @@ function LegislationSearchContent() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL_FILTER_VALUE}>All Statuses</SelectItem>
-                {STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt} value={opt}>
-                    {opt}
-                  </SelectItem>
-                ))}
+                  {STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -263,11 +263,11 @@ function LegislationSearchContent() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL_FILTER_VALUE}>All Types</SelectItem>
-                {TYPE_OPTIONS.map((opt) => (
-                  <SelectItem key={opt} value={opt}>
-                    {opt}
-                  </SelectItem>
-                ))}
+                  {TYPE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
