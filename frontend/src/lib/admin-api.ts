@@ -49,9 +49,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     );
   }
 
-  // Some DELETE endpoints might return empty body
+  // Some successful endpoints may return no response body.
   if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+
+  const rawBody = await res.text();
+  if (!rawBody) return undefined as T;
+
+  return JSON.parse(rawBody) as T;
 }
 
 // Auth

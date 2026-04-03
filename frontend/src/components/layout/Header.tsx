@@ -41,15 +41,15 @@ const aboutItems = [
   { title: "Staff", href: "/about/staff" },
   { title: "Powers of the Senate", href: "/about/powers" },
   {
-    title: "How a Bill Becomes a Law",
-    href: "/about/how-a-bill-becomes-a-law",
+    title: "Bill Process",
+    href: "/about/bill-process",
   },
-  { title: "Elections", href: "/about/elections" },
+  { title: "Elections", href: "/elections" },
 ];
 
 const fundingItems = [
   { title: "How to Apply", href: "/funding/apply" },
-  { title: "Budget Process", href: "/funding/budget-process" },
+  { title: "Budget", href: "/funding/budget" },
   { title: "Where Does My Money Go?", href: "/funding/where-does-money-go" },
 ];
 

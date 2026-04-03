@@ -10,7 +10,7 @@ The try/except guard allows this module to be imported and tested before that PR
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, true
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -18,8 +18,9 @@ from app.models.cms import Committee, CommitteeMembership
 from app.models.Senator import Senator
 
 try:
-    from app.schemas import CommitteeAssignmentDTO as _CommitteeAssignmentDTO  # noqa: F401
-    from app.schemas import SenatorDTO as _SenatorDTO  # noqa: F401
+    from app.schemas.senator import CommitteeAssignmentDTO as _CommitteeAssignmentDTO  # noqa: F401
+    from app.schemas.senator import SenatorDTO as _SenatorDTO  # noqa: F401
+
     _SENATOR_DTO_AVAILABLE = True
 except ImportError:  # pragma: no cover — removed once PR #37 merges
     _SENATOR_DTO_AVAILABLE = False
@@ -38,15 +39,14 @@ def _senator_to_dict(senator: Senator, db: Session) -> dict[str, Any]:
     the untyped ``Mapped[list]`` annotation on ``Senator.committee_memberships``.
     """
     memberships = (
-        db.query(CommitteeMembership)
-        .filter(CommitteeMembership.senator_id == senator.id)
-        .all()
+        db.query(CommitteeMembership).filter(CommitteeMembership.senator_id == senator.id).all()
     )
     committee_ids = [m.committee_id for m in memberships]
-    committees_by_id = {
-        c.id: c.name
-        for c in db.query(Committee).filter(Committee.id.in_(committee_ids)).all()
-    } if committee_ids else {}
+    committees_by_id = (
+        {c.id: c.name for c in db.query(Committee).filter(Committee.id.in_(committee_ids)).all()}
+        if committee_ids
+        else {}
+    )
 
     committees = [
         {
@@ -97,7 +97,7 @@ def list_senators(
     target_session = session if session is not None else _current_session(db)
 
     query = _base_query(db).filter(
-        Senator.is_active.is_(True),
+        Senator.is_active == true(),
         Senator.session_number == target_session,
     )
 
@@ -123,7 +123,8 @@ def list_senators(
     dicts: list[Any] = [_senator_to_dict(s, db) for s in senators_orm]
 
     if _SENATOR_DTO_AVAILABLE:
-        from app.schemas import SenatorDTO
+        from app.schemas.senator import SenatorDTO
+
         return [SenatorDTO.model_validate(d) for d in dicts]
     return dicts
 
@@ -131,16 +132,13 @@ def list_senators(
 @router.get("/{senator_id}")
 def get_senator(senator_id: int, db: Session = Depends(get_db)):
     """Return a single senator with committee assignments, or 404."""
-    senator = (
-        _base_query(db)
-        .filter(Senator.id == senator_id)
-        .first()
-    )
+    senator = _base_query(db).filter(Senator.id == senator_id).first()
     if senator is None:
         raise HTTPException(status_code=404, detail="Senator not found")
 
     data = _senator_to_dict(senator, db)
     if _SENATOR_DTO_AVAILABLE:
-        from app.schemas import SenatorDTO
+        from app.schemas.senator import SenatorDTO
+
         return SenatorDTO.model_validate(data)
     return data

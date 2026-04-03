@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Leadership
-from app.schemas import LeadershipDTO
+from app.schemas.leadership import LeadershipDTO
 
 router = APIRouter(prefix="/api/leadership", tags=["leadership"])
 
@@ -14,9 +14,16 @@ def _current_session(db: Session) -> int:
     result = db.query(func.max(Leadership.session_number)).scalar()
     return result or 1
 
+
 @router.get("/", response_model=list[LeadershipDTO])
 def get_leadership(session_number: int | None = None, db: Session = Depends(get_db)):
+    """Return leadership rows for the requested session.
 
+    If ``session_number`` is omitted, the API defaults to the latest session
+    present in the leadership table. The endpoint returns every row for that
+    session; active vs inactive status is surfaced through ``is_current`` on
+    each item instead of being filtered out here.
+    """
     target_session = session_number if session_number is not None else _current_session(db)
     query = db.query(Leadership).filter(Leadership.session_number == target_session)
 
@@ -30,14 +37,32 @@ def get_leadership(session_number: int | None = None, db: Session = Depends(get_
     return leadership
 
 
-@router.get("/{id}",  response_model=LeadershipDTO)
+@router.get("/sessions/all", response_model=list[LeadershipDTO])
+def get_all_leadership_sessions(db: Session = Depends(get_db)):
+    """Return all leadership records across all sessions, ordered by session
+    descending, then by title.
+
+    This endpoint is designed for the previous-leadership page to load
+    multi-session data reliably in a single API call.
+    """
+    query = db.query(Leadership).order_by(
+        Leadership.session_number.desc(), Leadership.title
+    )
+
+    leadership = query.all()
+
+    # dynamically add is_current based on is_active
+    for leader in leadership:
+        leader.is_current = leader.is_active
+        leader.photo_url = leader.headshot_url
+
+    return leadership
+
+
+@router.get("/{id}", response_model=LeadershipDTO)
 def get_leadership_by_id(id: int, db: Session = Depends(get_db)):
 
-    leadership = (
-        db.query(Leadership)
-        .filter(Leadership.id == id)
-        .first()
-    )
+    leadership = db.query(Leadership).filter(Leadership.id == id).first()
 
     if leadership is None:
         raise HTTPException(status_code=404, detail="Leadership record not found")

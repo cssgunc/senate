@@ -183,7 +183,7 @@ class AppConfig(Base):
     key: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     value: Mapped[str] = mapped_column(String(500), nullable=False)
     updated_by: Mapped[int] = mapped_column(
-        Integer, ForeignKey("admin.id", ondelete="RESTRICT"), nullable=False
+        Integer, ForeignKey("admin.id", ondelete="NO ACTION"), nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=func.now(), onupdate=func.now()

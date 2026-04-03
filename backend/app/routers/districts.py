@@ -7,7 +7,7 @@ GET /api/districts/lookup  — case-insensitive partial match on DistrictMapping
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func
+from sqlalchemy import func, true
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -51,7 +51,7 @@ def _districts_to_dto(districts: list[District], db: Session) -> list[DistrictDT
     district_ids = [district.id for district in districts]
     senators = (
         db.query(Senator)
-        .filter(Senator.district.in_(district_ids), Senator.is_active.is_(True))
+        .filter(Senator.district.in_(district_ids), Senator.is_active == true())
         .all()
     )
 
@@ -68,7 +68,9 @@ def _districts_to_dto(districts: list[District], db: Session) -> list[DistrictDT
             .all()
         )
 
-    memberships_by_senator: dict[int, list[CommitteeMembership]] = {senator_id: [] for senator_id in senator_ids}
+    memberships_by_senator: dict[int, list[CommitteeMembership]] = {
+        senator_id: [] for senator_id in senator_ids
+    }
     for membership in memberships:
         memberships_by_senator.setdefault(membership.senator_id, []).append(membership)
 

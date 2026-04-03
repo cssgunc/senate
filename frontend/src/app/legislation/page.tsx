@@ -1,8 +1,7 @@
+import { redirect } from "next/navigation";
+
+export const dynamic = "force-dynamic";
+
 export default function LegislationPage() {
-  return (
-    <section>
-      <h1>Legislation Search</h1>
-      <p>This page will contain tools for searching legislation.</p>
-    </section>
-  );
+  redirect("/legislation/search");
 }
