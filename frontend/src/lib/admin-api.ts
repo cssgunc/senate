@@ -80,7 +80,7 @@ export async function login(
   pid: string,
 ): Promise<LoginResponse> {
   const body: LoginCredentials = { email, pid };
-  const data = await request<LoginResponse>("/admin/login", {
+  const data = await request<LoginResponse>("/auth/login", {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -89,7 +89,7 @@ export async function login(
 }
 
 export async function getMe(): Promise<Account> {
-  return request<Account>("/admin/me", { method: "GET" });
+  return request<Account>("/auth/me", { method: "GET" });
 }
 
 export function logout(): void {
