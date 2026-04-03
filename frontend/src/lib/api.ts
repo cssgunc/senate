@@ -83,6 +83,19 @@ function normalizeEndpoint(endpoint: string): string {
   return endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
 }
 
+function buildLeadershipEndpoint(session?: number): string {
+  const query = createQueryString({ session_number: session });
+  const endpoint = `/api/leadership${query}`;
+
+  // Guard against accidental regressions like /api/leadership/?session_number=...
+  console.assert(
+    !endpoint.includes("/?"),
+    "Leadership endpoint should not include a trailing slash before query params",
+  );
+
+  return endpoint;
+}
+
 async function extractErrorDetails(response: Response): Promise<unknown> {
   const contentType = response.headers.get("content-type") || "";
   if (contentType.includes("application/json")) {
@@ -158,8 +171,7 @@ export async function getSenatorById(id: string | number): Promise<Senator> {
 }
 
 export async function getLeadership(session?: number): Promise<Leadership[]> {
-  const query = createQueryString({ session_number: session });
-  return fetchAPI<Leadership[]>(`/api/leadership/${query}`);
+  return fetchAPI<Leadership[]>(buildLeadershipEndpoint(session));
 }
 
 export async function getCommittees(): Promise<Committee[]> {
