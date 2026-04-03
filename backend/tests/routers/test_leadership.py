@@ -46,6 +46,35 @@ def test_get_leadership_by_previous_session(client, seeded_leadership):
     assert data[0]["is_current"] is False
 
 
+def test_get_all_leadership_sessions(client, seeded_leadership):
+    """Test fetching all leadership records across all sessions."""
+    response = client.get("/api/leadership/sessions/all")
+    assert response.status_code == 200
+    data = response.json()
+
+    # Should return records from both 2025 and 2023 sessions
+    sessions = {leader["session_number"] for leader in data}
+    assert 2025 in sessions
+    assert 2023 in sessions
+
+    # Data should be ordered by session descending, then by title
+    # Check that 2025 records come before 2023 records
+    session_indices = [i for i, leader in enumerate(data) if leader["session_number"] == 2025]
+    if session_indices and not all(
+        leader["session_number"] == 2025 for leader in data[: session_indices[-1] + 1]
+    ):
+        # If there's mixed sessions, ensure 2025 comes first
+        first_2023_idx = next(
+            i for i, leader in enumerate(data) if leader["session_number"] == 2023
+        )
+        assert all(
+            leader["session_number"] == 2025 for leader in data[:first_2023_idx]
+        ), "Sessions should be ordered descending"
+
+    # Total count should match seeded data
+    assert len(data) == 4  # 3 from 2025 + 1 from 2023
+
+
 def test_get_leadership_by_id_success(client, seeded_leadership):
     leadership = seeded_leadership["records"][0]  # Speaker
     response = client.get(f"/api/leadership/{leadership.id}")

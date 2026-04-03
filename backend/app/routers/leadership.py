@@ -37,6 +37,28 @@ def get_leadership(session_number: int | None = None, db: Session = Depends(get_
     return leadership
 
 
+@router.get("/sessions/all", response_model=list[LeadershipDTO])
+def get_all_leadership_sessions(db: Session = Depends(get_db)):
+    """Return all leadership records across all sessions, ordered by session
+    descending, then by title.
+
+    This endpoint is designed for the previous-leadership page to load
+    multi-session data reliably in a single API call.
+    """
+    query = db.query(Leadership).order_by(
+        Leadership.session_number.desc(), Leadership.title
+    )
+
+    leadership = query.all()
+
+    # dynamically add is_current based on is_active
+    for leader in leadership:
+        leader.is_current = leader.is_active
+        leader.photo_url = leader.headshot_url
+
+    return leadership
+
+
 @router.get("/{id}", response_model=LeadershipDTO)
 def get_leadership_by_id(id: int, db: Session = Depends(get_db)):
 
