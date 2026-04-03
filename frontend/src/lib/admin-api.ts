@@ -1,4 +1,3 @@
-import { getToken, setToken, clearToken } from "./token";
 import type {
   Account,
   AssignCommitteeMember,
@@ -20,10 +19,27 @@ import type {
   UpdateSenator,
   UpdateStaticPage,
 } from "@/types/admin";
+import type {
+  BudgetData,
+  CalendarEvent,
+  CarouselSlide,
+  Committee,
+  FinanceHearingConfig,
+  FinanceHearingDate,
+  Legislation,
+  LegislationAction,
+  News,
+  Senator,
+  Staff,
+  StaticPage,
+} from "@/types";
+import { clearToken, getToken, setToken } from "./token";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 
-type AdminResource = Record<string, unknown>;
+interface AssignCommitteeMemberResponse {
+  message: string;
+}
 
 function authHeaders(): HeadersInit {
   const token = getToken();
@@ -59,7 +75,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 // Auth
-export async function login(email: string, pid: string): Promise<LoginResponse> {
+export async function login(
+  email: string,
+  pid: string,
+): Promise<LoginResponse> {
   const body: LoginCredentials = { email, pid };
   const data = await request<LoginResponse>("/admin/login", {
     method: "POST",
@@ -78,7 +97,7 @@ export function logout(): void {
 }
 
 // News
-export async function createNews(data: CreateNews): Promise<AdminResource> {
+export async function createNews(data: CreateNews): Promise<News> {
   return request("/admin/news", {
     method: "POST",
     body: JSON.stringify(data),
@@ -88,7 +107,7 @@ export async function createNews(data: CreateNews): Promise<AdminResource> {
 export async function updateNews(
   id: number,
   data: UpdateNews,
-): Promise<AdminResource> {
+): Promise<News> {
   return request(`/admin/news/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -100,7 +119,9 @@ export async function deleteNews(id: number) {
 }
 
 // Senators
-export async function createSenator(data: CreateSenator): Promise<AdminResource> {
+export async function createSenator(
+  data: CreateSenator,
+): Promise<Senator> {
   return request("/admin/senators", {
     method: "POST",
     body: JSON.stringify(data),
@@ -110,7 +131,7 @@ export async function createSenator(data: CreateSenator): Promise<AdminResource>
 export async function updateSenator(
   id: number,
   data: UpdateSenator,
-): Promise<AdminResource> {
+): Promise<Senator> {
   return request(`/admin/senators/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -124,7 +145,7 @@ export async function deleteSenator(id: number) {
 // Legislation
 export async function createLegislation(
   data: CreateLegislation,
-): Promise<AdminResource> {
+): Promise<Legislation> {
   return request("/admin/legislation", {
     method: "POST",
     body: JSON.stringify(data),
@@ -134,7 +155,7 @@ export async function createLegislation(
 export async function updateLegislation(
   id: number,
   data: CreateLegislation,
-): Promise<AdminResource> {
+): Promise<Legislation> {
   return request(`/admin/legislation/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -147,7 +168,7 @@ export async function deleteLegislation(id: number): Promise<void> {
 
 export async function createLegislationAction(
   data: CreateLegislationAction,
-): Promise<AdminResource> {
+): Promise<LegislationAction> {
   return request("/admin/legislation/actions", {
     method: "POST",
     body: JSON.stringify(data),
@@ -155,13 +176,15 @@ export async function createLegislationAction(
 }
 
 export async function deleteLegislationAction(id: number): Promise<void> {
-  return request<void>(`/admin/legislation/actions/${id}`, { method: "DELETE" });
+  return request<void>(`/admin/legislation/actions/${id}`, {
+    method: "DELETE",
+  });
 }
 
 // Calendar events
 export async function createCalendarEvent(
   data: CreateCalendarEvent,
-): Promise<AdminResource> {
+): Promise<CalendarEvent> {
   return request("/admin/events", {
     method: "POST",
     body: JSON.stringify(data),
@@ -171,7 +194,7 @@ export async function createCalendarEvent(
 export async function updateCalendarEvent(
   id: number,
   data: CreateCalendarEvent,
-): Promise<AdminResource> {
+): Promise<CalendarEvent> {
   return request(`/admin/events/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -185,7 +208,7 @@ export async function deleteCalendarEvent(id: number): Promise<void> {
 // Carousel slides
 export async function createCarouselSlide(
   data: CreateCarouselSlide,
-): Promise<AdminResource> {
+): Promise<CarouselSlide> {
   return request("/admin/carousel", {
     method: "POST",
     body: JSON.stringify(data),
@@ -195,7 +218,7 @@ export async function createCarouselSlide(
 export async function updateCarouselSlide(
   id: number,
   data: CreateCarouselSlide,
-): Promise<AdminResource> {
+): Promise<CarouselSlide> {
   return request(`/admin/carousel/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -209,7 +232,7 @@ export async function deleteCarouselSlide(id: number): Promise<void> {
 // Finance hearings
 export async function updateFinanceHearingConfig(
   data: UpdateFinanceHearingConfig,
-): Promise<AdminResource> {
+): Promise<FinanceHearingConfig> {
   return request("/admin/finance-hearings/config", {
     method: "PUT",
     body: JSON.stringify(data),
@@ -218,7 +241,7 @@ export async function updateFinanceHearingConfig(
 
 export async function createFinanceHearingDate(
   data: CreateFinanceHearingDate,
-): Promise<AdminResource> {
+): Promise<FinanceHearingDate> {
   return request("/admin/finance-hearings/dates", {
     method: "POST",
     body: JSON.stringify(data),
@@ -232,7 +255,9 @@ export async function deleteFinanceHearingDate(id: number): Promise<void> {
 }
 
 // Committees
-export async function createCommittee(data: CreateCommittee): Promise<AdminResource> {
+export async function createCommittee(
+  data: CreateCommittee,
+): Promise<Committee> {
   return request("/admin/committees", {
     method: "POST",
     body: JSON.stringify(data),
@@ -242,7 +267,7 @@ export async function createCommittee(data: CreateCommittee): Promise<AdminResou
 export async function updateCommittee(
   id: number,
   data: CreateCommittee,
-): Promise<AdminResource> {
+): Promise<Committee> {
   return request(`/admin/committees/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -256,7 +281,7 @@ export async function deleteCommittee(id: number): Promise<void> {
 export async function assignCommitteeMember(
   committeeId: number,
   data: AssignCommitteeMember,
-): Promise<AdminResource> {
+): Promise<AssignCommitteeMemberResponse> {
   return request(`/admin/committees/${committeeId}/members`, {
     method: "POST",
     body: JSON.stringify(data),
@@ -267,13 +292,16 @@ export async function removeCommitteeMember(
   committeeId: number,
   senatorId: number,
 ): Promise<void> {
-  return request<void>(`/admin/committees/${committeeId}/members/${senatorId}`, {
-    method: "DELETE",
-  });
+  return request<void>(
+    `/admin/committees/${committeeId}/members/${senatorId}`,
+    {
+      method: "DELETE",
+    },
+  );
 }
 
 // Staff
-export async function createStaff(data: CreateStaff): Promise<AdminResource> {
+export async function createStaff(data: CreateStaff): Promise<Staff> {
   return request("/admin/staff", {
     method: "POST",
     body: JSON.stringify(data),
@@ -283,7 +311,7 @@ export async function createStaff(data: CreateStaff): Promise<AdminResource> {
 export async function updateStaff(
   id: number,
   data: CreateStaff,
-): Promise<AdminResource> {
+): Promise<Staff> {
   return request(`/admin/staff/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -295,7 +323,9 @@ export async function deleteStaff(id: number): Promise<void> {
 }
 
 // Budget
-export async function createBudgetData(data: CreateBudgetData): Promise<AdminResource> {
+export async function createBudgetData(
+  data: CreateBudgetData,
+): Promise<BudgetData> {
   return request("/admin/budget", {
     method: "POST",
     body: JSON.stringify(data),
@@ -305,7 +335,7 @@ export async function createBudgetData(data: CreateBudgetData): Promise<AdminRes
 export async function updateBudgetData(
   id: number,
   data: CreateBudgetData,
-): Promise<AdminResource> {
+): Promise<BudgetData> {
   return request(`/admin/budget/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -320,7 +350,7 @@ export async function deleteBudgetData(id: number): Promise<void> {
 export async function updateStaticPage(
   slug: string,
   data: UpdateStaticPage,
-): Promise<AdminResource> {
+): Promise<StaticPage> {
   return request(`/admin/pages/${slug}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -328,7 +358,9 @@ export async function updateStaticPage(
 }
 
 // Accounts
-export async function createAccount(data: CreateAccount): Promise<AdminResource> {
+export async function createAccount(
+  data: CreateAccount,
+): Promise<Account> {
   return request("/admin/accounts", {
     method: "POST",
     body: JSON.stringify(data),
@@ -338,7 +370,7 @@ export async function createAccount(data: CreateAccount): Promise<AdminResource>
 export async function updateAccount(
   id: number,
   data: CreateAccount,
-): Promise<AdminResource> {
+): Promise<Account> {
   return request(`/admin/accounts/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
