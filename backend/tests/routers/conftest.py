@@ -127,6 +127,9 @@ def seeded_committees(test_db):
 @pytest.fixture
 def seeded_leadership(test_db):
     """Seed test data for leadership."""
+    test_db.query(Leadership).delete()
+    test_db.commit()
+
     l1 = Leadership(
         title="Speaker",
         first_name="John",
@@ -154,11 +157,20 @@ def seeded_leadership(test_db):
         is_active=True,
         session_number=2025,
     )
+    l4 = Leadership(
+        title="Parliamentarian",
+        first_name="Maya",
+        last_name="Nguyen",
+        email="maya@example.com",
+        headshot_url=None,
+        is_active=False,
+        session_number=2025,
+    )
 
-    test_db.add_all([l1, l2, l3])
+    test_db.add_all([l1, l2, l3, l4])
     test_db.commit()
 
-    yield {"records": [l1, l2, l3]}
+    yield {"records": [l1, l2, l3, l4]}
 
 @pytest.fixture(scope="module")
 def seeded_admins(test_db):

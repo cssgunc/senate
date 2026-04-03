@@ -17,7 +17,13 @@ def _current_session(db: Session) -> int:
 
 @router.get("/", response_model=list[LeadershipDTO])
 def get_leadership(session_number: int | None = None, db: Session = Depends(get_db)):
+    """Return leadership rows for the requested session.
 
+    If ``session_number`` is omitted, the API defaults to the latest session
+    present in the leadership table. The endpoint returns every row for that
+    session; active vs inactive status is surfaced through ``is_current`` on
+    each item instead of being filtered out here.
+    """
     target_session = session_number if session_number is not None else _current_session(db)
     query = db.query(Leadership).filter(Leadership.session_number == target_session)
 
