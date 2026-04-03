@@ -20,7 +20,8 @@ from app.schemas.pagination import PaginatedResponse
 from app.utils.pagination import paginate
 
 try:
-    from app.schemas import NewsDTO as _NewsDTO
+    from app.schemas.news import NewsDTO as _NewsDTO
+
     _NEWS_DTO_AVAILABLE = True
 except ImportError:  # pragma: no cover — removed once PR #37 merges
     _NewsDTO = None  # type: ignore[assignment,misc]
@@ -54,16 +55,13 @@ def list_news(
     db: Session = Depends(get_db),
 ):
     """Return a paginated list of published news articles, most recent first."""
-    query = (
-        db.query(News)
-        .filter(News.is_published == true())
-        .order_by(News.date_published.desc())
-    )
+    query = db.query(News).filter(News.is_published == true()).order_by(News.date_published.desc())
     items, total = paginate(query, page=page, limit=limit)
     news_dicts = [_news_to_dict(n) for n in items]
 
     if _NEWS_DTO_AVAILABLE:
-        from app.schemas import NewsDTO
+        from app.schemas.news import NewsDTO
+
         validated: list[Any] = [NewsDTO.model_validate(d) for d in news_dicts]
     else:
         validated = news_dicts
@@ -74,16 +72,13 @@ def list_news(
 @router.get("/{news_id}")
 def get_news(news_id: int, db: Session = Depends(get_db)):
     """Return a single published news article by ID, or 404."""
-    news = (
-        db.query(News)
-        .filter(News.id == news_id, News.is_published == true())
-        .first()
-    )
+    news = db.query(News).filter(News.id == news_id, News.is_published == true()).first()
     if news is None:
         raise HTTPException(status_code=404, detail="Article not found")
 
     data = _news_to_dict(news)
     if _NEWS_DTO_AVAILABLE:
-        from app.schemas import NewsDTO
+        from app.schemas.news import NewsDTO
+
         return NewsDTO.model_validate(data)
     return data

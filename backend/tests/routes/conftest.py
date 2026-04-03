@@ -182,38 +182,40 @@ def seeded_engine(test_engine):
     db.flush()
 
     # --- Calendar events ---
-    db.add_all([
-        CalendarEvent(
-            title="General Body Meeting",
-            description="Monthly meeting",
-            start_datetime=datetime(2026, 4, 1, 18, 0),
-            end_datetime=datetime(2026, 4, 1, 19, 30),
-            location="The Pit",
-            event_type="meeting",
-            is_published=True,
-            created_by=admin.id,
-        ),
-        CalendarEvent(
-            title="Finance Hearing",
-            description=None,
-            start_datetime=datetime(2026, 4, 15, 9, 0),
-            end_datetime=datetime(2026, 4, 15, 11, 0),
-            location="Union",
-            event_type="hearing",
-            is_published=True,
-            created_by=admin.id,
-        ),
-        CalendarEvent(
-            title="Draft Event",
-            description="Not published",
-            start_datetime=datetime(2026, 5, 1, 10, 0),
-            end_datetime=datetime(2026, 5, 1, 11, 0),
-            location=None,
-            event_type="meeting",
-            is_published=False,
-            created_by=admin.id,
-        ),
-    ])
+    db.add_all(
+        [
+            CalendarEvent(
+                title="General Body Meeting",
+                description="Monthly meeting",
+                start_datetime=datetime(2026, 4, 1, 18, 0),
+                end_datetime=datetime(2026, 4, 1, 19, 30),
+                location="The Pit",
+                event_type="meeting",
+                is_published=True,
+                created_by=admin.id,
+            ),
+            CalendarEvent(
+                title="Finance Hearing",
+                description=None,
+                start_datetime=datetime(2026, 4, 15, 9, 0),
+                end_datetime=datetime(2026, 4, 15, 11, 0),
+                location="Union",
+                event_type="hearing",
+                is_published=True,
+                created_by=admin.id,
+            ),
+            CalendarEvent(
+                title="Draft Event",
+                description="Not published",
+                start_datetime=datetime(2026, 5, 1, 10, 0),
+                end_datetime=datetime(2026, 5, 1, 11, 0),
+                location=None,
+                event_type="meeting",
+                is_published=False,
+                created_by=admin.id,
+            ),
+        ]
+    )
     db.flush()
 
     # --- Carousel slides ---

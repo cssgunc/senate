@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -22,6 +29,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 const STATUS_OPTIONS = ["Introduced", "In Committee", "Passed", "Failed"];
 const TYPE_OPTIONS = ["Bill", "Resolution", "Nomination"];
+const ALL_FILTER_VALUE = "all";
 
 function LegislationSearchContent() {
   const router = useRouter();
@@ -29,6 +37,7 @@ function LegislationSearchContent() {
 
   // Form state
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
   const [session, setSession] = useState("");
@@ -49,14 +58,26 @@ function LegislationSearchContent() {
     const sessionParam = searchParams.get("session") || "";
     const pageParam = parseInt(searchParams.get("page") || "1", 10);
     const limitParam = parseInt(searchParams.get("limit") || "20", 10);
+    const safePage = Number.isNaN(pageParam) ? 1 : pageParam;
+    const safeLimit = Number.isNaN(limitParam) ? 20 : limitParam;
 
     setSearch(searchParam);
+    setDebouncedSearch(searchParam);
     setStatus(statusParam);
     setType(typeParam);
     setSession(sessionParam);
-    setPage(Math.max(1, pageParam));
-    setLimit(Math.max(1, limitParam));
+    setPage(Math.max(1, safePage));
+    setLimit(Math.max(1, safeLimit));
   }, [searchParams]);
+
+  // Debounce the text search before syncing URL / querying API.
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [search]);
 
   // Fetch legislation when params change
   useEffect(() => {
@@ -65,12 +86,17 @@ function LegislationSearchContent() {
       setIsLoading(true);
       setError(null);
 
+      const parsedSession = session ? parseInt(session, 10) : undefined;
+
       try {
         const result = await getLegislation({
-          search: search || undefined,
+          search: debouncedSearch || undefined,
           status: status || undefined,
           type: type || undefined,
-          session: session ? parseInt(session, 10) : undefined,
+          session:
+            parsedSession !== undefined && !Number.isNaN(parsedSession)
+              ? parsedSession
+              : undefined,
           page,
           limit,
         });
@@ -81,7 +107,6 @@ function LegislationSearchContent() {
         if (requestId !== requestIdRef.current) {
           return;
         }
-
         if (err instanceof ApiError) {
           setError(`Failed to fetch legislation: ${err.message}`);
         } else {
@@ -95,7 +120,7 @@ function LegislationSearchContent() {
     };
 
     fetchLegislation();
-  }, [search, status, type, session, page, limit]);
+  }, [debouncedSearch, status, type, session, page, limit]);
 
   // Update URL when filters change
   const updateSearchParams = useCallback(
@@ -117,24 +142,33 @@ function LegislationSearchContent() {
     [searchParams, router],
   );
 
+  // Keep URL search param synchronized, but only after debounce settles.
+  useEffect(() => {
+    const urlSearch = searchParams.get("search") || "";
+    if (urlSearch === debouncedSearch) {
+      return;
+    }
+
+    updateSearchParams({ search: debouncedSearch });
+  }, [debouncedSearch, searchParams, updateSearchParams]);
+
   // Handle search input
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);
-    updateSearchParams({ search: value });
   };
 
   // Handle filter dropdown changes
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setStatus(value);
-    updateSearchParams({ status: value });
+  const handleStatusChange = (value: string) => {
+    const normalizedValue = value === ALL_FILTER_VALUE ? "" : value;
+    setStatus(normalizedValue);
+    updateSearchParams({ status: normalizedValue });
   };
 
-  const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setType(value);
-    updateSearchParams({ type: value });
+  const handleTypeChange = (value: string) => {
+    const normalizedValue = value === ALL_FILTER_VALUE ? "" : value;
+    setType(normalizedValue);
+    updateSearchParams({ type: normalizedValue });
   };
 
   const handleSessionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -199,35 +233,43 @@ function LegislationSearchContent() {
             {/* Status Filter */}
             <div>
               <label className="block text-sm font-medium mb-2">Status</label>
-              <select
-                value={status}
-                onChange={handleStatusChange}
-                className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              <Select
+                value={status || ALL_FILTER_VALUE}
+                onValueChange={handleStatusChange}
               >
-                <option value="">All Statuses</option>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_FILTER_VALUE}>All Statuses</SelectItem>
                 {STATUS_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
+                  <SelectItem key={opt} value={opt}>
                     {opt}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Type Filter */}
             <div>
               <label className="block text-sm font-medium mb-2">Type</label>
-              <select
-                value={type}
-                onChange={handleTypeChange}
-                className="w-full px-3 py-2 border border-input rounded-md bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              <Select
+                value={type || ALL_FILTER_VALUE}
+                onValueChange={handleTypeChange}
               >
-                <option value="">All Types</option>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_FILTER_VALUE}>All Types</SelectItem>
                 {TYPE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
+                  <SelectItem key={opt} value={opt}>
                     {opt}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Session Filter */}
