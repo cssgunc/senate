@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { API_BASE_URL, fetchAPI } from "@/lib/api";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [apiStatus, setApiStatus] = useState<string>("checking...");
