@@ -1,4 +1,18 @@
 import type {
+  BudgetData,
+  CalendarEvent,
+  CarouselSlide,
+  Committee,
+  FinanceHearingConfig,
+  FinanceHearingDate,
+  Legislation,
+  LegislationAction,
+  News,
+  Senator,
+  Staff,
+  StaticPage,
+} from "@/types";
+import type {
   Account,
   AssignCommitteeMember,
   CreateAccount,
@@ -19,20 +33,6 @@ import type {
   UpdateSenator,
   UpdateStaticPage,
 } from "@/types/admin";
-import type {
-  BudgetData,
-  CalendarEvent,
-  CarouselSlide,
-  Committee,
-  FinanceHearingConfig,
-  FinanceHearingDate,
-  Legislation,
-  LegislationAction,
-  News,
-  Senator,
-  Staff,
-  StaticPage,
-} from "@/types";
 import { clearToken, getToken, setToken } from "./token";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
@@ -104,10 +104,7 @@ export async function createNews(data: CreateNews): Promise<News> {
   });
 }
 
-export async function updateNews(
-  id: number,
-  data: UpdateNews,
-): Promise<News> {
+export async function updateNews(id: number, data: UpdateNews): Promise<News> {
   return request(`/admin/news/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
@@ -119,9 +116,7 @@ export async function deleteNews(id: number) {
 }
 
 // Senators
-export async function createSenator(
-  data: CreateSenator,
-): Promise<Senator> {
+export async function createSenator(data: CreateSenator): Promise<Senator> {
   return request("/admin/senators", {
     method: "POST",
     body: JSON.stringify(data),
@@ -358,9 +353,7 @@ export async function updateStaticPage(
 }
 
 // Accounts
-export async function createAccount(
-  data: CreateAccount,
-): Promise<Account> {
+export async function createAccount(data: CreateAccount): Promise<Account> {
   return request("/admin/accounts", {
     method: "POST",
     body: JSON.stringify(data),
