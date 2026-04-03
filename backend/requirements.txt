@@ -1,3 +1,6 @@
+# Environment variables
+python-dotenv==1.0.1
+
 # Pydantic
 pydantic[email]==2.12.5
 
