@@ -14,6 +14,7 @@ import type {
 } from "@/types";
 import type {
   Account,
+  AdminNews,
   AssignCommitteeMember,
   CreateAccount,
   CreateBudgetData,
@@ -33,6 +34,7 @@ import type {
   UpdateSenator,
   UpdateStaticPage,
 } from "@/types/admin";
+import type { PaginatedResponse } from "@/types/api";
 import { clearToken, getToken, setToken } from "./token";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
@@ -97,6 +99,23 @@ export function logout(): void {
 }
 
 // News
+export async function getAdminNews(
+  page: number = 1,
+  limit: number = 20,
+  isPublished?: boolean,
+): Promise<PaginatedResponse<AdminNews>> {
+  const searchParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  if (isPublished !== undefined) {
+    searchParams.set("is_published", isPublished.toString());
+  }
+  return request(`/admin/news?${searchParams.toString()}`, {
+    method: "GET",
+  });
+}
+
 export async function createNews(data: CreateNews): Promise<News> {
   return request("/admin/news", {
     method: "POST",
