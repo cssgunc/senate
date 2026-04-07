@@ -41,6 +41,17 @@ export interface CreateNews {
   is_published: boolean;
 }
 
+export interface AdminNews {
+  id: number;
+  title: string;
+  summary: string;
+  body: string;
+  image_url: string | null;
+  date_published: string;
+  date_last_edited: string;
+  admin?: Account | null;
+  is_published: boolean;
+}
 export interface UpdateNews {
   title: string;
   body: string;
