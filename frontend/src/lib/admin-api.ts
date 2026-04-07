@@ -115,7 +115,6 @@ export async function getAdminNews(
     method: "GET",
   });
 }
-
 export async function createNews(data: CreateNews): Promise<News> {
   return request("/admin/news", {
     method: "POST",

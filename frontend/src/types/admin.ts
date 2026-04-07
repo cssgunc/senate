@@ -52,7 +52,6 @@ export interface AdminNews {
   admin?: Account | null;
   is_published: boolean;
 }
-
 export interface UpdateNews {
   title: string;
   body: string;
