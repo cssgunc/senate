@@ -1,35 +1,54 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { getAdminNews, createNews, updateNews, deleteNews } from "@/lib/admin-api";
-import { AdminNews, CreateNews, UpdateNews } from "@/types/admin";
 import { DataTable } from "@/components/admin/DataTable";
 import { NewsForm } from "@/components/admin/NewsForm";
+import {
+  createNews,
+  deleteNews,
+  getAdminNews,
+  updateNews,
+} from "@/lib/admin-api";
+import { AdminNews, CreateNews, UpdateNews } from "@/types/admin";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
+import { useEffect, useMemo, useState } from "react";
 
 type StatusFilter = "All" | "Published" | "Draft";
+const ADMIN_NEWS_PAGE_SIZE = 100;
 
 export default function AdminNewsPage() {
   const [data, setData] = useState<AdminNews[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
-  
+
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingNews, setEditingNews] = useState<AdminNews | undefined>(undefined);
+  const [editingNews, setEditingNews] = useState<AdminNews | undefined>(
+    undefined,
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const fetchNews = async () => {
     setIsLoading(true);
     try {
-      const res = await getAdminNews(1, 100);
-      if (res && res.items) {
-        setData(res.items);
-      } else if (Array.isArray(res)) {
-        setData(res);
-      } else {
-        setData([]); // fallback
+      const firstPage = await getAdminNews(1, ADMIN_NEWS_PAGE_SIZE);
+      if (Array.isArray(firstPage)) {
+        setData(firstPage);
+        return;
       }
+
+      const allItems = [...firstPage.items];
+      const totalPages = Math.ceil(firstPage.total / firstPage.limit);
+
+      for (let page = 2; page <= totalPages; page += 1) {
+        const response = await getAdminNews(page, ADMIN_NEWS_PAGE_SIZE);
+        if (Array.isArray(response)) {
+          allItems.push(...response);
+        } else {
+          allItems.push(...response.items);
+        }
+      }
+
+      setData(allItems);
     } catch (error) {
       console.error("Failed to fetch news:", error);
     } finally {
@@ -47,7 +66,12 @@ export default function AdminNewsPage() {
   };
 
   const handleDelete = async (newsId: number) => {
-    if (!window.confirm("Are you sure you want to delete this article? This action cannot be undone.")) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this article? This action cannot be undone.",
+      )
+    )
+      return;
     try {
       await deleteNews(newsId);
       await fetchNews();
@@ -93,11 +117,13 @@ export default function AdminNewsPage() {
       cell: ({ row }) => {
         const isPublished = row.getValue("is_published") as boolean;
         return (
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${isPublished ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${isPublished ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}
+          >
             {isPublished ? "Published" : "Draft"}
           </span>
         );
-      }
+      },
     },
     {
       accessorKey: "admin",
@@ -105,7 +131,7 @@ export default function AdminNewsPage() {
       cell: ({ row }) => {
         const admin = row.original.admin;
         return admin ? `${admin.first_name} ${admin.last_name}` : "Unknown";
-      }
+      },
     },
     {
       accessorKey: "date_published",
@@ -117,7 +143,7 @@ export default function AdminNewsPage() {
         } catch {
           return date;
         }
-      }
+      },
     },
     {
       id: "actions",
@@ -140,24 +166,24 @@ export default function AdminNewsPage() {
             </button>
           </div>
         );
-      }
-    }
+      },
+    },
   ];
 
   if (isFormOpen) {
     return (
       <div className="max-w-4xl mx-auto space-y-4">
         <button
-           onClick={() => {
-             setIsFormOpen(false);
-             setEditingNews(undefined);
-           }}
-           className="text-blue-600 hover:underline mb-4 inline-block font-medium"
+          onClick={() => {
+            setIsFormOpen(false);
+            setEditingNews(undefined);
+          }}
+          className="text-blue-600 hover:underline mb-4 inline-block font-medium"
         >
           &larr; Back to News Table
         </button>
-        <NewsForm 
-          initialData={editingNews} 
+        <NewsForm
+          initialData={editingNews}
           onSubmit={handleFormSubmit}
           onCancel={() => {
             setIsFormOpen(false);
@@ -186,8 +212,10 @@ export default function AdminNewsPage() {
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="mb-6 flex items-center gap-3">
-          <label className="text-sm font-medium text-gray-700">Filter by Status:</label>
-          <select 
+          <label className="text-sm font-medium text-gray-700">
+            Filter by Status:
+          </label>
+          <select
             className="border border-gray-300 rounded-md py-1.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
