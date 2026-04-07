@@ -21,11 +21,8 @@ from app.routers import (
     staff,
 )
 from app.routers.admin import committees as admin_committees
-<<<<<<< HEAD
-from app.routers.admin import legislation as admin_legislation
-=======
 from app.routers.admin import leadership as admin_leadership
->>>>>>> b10e0533512e1de0849cd82f2f9b9104932e5f8b
+from app.routers.admin import legislation as admin_legislation
 from app.routers.admin import news as admin_news
 from app.routers.admin import senators as admin_senators
 
