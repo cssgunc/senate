@@ -11,7 +11,7 @@ os.environ.setdefault("JWT_SECRET", "test-only-jwt-secret")
 
 from app.database import Base, get_db
 from app.main import app
-from app.models import Admin, Committee, CommitteeMembership, Leadership, Senator
+from app.models import Admin, Committee, CommitteeMembership, District, Leadership, Senator
 
 # --- Setup shared in-memory database ---
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -73,13 +73,19 @@ def client(test_db):
 @pytest.fixture
 def seeded_committees(test_db):
     """Seed test data for committees, senators, and memberships."""
+    # --- Districts ---
+    d1 = District(district_name="District 1", description=None)
+    d2 = District(district_name="District 2", description=None)
+    test_db.add_all([d1, d2])
+    test_db.commit()
+
     # --- Senators ---
     s1 = Senator(
         first_name="John",
         last_name="Doe",
         email="john@example.com",
         headshot_url=None,
-        district=1,
+        district=d1.id,
         is_active=True,
         session_number=2016,
     )
@@ -88,7 +94,7 @@ def seeded_committees(test_db):
         last_name="Doe",
         email="jane@example.com",
         headshot_url=None,
-        district=2,
+        district=d2.id,
         is_active=True,
         session_number=2025,
     )
