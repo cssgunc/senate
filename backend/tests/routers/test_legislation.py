@@ -1,6 +1,5 @@
-import pytest
 import logging
-import sys
+
 logging.basicConfig(level=logging.DEBUG)
 
 # -----------------------------

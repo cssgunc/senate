@@ -1,15 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, selectinload
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user, require_role
-from app.models.Admin import Admin
 from app.models import Legislation, LegislationAction
+from app.models.Admin import Admin
 from app.schemas.legislation import (
-    LegislationDTO,
-    LegislationActionDTO,
-    CreateLegislationDTO,
     CreateLegislationActionDTO,
+    CreateLegislationDTO,
+    LegislationActionDTO,
+    LegislationDTO,
 )
 
 router = APIRouter(
@@ -69,7 +69,7 @@ def delete_legislation(
 
     if not legislation:
         raise HTTPException(404, "Legislation not found")
-    
+
     db.query(LegislationAction).filter(LegislationAction.legislation_id == id).delete(synchronize_session=False)
 
     db.delete(legislation)

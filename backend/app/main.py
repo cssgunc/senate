@@ -21,8 +21,8 @@ from app.routers import (
     staff,
 )
 from app.routers.admin import committees as admin_committees
-from app.routers.admin import news as admin_news
 from app.routers.admin import legislation as admin_legislation
+from app.routers.admin import news as admin_news
 
 load_dotenv()
 
