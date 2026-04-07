@@ -21,7 +21,9 @@ from app.routers import (
     staff,
 )
 from app.routers.admin import committees as admin_committees
+from app.routers.admin import leadership as admin_leadership
 from app.routers.admin import news as admin_news
+from app.routers.admin import senators as admin_senators
 
 load_dotenv()
 
@@ -59,6 +61,8 @@ app.include_router(admin_news.router)
 
 # Include Admin routers
 app.include_router(admin_committees.router)
+app.include_router(admin_senators.router)
+app.include_router(admin_leadership.router)
 
 
 @app.get("/")
