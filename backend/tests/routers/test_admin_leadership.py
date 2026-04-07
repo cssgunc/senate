@@ -68,6 +68,23 @@ def test_create_admin_leadership(admin_client):
     assert data["session_number"] == 2026
 
 
+def test_create_admin_leadership_invalid_senator_returns_404(admin_client):
+    response = admin_client.post(
+        "/api/admin/leadership",
+        json={
+            "senator_id": 999999,
+            "title": "Secretary",
+            "first_name": "Taylor",
+            "last_name": "Green",
+            "email": "tgreen@example.com",
+            "session_number": 2026,
+            "is_active": True,
+        },
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Senator not found"
+
+
 def test_update_admin_leadership_partial(admin_client, seeded_leadership):
     leader = seeded_leadership["records"][0]
     response = admin_client.put(
@@ -76,6 +93,16 @@ def test_update_admin_leadership_partial(admin_client, seeded_leadership):
     )
     assert response.status_code == 200
     assert response.json()["title"] == "Updated Speaker"
+
+
+def test_update_admin_leadership_invalid_senator_returns_404(admin_client, seeded_leadership):
+    leader = seeded_leadership["records"][0]
+    response = admin_client.put(
+        f"/api/admin/leadership/{leader.id}",
+        json={"senator_id": 999999},
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Senator not found"
 
 
 def test_update_admin_leadership_not_found(admin_client):
@@ -114,4 +141,23 @@ def test_unauthenticated_create_rejected(client):
             "is_active": True,
         },
     )
+    assert response.status_code in {401, 403}
+
+
+def test_unauthenticated_list_rejected(client):
+    response = client.get("/api/admin/leadership")
+    assert response.status_code in {401, 403}
+
+
+def test_unauthenticated_update_rejected(client):
+    response = client.put(
+        "/api/admin/leadership/1",
+        json={"title": "Blocked"},
+    )
+    assert response.status_code in {401, 403}
+
+
+def test_unauthenticated_delete_rejected(client, seeded_leadership):
+    leader = seeded_leadership["records"][0]
+    response = client.delete(f"/api/admin/leadership/{leader.id}")
     assert response.status_code in {401, 403}

@@ -9,12 +9,14 @@ DELETE /api/admin/leadership/{id}  — delete leadership entry (admin role requi
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user, require_role
 from app.models.Admin import Admin
 from app.models.Leadership import Leadership
+from app.models.Senator import Senator
 from app.schemas.leadership import CreateLeadershipDTO, LeadershipDTO, UpdateLeadershipDTO
 from app.schemas.pagination import PaginatedResponse
 from app.utils.pagination import paginate
@@ -64,9 +66,18 @@ def create_admin_leadership(
     db: Session = Depends(get_db),
 ):
     """Create a leadership entry."""
+    if body.senator_id is not None:
+        senator = db.query(Senator).filter(Senator.id == body.senator_id).first()
+        if senator is None:
+            raise HTTPException(status_code=404, detail="Senator not found")
+
     leader = Leadership(**body.model_dump())
     db.add(leader)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Unable to create leadership due to invalid data")
     db.refresh(leader)
     return LeadershipDTO.model_validate(_serialize_leadership(leader))
 
@@ -88,10 +99,19 @@ def update_admin_leadership(
         raise HTTPException(status_code=404, detail="Leadership record not found")
 
     update_data = body.model_dump(exclude_unset=True)
+    if "senator_id" in update_data and update_data["senator_id"] is not None:
+        senator = db.query(Senator).filter(Senator.id == update_data["senator_id"]).first()
+        if senator is None:
+            raise HTTPException(status_code=404, detail="Senator not found")
+
     for field, value in update_data.items():
         setattr(leader, field, value)
 
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Unable to update leadership due to invalid data")
     db.refresh(leader)
     return LeadershipDTO.model_validate(_serialize_leadership(leader))
 

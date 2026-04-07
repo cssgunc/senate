@@ -62,14 +62,15 @@ def test_list_admin_senators_filters(admin_client, test_db, seeded_committees):
     assert all(item["session_number"] == 2016 for item in session_response.json()["items"])
 
 
-def test_create_admin_senator(admin_client):
+def test_create_admin_senator(admin_client, seeded_committees):
+    district_id = seeded_committees["senators"][0].district
     response = admin_client.post(
         "/api/admin/senators",
         json={
             "first_name": "New",
             "last_name": "Senator",
             "email": "new.senator@example.com",
-            "district_id": 1,
+            "district_id": district_id,
             "session_number": 2026,
         },
     )
@@ -77,8 +78,23 @@ def test_create_admin_senator(admin_client):
 
     data = response.json()
     assert data["first_name"] == "New"
-    assert data["district_id"] == 1
+    assert data["district_id"] == district_id
     assert data["session_number"] == 2026
+
+
+def test_create_admin_senator_invalid_district_returns_404(admin_client):
+    response = admin_client.post(
+        "/api/admin/senators",
+        json={
+            "first_name": "Bad",
+            "last_name": "District",
+            "email": "bad.district@example.com",
+            "district_id": 999999,
+            "session_number": 2026,
+        },
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "District not found"
 
 
 def test_update_admin_senator_partial(admin_client, seeded_committees):
@@ -89,6 +105,16 @@ def test_update_admin_senator_partial(admin_client, seeded_committees):
     )
     assert response.status_code == 200
     assert response.json()["is_active"] is False
+
+
+def test_update_admin_senator_invalid_district_returns_404(admin_client, seeded_committees):
+    senator = seeded_committees["senators"][0]
+    response = admin_client.put(
+        f"/api/admin/senators/{senator.id}",
+        json={"district_id": 999999},
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "District not found"
 
 
 def test_update_admin_senator_not_found(admin_client):
@@ -148,4 +174,23 @@ def test_unauthenticated_create_rejected(client):
             "session_number": 2026,
         },
     )
+    assert response.status_code in {401, 403}
+
+
+def test_unauthenticated_list_rejected(client):
+    response = client.get("/api/admin/senators")
+    assert response.status_code in {401, 403}
+
+
+def test_unauthenticated_update_rejected(client):
+    response = client.put(
+        "/api/admin/senators/1",
+        json={"is_active": False},
+    )
+    assert response.status_code in {401, 403}
+
+
+def test_unauthenticated_delete_rejected(client, seeded_committees):
+    senator = seeded_committees["senators"][0]
+    response = client.delete(f"/api/admin/senators/{senator.id}")
     assert response.status_code in {401, 403}

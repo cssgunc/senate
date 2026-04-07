@@ -9,13 +9,14 @@ DELETE /api/admin/senators/{id}  — delete senator (admin role required)
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user, require_role
-from app.models import Leadership
+from app.models import District, Leadership
 from app.models.Admin import Admin
-from app.models.cms import Committee, CommitteeMembership
+from app.models.cms import CommitteeMembership
 from app.models.Senator import Senator
 from app.schemas.pagination import PaginatedResponse
 from app.schemas.senator import CreateSenatorDTO, SenatorDTO, UpdateSenatorDTO
@@ -27,21 +28,19 @@ router = APIRouter(
 )
 
 
-def _serialize_senator(senator: Senator, db: Session) -> dict[str, Any]:
-    memberships = (
-        db.query(CommitteeMembership).filter(CommitteeMembership.senator_id == senator.id).all()
-    )
-    committee_ids = [m.committee_id for m in memberships]
-    committees_by_id = (
-        {c.id: c.name for c in db.query(Committee).filter(Committee.id.in_(committee_ids)).all()}
-        if committee_ids
-        else {}
-    )
+def _serialize_senator(senator: Senator) -> dict[str, Any]:
+    raw_memberships = senator.committee_memberships
+    if isinstance(raw_memberships, list):
+        memberships = raw_memberships
+    elif raw_memberships is None:
+        memberships = []
+    else:
+        memberships = [raw_memberships]
 
     committees = [
         {
             "committee_id": m.committee_id,
-            "committee_name": committees_by_id.get(m.committee_id, ""),
+            "committee_name": m.committee.name if getattr(m, "committee", None) else "",
             "role": m.role,
         }
         for m in memberships
@@ -70,7 +69,10 @@ def list_admin_senators(
     db: Session = Depends(get_db),
 ):
     """Return a paginated list of senators for admin workflows."""
-    query = db.query(Senator).order_by(Senator.last_name, Senator.first_name)
+    query = db.query(Senator).options(
+        selectinload(Senator.committee_memberships).selectinload(CommitteeMembership.committee)
+    )
+    query = query.order_by(Senator.last_name, Senator.first_name)
 
     if is_active is not None:
         query = query.filter(Senator.is_active == is_active)
@@ -78,7 +80,7 @@ def list_admin_senators(
         query = query.filter(Senator.session_number == session)
 
     items, total = paginate(query, page=page, limit=limit)
-    validated = [SenatorDTO.model_validate(_serialize_senator(senator, db)) for senator in items]
+    validated = [SenatorDTO.model_validate(_serialize_senator(senator)) for senator in items]
     return PaginatedResponse(items=validated, total=total, page=page, limit=limit)
 
 
@@ -90,13 +92,22 @@ def create_admin_senator(
 ):
     """Create a senator record."""
     payload = body.model_dump()
+    district_id = payload.get("district_id")
+    district = db.query(District).filter(District.id == district_id).first()
+    if district is None:
+        raise HTTPException(status_code=404, detail="District not found")
+
     payload["district"] = payload.pop("district_id")
 
     senator = Senator(**payload)
     db.add(senator)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Unable to create senator due to invalid data")
     db.refresh(senator)
-    return SenatorDTO.model_validate(_serialize_senator(senator, db))
+    return SenatorDTO.model_validate(_serialize_senator(senator))
 
 
 @router.put(
@@ -117,14 +128,24 @@ def update_admin_senator(
 
     update_data = body.model_dump(exclude_unset=True)
     if "district_id" in update_data:
+        district_id = update_data["district_id"]
+        if district_id is None:
+            raise HTTPException(status_code=400, detail="district_id cannot be null")
+        district = db.query(District).filter(District.id == district_id).first()
+        if district is None:
+            raise HTTPException(status_code=404, detail="District not found")
         update_data["district"] = update_data.pop("district_id")
 
     for field, value in update_data.items():
         setattr(senator, field, value)
 
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Unable to update senator due to invalid data")
     db.refresh(senator)
-    return SenatorDTO.model_validate(_serialize_senator(senator, db))
+    return SenatorDTO.model_validate(_serialize_senator(senator))
 
 
 @router.delete(
