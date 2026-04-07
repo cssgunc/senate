@@ -22,6 +22,7 @@ from app.routers import (
 )
 from app.routers.admin import committees as admin_committees
 from app.routers.admin import news as admin_news
+from app.routers.admin import legislation as admin_legislation
 
 load_dotenv()
 
@@ -59,6 +60,7 @@ app.include_router(admin_news.router)
 
 # Include Admin routers
 app.include_router(admin_committees.router)
+app.include_router(admin_legislation.router)
 
 
 @app.get("/")
