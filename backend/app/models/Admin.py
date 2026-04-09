@@ -25,6 +25,13 @@ class Admin(Base):
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
+    # # Constraints needed for SQLite stuff
+    # __table_args__ = (
+    #         CheckConstraint("pid REGEXP '^[0-9]{9}$'", name="ck_admin_pid_format"),
+    #         CheckConstraint("role IN ('admin', 'staff')", name="ck_admin_role"),
+    #     )
+
+    # Constraints needed for SQL Server stuff
     __table_args__ = (
         CheckConstraint(
             "pid LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'",

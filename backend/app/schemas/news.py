@@ -42,3 +42,9 @@ class UpdateNewsDTO(BaseModel):
     summary: str
     image_url: str | None
     is_published: bool
+
+
+class AdminNewsDTO(NewsDTO):
+    """NewsDTO extended with admin-only fields (e.g. draft status)."""
+
+    is_published: bool

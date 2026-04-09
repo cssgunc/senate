@@ -1,9 +1,11 @@
 """FastAPI application entry point"""
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import (
+    auth,
     budget,
     carousel,
     committees,
@@ -18,6 +20,13 @@ from app.routers import (
     senators,
     staff,
 )
+from app.routers.admin import committees as admin_committees
+from app.routers.admin import leadership as admin_leadership
+from app.routers.admin import legislation as admin_legislation
+from app.routers.admin import news as admin_news
+from app.routers.admin import senators as admin_senators
+
+load_dotenv()
 
 app = FastAPI(
     title="Senate API",
@@ -35,6 +44,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(health.router)
 app.include_router(news.router)
 app.include_router(senators.router)
@@ -48,6 +58,13 @@ app.include_router(budget.router)
 app.include_router(pages.router)
 app.include_router(events.router)
 app.include_router(legislation.router)
+app.include_router(admin_news.router)
+
+# Include Admin routers
+app.include_router(admin_committees.router)
+app.include_router(admin_legislation.router)
+app.include_router(admin_senators.router)
+app.include_router(admin_leadership.router)
 
 
 @app.get("/")

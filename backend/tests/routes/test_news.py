@@ -98,9 +98,7 @@ class TestGetNewsById:
         # We can't list drafts via the API, so fetch by iterating known IDs.
         # The draft has title "Draft Article" and is seeded as id = the 3rd news row.
         # Instead of hardcoding, confirm 404 by brute-forcing small IDs that aren't published.
-        published_ids = {
-            item["id"] for item in client.get("/api/news").json()["items"]
-        }
+        published_ids = {item["id"] for item in client.get("/api/news").json()["items"]}
         # Try IDs 1-10 that are not in published_ids — those should be 404
         found_404 = False
         for candidate in range(1, 11):

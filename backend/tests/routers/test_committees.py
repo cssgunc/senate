@@ -1,12 +1,5 @@
-import pytest
-from fastapi.testclient import TestClient
+"""Committee router tests."""
 
-from app.main import app  # your FastAPI app
-
-
-@pytest.fixture
-def client(test_db):
-    return TestClient(app)
 
 # --- Tests ---
 def test_get_committee_by_id(client, seeded_committees):
@@ -22,10 +15,12 @@ def test_get_committee_by_id(client, seeded_committees):
     roles = {c["role"] for m in data["members"] for c in m["committees"]}
     assert roles == {"Chair", "Member"}
 
+
 def test_get_committee_not_found(client, test_db):
     response = client.get("/api/committees/999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Committee not found"
+
 
 def test_get_all_active_committees(client, seeded_committees):
     response = client.get("/api/committees/")

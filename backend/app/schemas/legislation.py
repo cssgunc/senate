@@ -51,8 +51,27 @@ class CreateLegislationDTO(BaseModel):
     date_introduced: date
 
 
+class UpdateLegislationDTO(BaseModel):
+    title: str | None = None
+    bill_number: str | None = None
+    session_number: int | None = None
+    sponsor_id: int | None = None
+    sponsor_name: str | None = None
+    summary: str | None = None
+    full_text: str | None = None
+    status: str | None = None
+    type: str | None = None
+    date_introduced: date | None = None
+
+
 class CreateLegislationActionDTO(BaseModel):
     legislation_id: int
     action_date: date
     description: str
     action_type: str
+
+
+class UpdateLegislationActionDTO(BaseModel):
+    action_date: date | None = None
+    description: str | None = None
+    action_type: str | None = None

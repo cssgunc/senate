@@ -1,12 +1,17 @@
+import os
+import re
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import CheckConstraint, create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+os.environ.setdefault("JWT_SECRET", "test-only-jwt-secret")
+
 from app.database import Base, get_db
 from app.main import app
-from app.models import Committee, CommitteeMembership, Leadership, Senator
+from app.models import Admin, Committee, CommitteeMembership, District, Leadership, Senator
 
 # --- Setup shared in-memory database ---
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -18,6 +23,7 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 # --- Override FastAPI get_db dependency ---
 def override_get_db():
     db = TestingSessionLocal()
@@ -26,34 +32,60 @@ def override_get_db():
     finally:
         db.close()
 
-app.dependency_overrides[get_db] = override_get_db
+# -----------------------------
+# Adds REGEXP support for SQLite with seeded_admin
+# -----------------------------
+@event.listens_for(engine, "connect")
+def sqlite_regexp(dbapi_connection, connection_record):
+    def regexp(expr, item):
+        if item is None:
+            return False
+        return bool(re.fullmatch(expr, str(item)))
+
+    dbapi_connection.create_function("REGEXP", 2, regexp)
+
 
 # --- Fixtures ---
+
 
 @pytest.fixture(scope="module")
 def test_db():
     """Create all tables once per test module."""
+    # SQLite cannot evaluate SQL Server style CHECK constraints in model DDL.
+    for table in Base.metadata.tables.values():
+        table.constraints = {c for c in table.constraints if not isinstance(c, CheckConstraint)}
+
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     yield db
     db.close()
     Base.metadata.drop_all(bind=engine)
 
+
 @pytest.fixture
 def client(test_db):
     """FastAPI TestClient using the test_db."""
-    return TestClient(app)
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    app.dependency_overrides.pop(get_db, None)
+
 
 @pytest.fixture
 def seeded_committees(test_db):
     """Seed test data for committees, senators, and memberships."""
+    # --- Districts ---
+    d1 = District(district_name="District 1", description=None)
+    d2 = District(district_name="District 2", description=None)
+    test_db.add_all([d1, d2])
+    test_db.commit()
+
     # --- Senators ---
     s1 = Senator(
         first_name="John",
         last_name="Doe",
         email="john@example.com",
         headshot_url=None,
-        district=1,
+        district=d1.id,
         is_active=True,
         session_number=2016,
     )
@@ -62,7 +94,7 @@ def seeded_committees(test_db):
         last_name="Doe",
         email="jane@example.com",
         headshot_url=None,
-        district=2,
+        district=d2.id,
         is_active=True,
         session_number=2025,
     )
@@ -101,6 +133,9 @@ def seeded_committees(test_db):
 @pytest.fixture
 def seeded_leadership(test_db):
     """Seed test data for leadership."""
+    test_db.query(Leadership).delete()
+    test_db.commit()
+
     l1 = Leadership(
         title="Speaker",
         first_name="John",
@@ -128,8 +163,39 @@ def seeded_leadership(test_db):
         is_active=True,
         session_number=2025,
     )
+    l4 = Leadership(
+        title="Parliamentarian",
+        first_name="Maya",
+        last_name="Nguyen",
+        email="maya@example.com",
+        headshot_url=None,
+        is_active=False,
+        session_number=2025,
+    )
 
-    test_db.add_all([l1, l2, l3])
+    test_db.add_all([l1, l2, l3, l4])
     test_db.commit()
 
-    yield {"records": [l1, l2, l3]}
+    yield {"records": [l1, l2, l3, l4]}
+
+@pytest.fixture(scope="module")
+def seeded_admins(test_db):
+    admin = Admin(
+        id=1,
+        email="admin@test.com",
+        first_name="Admin",
+        last_name="Tester",
+        pid="123456789",
+        role="admin"
+    )
+    user = Admin(
+        id=2,
+        email="user@test.com",
+        first_name="Normal",
+        last_name="User",
+        pid="987654321",
+        role="staff"
+    )
+    test_db.add_all([admin, user])
+    test_db.commit()
+    return {"admin": admin, "user": user}
