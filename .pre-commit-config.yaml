@@ -17,7 +17,7 @@ repos:
         files: ^backend/
       - id: frontend-tsc
         name: Frontend type check
-        entry: npx --prefix frontend tsc --noEmit -p frontend/tsconfig.json
+        entry: sh -c 'rm -rf frontend/.next/types && npx --prefix frontend tsc --noEmit -p frontend/tsconfig.json'
         language: system
         pass_filenames: false
         always_run: true
