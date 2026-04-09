@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -10,6 +11,8 @@ from app.schemas.legislation import (
     CreateLegislationDTO,
     LegislationActionDTO,
     LegislationDTO,
+    UpdateLegislationActionDTO,
+    UpdateLegislationDTO,
 )
 
 router = APIRouter(
@@ -17,11 +20,29 @@ router = APIRouter(
     tags=["admin", "legislation"],
 )
 
+
+def _load_actions(db: Session, legislation_id: int) -> list[LegislationAction]:
+    return (
+        db.query(LegislationAction)
+        .filter(LegislationAction.legislation_id == legislation_id)
+        .order_by(LegislationAction.display_order)
+        .all()
+    )
+
+
+def _sync_last_action(db: Session, legislation: Legislation) -> None:
+    latest_action_date = (
+        db.query(func.max(LegislationAction.action_date))
+        .filter(LegislationAction.legislation_id == legislation.id)
+        .scalar()
+    )
+    legislation.date_last_action = latest_action_date or legislation.date_introduced
+
 @router.post("", response_model=LegislationDTO)
 def create_legislation(
     payload: CreateLegislationDTO,
     db: Session = Depends(get_db),
-    current_user: Admin = Depends(get_current_user),
+    _current_user: Admin = Depends(get_current_user),
 ):
     legislation = Legislation(
         **payload.model_dump(),
@@ -39,23 +60,25 @@ def create_legislation(
 @router.put("/{id}", response_model=LegislationDTO)
 def update_legislation(
     id: int,
-    payload: dict,
+    payload: UpdateLegislationDTO,
     db: Session = Depends(get_db),
-    current_user: Admin = Depends(get_current_user),
+    _current_user: Admin = Depends(get_current_user),
 ):
     legislation = db.query(Legislation).filter(Legislation.id == id).first()
 
     if not legislation:
         raise HTTPException(404, "Legislation not found")
 
-    for key, value in payload.items():
+    for key, value in payload.model_dump(exclude_unset=True).items():
         if hasattr(legislation, key):
             setattr(legislation, key, value)
+
+    _sync_last_action(db, legislation)
 
     db.commit()
     db.refresh(legislation)
 
-    legislation.actions = db.query(LegislationAction).filter(LegislationAction.legislation_id == id)
+    legislation.actions = _load_actions(db, id)
 
     return legislation
 
@@ -63,7 +86,7 @@ def update_legislation(
 def delete_legislation(
     id: int,
     db: Session = Depends(get_db),
-    current_user: Admin = Depends(require_role("admin")),
+    _current_user: Admin = Depends(require_role("admin")),
 ):
     legislation = db.query(Legislation).filter(Legislation.id == id).first()
 
@@ -80,7 +103,7 @@ def add_action(
     id: int,
     payload: CreateLegislationActionDTO,
     db: Session = Depends(get_db),
-    current_user: Admin = Depends(get_current_user),
+    _current_user: Admin = Depends(get_current_user),
 ):
     legislation = (
         db.query(Legislation)
@@ -122,9 +145,9 @@ def add_action(
 def update_action(
     id: int,
     action_id: int,
-    payload: dict,
+    payload: UpdateLegislationActionDTO,
     db: Session = Depends(get_db),
-    current_user: Admin = Depends(get_current_user),
+    _current_user: Admin = Depends(get_current_user),
 ):
     action = (
         db.query(LegislationAction)
@@ -138,9 +161,16 @@ def update_action(
     if not action:
         raise HTTPException(404, "Action not found")
 
-    for key, value in payload.items():
+    for key, value in payload.model_dump(exclude_unset=True).items():
         if hasattr(action, key):
             setattr(action, key, value)
+
+    legislation = db.query(Legislation).filter(Legislation.id == id).first()
+    if legislation is None:
+        raise HTTPException(404, "Legislation not found")
+
+    db.flush()
+    _sync_last_action(db, legislation)
 
     db.commit()
     db.refresh(action)
@@ -152,7 +182,7 @@ def delete_action(
     id: int,
     action_id: int,
     db: Session = Depends(get_db),
-    current_user: Admin = Depends(require_role("admin")),
+    _current_user: Admin = Depends(require_role("admin")),
 ):
     action = (
         db.query(LegislationAction)
@@ -166,5 +196,11 @@ def delete_action(
     if not action:
         raise HTTPException(404, "Action not found")
 
+    legislation = db.query(Legislation).filter(Legislation.id == id).first()
+    if legislation is None:
+        raise HTTPException(404, "Legislation not found")
+
     db.delete(action)
+    db.flush()
+    _sync_last_action(db, legislation)
     db.commit()

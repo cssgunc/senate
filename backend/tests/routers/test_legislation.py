@@ -85,16 +85,31 @@ def test_update_legislation_action(client , seeded_admins):
     leg_res = client.post("/api/admin/legislation", json=leg_payload, headers={"Authorization": f"Bearer {token}"})
     leg_id = leg_res.json()["id"]
 
-    action_payload = create_action_payload()
-    action_payload["legislation_id"] = leg_id
-    act_res = client.post(f"/api/admin/legislation/{leg_id}/actions", json=action_payload, headers={"Authorization": f"Bearer {token}"})
+    first_action = {
+        "legislation_id": leg_id,
+        "action_date": "2026-04-08",
+        "description": "First reading",
+        "action_type": "reading",
+    }
+    second_action = {
+        "legislation_id": leg_id,
+        "action_date": "2026-04-09",
+        "description": "Second reading",
+        "action_type": "reading",
+    }
+    client.post(f"/api/admin/legislation/{leg_id}/actions", json=first_action, headers={"Authorization": f"Bearer {token}"})
+    act_res = client.post(f"/api/admin/legislation/{leg_id}/actions", json=second_action, headers={"Authorization": f"Bearer {token}"})
     action_id = act_res.json()["id"]
 
     # Update action
-    update_payload = {"description": "Updated action"}
+    update_payload = {"action_date": "2026-04-07", "description": "Updated action"}
     res = client.put(f"/api/admin/legislation/{leg_id}/actions/{action_id}", json=update_payload, headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 200
     assert res.json()["description"] == "Updated action"
+
+    detail_res = client.get(f"/api/legislation/{leg_id}")
+    assert detail_res.status_code == 200
+    assert detail_res.json()["date_last_action"] == "2026-04-08"
 
 
 def test_delete_legislation_action(client , seeded_admins):
@@ -105,14 +120,29 @@ def test_delete_legislation_action(client , seeded_admins):
     leg_res = client.post("/api/admin/legislation", json=leg_payload, headers={"Authorization": f"Bearer {token}"})
     leg_id = leg_res.json()["id"]
 
-    action_payload = create_action_payload()
-    action_payload["legislation_id"] = leg_id
-    act_res = client.post(f"/api/admin/legislation/{leg_id}/actions", json=action_payload, headers={"Authorization": f"Bearer {token}"})
+    first_action = {
+        "legislation_id": leg_id,
+        "action_date": "2026-04-08",
+        "description": "First reading",
+        "action_type": "reading",
+    }
+    second_action = {
+        "legislation_id": leg_id,
+        "action_date": "2026-04-09",
+        "description": "Second reading",
+        "action_type": "reading",
+    }
+    client.post(f"/api/admin/legislation/{leg_id}/actions", json=first_action, headers={"Authorization": f"Bearer {token}"})
+    act_res = client.post(f"/api/admin/legislation/{leg_id}/actions", json=second_action, headers={"Authorization": f"Bearer {token}"})
     action_id = act_res.json()["id"]
 
     # Delete action
     del_res = client.delete(f"/api/admin/legislation/{leg_id}/actions/{action_id}", headers={"Authorization": f"Bearer {token}"})
     assert del_res.status_code == 204
+
+    detail_res = client.get(f"/api/legislation/{leg_id}")
+    assert detail_res.status_code == 200
+    assert detail_res.json()["date_last_action"] == "2026-04-08"
 
 
 def test_delete_legislation_and_cascade_actions(client , seeded_admins):
