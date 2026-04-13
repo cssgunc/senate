@@ -30,6 +30,7 @@ import type {
   LoginCredentials,
   LoginResponse,
   UpdateFinanceHearingConfig,
+  UpdateFinanceHearingDate,
   UpdateNews,
   UpdateSenator,
   UpdateStaticPage,
@@ -257,6 +258,16 @@ export async function createFinanceHearingDate(
 ): Promise<FinanceHearingDate> {
   return request("/admin/finance-hearings/dates", {
     method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateFinanceHearingDate(
+  id: number,
+  data: UpdateFinanceHearingDate,
+): Promise<FinanceHearingDate> {
+  return request(`/admin/finance-hearings/dates/${id}`, {
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }

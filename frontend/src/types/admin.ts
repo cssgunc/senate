@@ -110,6 +110,14 @@ export interface CreateFinanceHearingDate {
   description: string | null;
 }
 
+export interface UpdateFinanceHearingDate {
+  hearing_date: string;
+  hearing_time: string;
+  location: string | null;
+  description: string | null;
+  is_full: boolean;
+}
+
 export interface CreateCommittee {
   name: string;
   description: string;
