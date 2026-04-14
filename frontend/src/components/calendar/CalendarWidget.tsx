@@ -120,7 +120,7 @@ export default function CalendarWidget({
             {days.map((day, index) => (
               <div
                 key={index}
-                className={`aspect-square flex items-center justify-center text-sm cursor-pointer rounded ${
+                className={`relative aspect-square flex items-center justify-center text-sm cursor-pointer rounded ${
                   day === null
                     ? "text-gray-300"
                     : selectedDate === day
@@ -164,6 +164,7 @@ export default function CalendarWidget({
                     {event.location && (
                       <p className="text-xs text-gray-600">{event.location}</p>
                     )}
+                    <p className="text-xs text-gray-600">{event.event_type}</p>
                   </div>
                 ))}
               </div>
@@ -215,7 +216,7 @@ export default function CalendarWidget({
           {days.map((day, index) => (
             <div
               key={index}
-              className={`min-h-32 p-3 border-r border-b cursor-pointer transition-colors last:border-r-0 ${
+              className={`min-h-[8rem] p-3 border-r border-b cursor-pointer transition-colors last:border-r-0 ${
                 day === null
                   ? "bg-gray-50"
                   : selectedDate === day
