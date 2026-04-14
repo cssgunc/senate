@@ -459,3 +459,20 @@ export async function updateAccount(
 export async function deleteAccount(id: number): Promise<void> {
   return request<void>(`/admin/accounts/${id}`, { method: "DELETE" });
 }
+
+export async function getAdminEvents(): Promise<CalendarEvent[]> {
+  return request<CalendarEvent[]>("/admin/events", { method: "GET" });
+}
+
+export async function getAdminCarouselSlides(): Promise<CarouselSlide[]> {
+  return request<CarouselSlide[]>("/admin/carousel", { method: "GET" });
+}
+
+export async function reorderCarouselSlides(
+  slide_ids: number[],
+): Promise<void> {
+  return request<void>("/admin/carousel/reorder", {
+    method: "PUT",
+    body: JSON.stringify({ slide_ids }),
+  });
+}

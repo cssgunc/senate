@@ -88,6 +88,7 @@ export interface CalendarEvent {
   end_datetime: string;
   location: string | null;
   event_type: string;
+  is_published: boolean;
 }
 
 export interface CarouselSlide {
