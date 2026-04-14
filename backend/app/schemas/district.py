@@ -14,5 +14,23 @@ class DistrictDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AdminDistrictDTO(BaseModel):
+    id: int
+    district_name: str
+    description: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class DistrictLookupDTO(BaseModel):
     query: str
+
+
+class CreateDistrictDTO(BaseModel):
+    district_name: str
+    description: str | None = None
+
+
+class UpdateDistrictDTO(BaseModel):
+    district_name: str | None = None
+    description: str | None = None
