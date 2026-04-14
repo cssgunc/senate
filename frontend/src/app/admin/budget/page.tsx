@@ -67,6 +67,24 @@ function flattenBudget(
   });
 }
 
+function collectDescendantIds(
+  rootId: number,
+  childrenByParent: Map<number, number[]>,
+): Set<number> {
+  const descendants = new Set<number>();
+  const stack = [...(childrenByParent.get(rootId) ?? [])];
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (current === undefined || descendants.has(current)) continue;
+    descendants.add(current);
+    const children = childrenByParent.get(current) ?? [];
+    stack.push(...children);
+  }
+
+  return descendants;
+}
+
 function currency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -93,6 +111,23 @@ export default function AdminBudgetPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const flatRows = useMemo(() => flattenBudget(budgetTree), [budgetTree]);
+  const childrenByParent = useMemo(() => {
+    const map = new Map<number, number[]>();
+    for (const row of flatRows) {
+      if (row.parentId === null) continue;
+      const existingChildren = map.get(row.parentId) ?? [];
+      existingChildren.push(row.id);
+      map.set(row.parentId, existingChildren);
+    }
+    return map;
+  }, [flatRows]);
+
+  const disallowedParentIds = useMemo(() => {
+    if (editingId === null) return new Set<number>();
+    const disallowed = collectDescendantIds(editingId, childrenByParent);
+    disallowed.add(editingId);
+    return disallowed;
+  }, [editingId, childrenByParent]);
 
   async function loadBudget(fiscalYear?: string) {
     setIsLoading(true);
@@ -200,6 +235,14 @@ export default function AdminBudgetPage() {
     const existing = flatRows.find((row) => row.id === editingId);
     if (!existing) {
       setError("Could not find selected budget row.");
+      return;
+    }
+
+    if (
+      editForm.parent_category_id !== null &&
+      disallowedParentIds.has(editForm.parent_category_id)
+    ) {
+      setError("Invalid parent category selection.");
       return;
     }
 
@@ -622,7 +665,7 @@ export default function AdminBudgetPage() {
               >
                 <option value="">Top-level</option>
                 {flatRows
-                  .filter((row) => row.id !== editingId)
+                  .filter((row) => !disallowedParentIds.has(row.id))
                   .map((row) => (
                     <option key={row.id} value={row.id}>
                       {"  ".repeat(row.depth)}
