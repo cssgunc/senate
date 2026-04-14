@@ -1,5 +1,6 @@
 import CalendarWidget from "@/components/calendar/CalendarWidget";
 import Carousel from "@/components/home/Carousel";
+import ContactCTA from "@/components/home/ContactCTA";
 import FinanceHearingButton from "@/components/home/FinanceHearingButton";
 import RecentNews from "@/components/home/RecentNews";
 import { getCarousel, getEvents, getFinanceHearings } from "@/lib/api";
@@ -20,6 +21,9 @@ export default async function Home() {
             <FinanceHearingButton />
           </div>
         ) : null}
+        <div className="mb-10">
+          <ContactCTA />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           <div className="lg:col-span-2">
             <RecentNews />
