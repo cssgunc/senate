@@ -30,6 +30,7 @@ import type {
   LoginCredentials,
   LoginResponse,
   UpdateFinanceHearingConfig,
+  UpdateFinanceHearingDate,
   UpdateNews,
   UpdateSenator,
   UpdateStaticPage,
@@ -37,7 +38,14 @@ import type {
 import type { PaginatedResponse } from "@/types/api";
 import { clearToken, getToken, setToken } from "./token";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api"
+).replace(/\/+$/, "");
+
+function buildApiPath(path: string): string {
+  if (path.startsWith("/api/")) return path;
+  return API_BASE.endsWith("/api") ? path : `/api${path}`;
+}
 
 interface AssignCommitteeMemberResponse {
   message: string;
@@ -52,7 +60,7 @@ function authHeaders(): HeadersInit {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${API_BASE}${buildApiPath(path)}`, {
     ...init,
     headers: {
       ...authHeaders(),
@@ -257,6 +265,16 @@ export async function createFinanceHearingDate(
 ): Promise<FinanceHearingDate> {
   return request("/admin/finance-hearings/dates", {
     method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateFinanceHearingDate(
+  id: number,
+  data: UpdateFinanceHearingDate,
+): Promise<FinanceHearingDate> {
+  return request(`/admin/finance-hearings/dates/${id}`, {
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
