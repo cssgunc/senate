@@ -12,12 +12,22 @@ from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.Admin import Admin
 from app.models.cms import Staff
-from app.schemas.staff import CreateStaffDTO, StaffDTO, UpdateStaffDTO
+from app.schemas.staff import AdminStaffDTO, CreateStaffDTO, StaffDTO, UpdateStaffDTO
 
 router = APIRouter(
     prefix="/api/admin/staff",
     tags=["admin", "staff"],
 )
+
+
+@router.get("", response_model=list[AdminStaffDTO])
+def list_admin_staff(
+    _current_user: Admin = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return all staff members ordered by display_order."""
+    staff = db.query(Staff).order_by(Staff.display_order, Staff.last_name).all()
+    return [AdminStaffDTO.model_validate(s) for s in staff]
 
 
 @router.post("", response_model=StaffDTO, status_code=status.HTTP_201_CREATED)

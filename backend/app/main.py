@@ -24,6 +24,7 @@ from app.routers.admin import accounts as admin_accounts
 from app.routers.admin import budget as admin_budget
 from app.routers.admin import carousel as admin_carousel
 from app.routers.admin import committees as admin_committees
+from app.routers.admin import district_mapping as admin_district_mapping
 from app.routers.admin import districts as admin_districts
 from app.routers.admin import events as admin_events
 from app.routers.admin import finance as admin_finance
@@ -80,6 +81,7 @@ app.include_router(admin_finance.router)
 app.include_router(admin_budget.router)
 app.include_router(admin_pages.router)
 app.include_router(admin_districts.router)
+app.include_router(admin_district_mapping.router)
 app.include_router(admin_accounts.router)
 
 

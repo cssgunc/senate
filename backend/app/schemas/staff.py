@@ -14,6 +14,19 @@ class StaffDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AdminStaffDTO(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    title: str
+    email: str
+    photo_url: str | None
+    display_order: int
+    is_active: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class CreateStaffDTO(BaseModel):
     first_name: str
     last_name: str
