@@ -31,3 +31,24 @@ class CreateBudgetDataDTO(BaseModel):
         if v <= 0:
             raise ValueError("Amount must be positive")
         return v
+
+
+class AdminBudgetDataDTO(BaseModel):
+    id: int
+    fiscal_year: str
+    category: str
+    amount: float
+    description: str | None
+    parent_category_id: int | None
+    display_order: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UpdateBudgetDataDTO(BaseModel):
+    fiscal_year: str | None = None
+    category: str | None = None
+    amount: float | None = None
+    description: str | None = None
+    parent_category_id: int | None = None
+    display_order: int | None = None

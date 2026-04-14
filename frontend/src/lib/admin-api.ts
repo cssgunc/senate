@@ -15,13 +15,17 @@ import type {
 import type {
   Account,
   AdminLeadership,
+  AdminDistrict,
   AdminNews,
+  AdminStaff,
   AssignCommitteeMember,
   CreateAccount,
   CreateBudgetData,
   CreateCalendarEvent,
   CreateCarouselSlide,
   CreateCommittee,
+  CreateDistrict,
+  CreateDistrictMapping,
   CreateFinanceHearingDate,
   CreateLeadership,
   CreateLegislation,
@@ -29,18 +33,29 @@ import type {
   CreateNews,
   CreateSenator,
   CreateStaff,
+  DistrictMapping,
   LoginCredentials,
   LoginResponse,
+  UpdateDistrict,
   UpdateFinanceHearingConfig,
   UpdateLeadership,
+  UpdateFinanceHearingDate,
   UpdateNews,
   UpdateSenator,
+  UpdateStaff,
   UpdateStaticPage,
 } from "@/types/admin";
 import type { PaginatedResponse } from "@/types/api";
 import { clearToken, getToken, setToken } from "./token";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api"
+).replace(/\/+$/, "");
+
+function buildApiPath(path: string): string {
+  if (path.startsWith("/api/")) return path;
+  return API_BASE.endsWith("/api") ? path : `/api${path}`;
+}
 
 interface AssignCommitteeMemberResponse {
   message: string;
@@ -55,7 +70,7 @@ function authHeaders(): HeadersInit {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${API_BASE}${buildApiPath(path)}`, {
     ...init,
     headers: {
       ...authHeaders(),
@@ -305,6 +320,16 @@ export async function createFinanceHearingDate(
   });
 }
 
+export async function updateFinanceHearingDate(
+  id: number,
+  data: UpdateFinanceHearingDate,
+): Promise<FinanceHearingDate> {
+  return request(`/admin/finance-hearings/dates/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function deleteFinanceHearingDate(id: number): Promise<void> {
   return request<void>(`/admin/finance-hearings/dates/${id}`, {
     method: "DELETE",
@@ -358,6 +383,10 @@ export async function removeCommitteeMember(
 }
 
 // Staff
+export async function listAdminStaff(): Promise<AdminStaff[]> {
+  return request("/admin/staff", { method: "GET" });
+}
+
 export async function createStaff(data: CreateStaff): Promise<Staff> {
   return request("/admin/staff", {
     method: "POST",
@@ -367,7 +396,7 @@ export async function createStaff(data: CreateStaff): Promise<Staff> {
 
 export async function updateStaff(
   id: number,
-  data: CreateStaff,
+  data: UpdateStaff,
 ): Promise<Staff> {
   return request(`/admin/staff/${id}`, {
     method: "PUT",
@@ -403,7 +432,65 @@ export async function deleteBudgetData(id: number): Promise<void> {
   return request<void>(`/admin/budget/${id}`, { method: "DELETE" });
 }
 
+// Districts
+export async function listAdminDistricts(): Promise<AdminDistrict[]> {
+  return request("/admin/districts", { method: "GET" });
+}
+
+export async function createDistrict(
+  data: CreateDistrict,
+): Promise<AdminDistrict> {
+  return request("/admin/districts", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateDistrict(
+  id: number,
+  data: UpdateDistrict,
+): Promise<AdminDistrict> {
+  return request(`/admin/districts/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteDistrict(id: number): Promise<void> {
+  return request<void>(`/admin/districts/${id}`, { method: "DELETE" });
+}
+
+// District Mappings
+export async function listDistrictMappings(
+  districtId: number,
+): Promise<DistrictMapping[]> {
+  return request(`/admin/districts/${districtId}/mappings`, { method: "GET" });
+}
+
+export async function createDistrictMapping(
+  districtId: number,
+  data: CreateDistrictMapping,
+): Promise<DistrictMapping> {
+  return request(`/admin/districts/${districtId}/mappings`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteDistrictMapping(
+  districtId: number,
+  mapId: number,
+): Promise<void> {
+  return request<void>(`/admin/districts/${districtId}/mappings/${mapId}`, {
+    method: "DELETE",
+  });
+}
+
 // Static pages
+export async function listStaticPages(): Promise<StaticPage[]> {
+  return request("/admin/pages", { method: "GET" });
+}
+
 export async function updateStaticPage(
   slug: string,
   data: UpdateStaticPage,
@@ -415,6 +502,15 @@ export async function updateStaticPage(
 }
 
 // Accounts
+export async function listAdminAccounts(
+  page: number = 1,
+  limit: number = 100,
+): Promise<PaginatedResponse<Account>> {
+  return request(`/admin/accounts?page=${page}&limit=${limit}`, {
+    method: "GET",
+  });
+}
+
 export async function createAccount(data: CreateAccount): Promise<Account> {
   return request("/admin/accounts", {
     method: "POST",
@@ -434,4 +530,21 @@ export async function updateAccount(
 
 export async function deleteAccount(id: number): Promise<void> {
   return request<void>(`/admin/accounts/${id}`, { method: "DELETE" });
+}
+
+export async function getAdminEvents(): Promise<CalendarEvent[]> {
+  return request<CalendarEvent[]>("/admin/events", { method: "GET" });
+}
+
+export async function getAdminCarouselSlides(): Promise<CarouselSlide[]> {
+  return request<CarouselSlide[]>("/admin/carousel", { method: "GET" });
+}
+
+export async function reorderCarouselSlides(
+  slide_ids: number[],
+): Promise<void> {
+  return request<void>("/admin/carousel/reorder", {
+    method: "PUT",
+    body: JSON.stringify({ slide_ids }),
+  });
 }

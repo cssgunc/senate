@@ -87,6 +87,7 @@ export interface CreateCalendarEvent {
   end_datetime: string;
   location: string | null;
   event_type: string;
+  is_published: boolean;
 }
 
 export interface CreateCarouselSlide {
@@ -110,6 +111,14 @@ export interface CreateFinanceHearingDate {
   description: string | null;
 }
 
+export interface UpdateFinanceHearingDate {
+  hearing_date: string;
+  hearing_time: string;
+  location: string | null;
+  description: string | null;
+  is_full: boolean;
+}
+
 export interface CreateCommittee {
   name: string;
   description: string;
@@ -123,12 +132,59 @@ export interface AssignCommitteeMember {
   role: string;
 }
 
+export interface AdminStaff {
+  id: number;
+  first_name: string;
+  last_name: string;
+  title: string;
+  email: string;
+  photo_url: string | null;
+  display_order: number;
+  is_active: boolean;
+}
+
 export interface CreateStaff {
   first_name: string;
   last_name: string;
   title: string;
   email: string;
   display_order: number;
+}
+
+export interface UpdateStaff {
+  first_name: string;
+  last_name: string;
+  title: string;
+  email: string;
+  photo_url: string | null;
+  display_order: number;
+  is_active: boolean;
+}
+
+export interface AdminDistrict {
+  id: number;
+  district_name: string;
+  description: string | null;
+}
+
+export interface CreateDistrict {
+  district_name: string;
+  description: string | null;
+}
+
+export interface UpdateDistrict {
+  district_name: string | null;
+  description: string | null;
+}
+
+export interface DistrictMapping {
+  id: number;
+  district_id: number;
+  mapping_value: string;
+}
+
+export interface CreateDistrictMapping {
+  mapping_value: string;
 }
 
 export interface CreateBudgetData {
