@@ -131,12 +131,49 @@ export interface AssignCommitteeMember {
   role: string;
 }
 
+export interface AdminStaff {
+  id: number;
+  first_name: string;
+  last_name: string;
+  title: string;
+  email: string;
+  photo_url: string | null;
+  display_order: number;
+  is_active: boolean;
+}
+
 export interface CreateStaff {
   first_name: string;
   last_name: string;
   title: string;
   email: string;
   display_order: number;
+}
+
+export interface UpdateStaff {
+  first_name: string;
+  last_name: string;
+  title: string;
+  email: string;
+  photo_url: string | null;
+  display_order: number;
+  is_active: boolean;
+}
+
+export interface AdminDistrict {
+  id: number;
+  district_name: string;
+  description: string | null;
+}
+
+export interface CreateDistrict {
+  district_name: string;
+  description: string | null;
+}
+
+export interface UpdateDistrict {
+  district_name: string | null;
+  description: string | null;
 }
 
 export interface CreateBudgetData {
