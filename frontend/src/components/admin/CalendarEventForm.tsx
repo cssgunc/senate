@@ -1,6 +1,7 @@
 "use client";
 
-import type { CalendarEvent, CreateCalendarEvent } from "@/types/admin";
+import type { CalendarEvent } from "@/types";
+import type { CreateCalendarEvent } from "@/types/admin";
 import { useState } from "react";
 
 interface CalendarEventFormProps {

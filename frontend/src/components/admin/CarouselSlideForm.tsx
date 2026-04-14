@@ -1,6 +1,7 @@
 "use client";
 
-import type { CarouselSlide, CreateCarouselSlide } from "@/types/admin";
+import type { CarouselSlide } from "@/types";
+import type { CreateCarouselSlide } from "@/types/admin";
 import { useState } from "react";
 
 interface CarouselSlideFormProps {
