@@ -1,15 +1,15 @@
 "use client";
 
 import { CarouselSlideForm } from "@/components/admin/CarouselSlideForm";
-import { CarouselSlide } from "@/types";
-import { CreateCarouselSlide } from "@/types/admin";
 import {
   createCarouselSlide,
   deleteCarouselSlide,
   getAdminCarouselSlides,
-  updateCarouselSlide,
   reorderCarouselSlides,
+  updateCarouselSlide,
 } from "@/lib/admin-api";
+import { CarouselSlide } from "@/types";
+import { CreateCarouselSlide } from "@/types/admin";
 import { useEffect, useState } from "react";
 
 export default function AdminCarouselPage() {
@@ -68,9 +68,10 @@ export default function AdminCarouselPage() {
         await updateCarouselSlide(editingSlide.id, formData);
       } else {
         // Automatically append to the end
-        formData.display_order = slides.length > 0 
-          ? Math.max(...slides.map(s => s.display_order)) + 1
-          : 0;
+        formData.display_order =
+          slides.length > 0
+            ? Math.max(...slides.map((s) => s.display_order)) + 1
+            : 0;
         await createCarouselSlide(formData);
       }
       setIsFormOpen(false);
@@ -90,7 +91,7 @@ export default function AdminCarouselPage() {
 
     const newSlides = [...slides];
     const targetIndex = direction === "up" ? index - 1 : index + 1;
-    
+
     // Swap
     [newSlides[index], newSlides[targetIndex]] = [
       newSlides[targetIndex],
@@ -154,7 +155,9 @@ export default function AdminCarouselPage() {
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">Loading slides...</div>
+          <div className="text-center py-20 text-gray-500">
+            Loading slides...
+          </div>
         ) : slides.length === 0 ? (
           <div className="text-center py-10 text-gray-500">
             No slides found. Create one!
@@ -162,13 +165,13 @@ export default function AdminCarouselPage() {
         ) : (
           <div className="space-y-4">
             {slides.map((slide, index) => (
-              <div 
-                key={slide.id} 
+              <div
+                key={slide.id}
                 className="flex items-center border border-gray-200 rounded-lg p-4 bg-gray-50 flex-col sm:flex-row gap-4"
               >
                 {/* Reorder Buttons */}
                 <div className="flex flex-col gap-1 items-center justify-center -ml-2 p-2">
-                  <button 
+                  <button
                     disabled={index === 0}
                     onClick={() => moveSlide(index, "up")}
                     className={`p-1 rounded bg-white border ${index === 0 ? "text-gray-300 border-gray-100" : "text-gray-700 border-gray-300 hover:bg-gray-100"}`}
@@ -176,7 +179,7 @@ export default function AdminCarouselPage() {
                   >
                     ↑
                   </button>
-                  <button 
+                  <button
                     disabled={index === slides.length - 1}
                     onClick={() => moveSlide(index, "down")}
                     className={`p-1 rounded bg-white border ${index === slides.length - 1 ? "text-gray-300 border-gray-100" : "text-gray-700 border-gray-300 hover:bg-gray-100"}`}
@@ -202,10 +205,15 @@ export default function AdminCarouselPage() {
                 {/* Slide Details */}
                 <div className="flex-grow">
                   <h3 className="font-bold text-lg mb-1">
-                    {slide.overlay_text || <span className="text-gray-400 italic">No overlay text</span>}
+                    {slide.overlay_text || (
+                      <span className="text-gray-400 italic">
+                        No overlay text
+                      </span>
+                    )}
                   </h3>
                   <p className="text-sm text-gray-600 mb-2 truncate max-w-md">
-                    <span className="font-semibold">Link:</span> {slide.link_url || "None"}
+                    <span className="font-semibold">Link:</span>{" "}
+                    {slide.link_url || "None"}
                   </p>
                   <span
                     className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${

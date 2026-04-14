@@ -37,7 +37,7 @@ import type {
 import type { PaginatedResponse } from "@/types/api";
 import { clearToken, getToken, setToken } from "./token";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 
 interface AssignCommitteeMemberResponse {
   message: string;
@@ -52,7 +52,7 @@ function authHeaders(): HeadersInit {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}/api${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       ...authHeaders(),
@@ -400,7 +400,9 @@ export async function getAdminCarouselSlides(): Promise<CarouselSlide[]> {
   return request<CarouselSlide[]>("/admin/carousel", { method: "GET" });
 }
 
-export async function reorderCarouselSlides(slide_ids: number[]): Promise<void> {
+export async function reorderCarouselSlides(
+  slide_ids: number[],
+): Promise<void> {
   return request<void>("/admin/carousel/reorder", {
     method: "PUT",
     body: JSON.stringify({ slide_ids }),
