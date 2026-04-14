@@ -20,3 +20,13 @@ class CreateStaffDTO(BaseModel):
     title: str
     email: EmailStr
     display_order: int
+
+
+class UpdateStaffDTO(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    title: str | None = None
+    email: EmailStr | None = None
+    photo_url: str | None = None
+    display_order: int | None = None
+    is_active: bool | None = None

@@ -36,3 +36,11 @@ class CreateFinanceHearingDateDTO(BaseModel):
     hearing_time: time
     location: str | None
     description: str | None
+
+
+class UpdateFinanceHearingDateDTO(BaseModel):
+    hearing_date: date | None = None
+    hearing_time: time | None = None
+    location: str | None = None
+    description: str | None = None
+    is_full: bool | None = None
