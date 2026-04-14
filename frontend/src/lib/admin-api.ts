@@ -37,7 +37,7 @@ import type {
 import type { PaginatedResponse } from "@/types/api";
 import { clearToken, getToken, setToken } from "./token";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 interface AssignCommitteeMemberResponse {
   message: string;
@@ -52,7 +52,7 @@ function authHeaders(): HeadersInit {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${API_BASE}/api${path}`, {
     ...init,
     headers: {
       ...authHeaders(),
@@ -390,4 +390,19 @@ export async function updateAccount(
 
 export async function deleteAccount(id: number): Promise<void> {
   return request<void>(`/admin/accounts/${id}`, { method: "DELETE" });
+}
+
+export async function getAdminEvents(): Promise<CalendarEvent[]> {
+  return request<CalendarEvent[]>("/admin/events", { method: "GET" });
+}
+
+export async function getAdminCarouselSlides(): Promise<CarouselSlide[]> {
+  return request<CarouselSlide[]>("/admin/carousel", { method: "GET" });
+}
+
+export async function reorderCarouselSlides(slide_ids: number[]): Promise<void> {
+  return request<void>("/admin/carousel/reorder", {
+    method: "PUT",
+    body: JSON.stringify({ slide_ids }),
+  });
 }
