@@ -152,3 +152,36 @@ export interface CreateAccount {
   last_name: string;
   role: "admin" | "staff";
 }
+
+export interface CreateLeadership {
+  senator_id: number | null;
+  title: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  headshot_url?: string | null;
+  is_active?: boolean;
+  session_number: number;
+}
+
+export interface UpdateLeadership {
+  senator_id?: number | null;
+  title?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  headshot_url?: string | null;
+  is_active?: boolean;
+  session_number?: number;
+}
+
+export interface AdminLeadership {
+  id: number;
+  title: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  photo_url: string | null;
+  session_number: number;
+  is_current: boolean;
+}
