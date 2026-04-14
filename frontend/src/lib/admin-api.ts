@@ -24,12 +24,14 @@ import type {
   CreateCarouselSlide,
   CreateCommittee,
   CreateDistrict,
+  CreateDistrictMapping,
   CreateFinanceHearingDate,
   CreateLegislation,
   CreateLegislationAction,
   CreateNews,
   CreateSenator,
   CreateStaff,
+  DistrictMapping,
   LoginCredentials,
   LoginResponse,
   UpdateDistrict,
@@ -412,6 +414,32 @@ export async function updateDistrict(
 
 export async function deleteDistrict(id: number): Promise<void> {
   return request<void>(`/admin/districts/${id}`, { method: "DELETE" });
+}
+
+// District Mappings
+export async function listDistrictMappings(
+  districtId: number,
+): Promise<DistrictMapping[]> {
+  return request(`/admin/districts/${districtId}/mappings`, { method: "GET" });
+}
+
+export async function createDistrictMapping(
+  districtId: number,
+  data: CreateDistrictMapping,
+): Promise<DistrictMapping> {
+  return request(`/admin/districts/${districtId}/mappings`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteDistrictMapping(
+  districtId: number,
+  mapId: number,
+): Promise<void> {
+  return request<void>(`/admin/districts/${districtId}/mappings/${mapId}`, {
+    method: "DELETE",
+  });
 }
 
 // Static pages

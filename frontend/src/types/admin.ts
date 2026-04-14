@@ -177,6 +177,16 @@ export interface UpdateDistrict {
   description: string | null;
 }
 
+export interface DistrictMapping {
+  id: number;
+  district_id: number;
+  mapping_value: string;
+}
+
+export interface CreateDistrictMapping {
+  mapping_value: string;
+}
+
 export interface CreateBudgetData {
   fiscal_year: string;
   category: string;

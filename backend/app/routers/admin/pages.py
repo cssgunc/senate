@@ -12,6 +12,7 @@ from app.dependencies.auth import get_current_user
 from app.models.Admin import Admin
 from app.models.cms import StaticPageContent
 from app.schemas.static_page import StaticPageDTO, UpdateStaticPageDTO
+from app.utils.sanitization import sanitize_html
 
 router = APIRouter(
     prefix="/api/admin/pages",
@@ -46,7 +47,7 @@ def update_admin_page(
         raise HTTPException(status_code=404, detail="Page not found")
 
     page.title = body.title
-    page.body = body.body
+    page.body = sanitize_html(body.body)
     page.last_edited_by = current_user.id
 
     db.commit()
