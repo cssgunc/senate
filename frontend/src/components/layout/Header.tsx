@@ -80,6 +80,7 @@ export function Header() {
                 />
               </Link>
             </div>
+
             {/* Mobile Menu Trigger (Right-aligned on small screens) */}
             <div className="absolute right-0 flex md:hidden items-center">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -213,6 +214,16 @@ export function Header() {
                     >
                       Meetings
                     </Link>
+
+                    <div className="mt-4 pt-4 border-t border-gray-800">
+                      <Link
+                        onClick={() => setIsOpen(false)}
+                        href="/admin/login"
+                        className="text-lg py-2 font-semibold text-white hover:text-primary transition-colors"
+                      >
+                        Internal Login
+                      </Link>
+                    </div>
                   </nav>
                 </SheetContent>
               </Sheet>
@@ -353,6 +364,18 @@ export function Header() {
                   )}
                 >
                   Meetings
+                </Link>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <Link
+                  href="/admin/login"
+                  className={cn(
+                    navigationMenuTriggerStyle(),
+                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
+                  )}
+                >
+                  Internal Login
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getMe, login } from "@/lib/admin-api";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -29,6 +30,9 @@ function AdminLoginContent() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const redirectTarget = resolveNextPath(searchParams.get("next"));
 
+  const isPidValid = pid.length === 9 && /^\d+$/.test(pid);
+  const isFormValid = email.trim() !== "" && isPidValid;
+
   useEffect(() => {
     let isMounted = true;
 
@@ -52,9 +56,23 @@ function AdminLoginContent() {
     };
   }, [redirectTarget, router]);
 
+  const handlePidChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    // Only allow digits and max 9 characters
+    const sanitized = value.replace(/\D/g, "").slice(0, 9);
+    setPid(sanitized);
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+
+    // Final validation before submission
+    if (!isFormValid) {
+      setError("Please enter a valid UNC email and 9-digit PID.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -77,7 +95,7 @@ function AdminLoginContent() {
 
   return (
     <section className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <Card className="bg-white p-6">
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">UNC</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-900">Admin Login</h1>
         <p className="mt-2 text-sm text-slate-600">
@@ -106,18 +124,25 @@ function AdminLoginContent() {
 
           <div className="space-y-1">
             <label className="text-sm font-medium text-slate-700" htmlFor="pid">
-              PID
+              PID (9 digits)
             </label>
             <Input
               id="pid"
               name="pid"
               type="password"
+              inputMode="numeric"
               autoComplete="current-password"
               value={pid}
-              onChange={(event) => setPid(event.target.value)}
-              placeholder="Your PID"
+              onChange={handlePidChange}
+              placeholder="000000000"
+              maxLength={9}
               required
             />
+            {pid && pid.length < 9 && (
+              <p className="text-xs text-slate-500">
+                {9 - pid.length} digit{9 - pid.length > 1 ? "s" : ""} remaining
+              </p>
+            )}
           </div>
 
           {error ? (
@@ -126,11 +151,15 @@ function AdminLoginContent() {
             </p>
           ) : null}
 
-          <Button className="w-full" type="submit" disabled={isSubmitting}>
+          <Button
+            className="w-full"
+            type="submit"
+            disabled={isSubmitting || !isFormValid}
+          >
             {isSubmitting ? "Signing in..." : "Sign in"}
           </Button>
         </form>
-      </div>
+      </Card>
     </section>
   );
 }
