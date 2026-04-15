@@ -124,6 +124,7 @@ export interface CreateCommittee {
   chair_senator_id: number | null;
   chair_name: string;
   chair_email: string;
+  is_active: boolean;
 }
 
 export interface AssignCommitteeMember {
