@@ -14,6 +14,7 @@ import type {
 } from "@/types";
 import type {
   Account,
+  AdminLeadership,
   AdminDistrict,
   AdminNews,
   AdminStaff,
@@ -26,6 +27,7 @@ import type {
   CreateDistrict,
   CreateDistrictMapping,
   CreateFinanceHearingDate,
+  CreateLeadership,
   CreateLegislation,
   CreateLegislationAction,
   CreateNews,
@@ -36,6 +38,7 @@ import type {
   LoginResponse,
   UpdateDistrict,
   UpdateFinanceHearingConfig,
+  UpdateLeadership,
   UpdateFinanceHearingDate,
   UpdateNews,
   UpdateSenator,
@@ -168,6 +171,47 @@ export async function updateSenator(
 
 export async function deleteSenator(id: number) {
   return request<void>(`/admin/senators/${id}`, { method: "DELETE" });
+}
+
+// Leadership
+export async function getAdminLeadership(
+  page: number = 1,
+  limit: number = 20,
+  session_number?: number,
+): Promise<PaginatedResponse<AdminLeadership>> {
+  const searchParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  if (session_number !== undefined) {
+    searchParams.set("session_number", session_number.toString());
+  }
+  return request(`/admin/leadership?${searchParams.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function createLeadership(
+  data: CreateLeadership,
+): Promise<AdminLeadership> {
+  return request("/admin/leadership", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateLeadership(
+  id: number,
+  data: UpdateLeadership,
+): Promise<AdminLeadership> {
+  return request(`/admin/leadership/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteLeadership(id: number): Promise<void> {
+  return request<void>(`/admin/leadership/${id}`, { method: "DELETE" });
 }
 
 // Legislation

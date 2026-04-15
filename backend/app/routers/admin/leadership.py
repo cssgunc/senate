@@ -30,6 +30,7 @@ router = APIRouter(
 def _serialize_leadership(leader: Leadership) -> dict[str, Any]:
     return {
         "id": leader.id,
+        "senator_id": leader.senator_id,
         "title": leader.title,
         "first_name": leader.first_name,
         "last_name": leader.last_name,

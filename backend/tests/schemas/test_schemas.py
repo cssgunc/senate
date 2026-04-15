@@ -89,6 +89,7 @@ def test_news_dto_computed_author():
 def test_leadership_dto():
     leadership = LeadershipDTO(
         id=1,
+        senator_id=None,
         title="Governor",
         first_name="Bob",
         last_name="Leader",
