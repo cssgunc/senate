@@ -293,6 +293,12 @@ export async function deleteFinanceHearingDate(id: number): Promise<void> {
 }
 
 // Committees
+export async function getAdminCommittees(): Promise<Committee[]> {
+  return request("/admin/committees", {
+    method: "GET",
+  });
+}
+
 export async function createCommittee(
   data: CreateCommittee,
 ): Promise<Committee> {
