@@ -30,8 +30,10 @@ export function LeadershipForm({
     initialData?.session_number?.toString() || "1",
   );
   const [isActive, setIsActive] = useState(initialData?.is_current ?? true);
-  const [senatorId, setSenatorId] = useState<number | null>(null);
-  const [headShotUrl, setHeadShotUrl] = useState("");
+  const [senatorId, setSenatorId] = useState<number | null>(
+    initialData?.senator_id ?? null,
+  );
+  const [headShotUrl, setHeadShotUrl] = useState(initialData?.photo_url || "");
 
   const [senators, setSenators] = useState<Senator[]>([]);
   const [senatorsLoading, setSenatorsLoading] = useState(true);

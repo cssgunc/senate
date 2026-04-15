@@ -233,6 +233,7 @@ export interface UpdateLeadership {
 
 export interface AdminLeadership {
   id: number;
+  senator_id: number | null;
   title: string;
   first_name: string;
   last_name: string;

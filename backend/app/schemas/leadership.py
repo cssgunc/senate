@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 
 class LeadershipDTO(BaseModel):
     id: int
+    senator_id: int | None
     title: str
     first_name: str
     last_name: str
