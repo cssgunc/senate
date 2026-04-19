@@ -25,12 +25,12 @@ export interface CreateSenator {
 }
 
 export interface UpdateSenator {
-  first_name: string;
-  last_name: string;
-  email: string;
-  district_id: number;
-  is_active: boolean;
-  session_number: number;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  district_id?: number;
+  is_active?: boolean;
+  session_number?: number;
 }
 
 export interface CreateNews {
