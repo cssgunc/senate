@@ -110,6 +110,17 @@ class TestCreateAdminStaff:
         for key in ("id", "first_name", "last_name", "title", "email"):
             assert key in resp
 
+    def test_photo_url_can_be_set_on_create(self, write_admin_client):
+        payload = {**_CREATE_PAYLOAD, "photo_url": "/api/uploads/staff-photo.jpg"}
+        resp = write_admin_client.post("/api/admin/staff", json=payload)
+        assert resp.status_code == 201
+        assert resp.json()["photo_url"] == "/api/uploads/staff-photo.jpg"
+
+    def test_photo_url_defaults_to_none_on_create(self, write_admin_client):
+        resp = write_admin_client.post("/api/admin/staff", json=_CREATE_PAYLOAD)
+        assert resp.status_code == 201
+        assert resp.json()["photo_url"] is None
+
     def test_missing_required_field_returns_422(self, write_admin_client):
         bad = {k: v for k, v in _CREATE_PAYLOAD.items() if k != "email"}
         assert write_admin_client.post("/api/admin/staff", json=bad).status_code == 422

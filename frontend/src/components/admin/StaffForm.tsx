@@ -46,6 +46,7 @@ export function StaffForm({
         last_name: lastName,
         title,
         email,
+        photo_url: photoUrl || null,
         display_order: displayOrder,
       };
       onSubmit(data);

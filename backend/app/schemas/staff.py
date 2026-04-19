@@ -32,6 +32,7 @@ class CreateStaffDTO(BaseModel):
     last_name: str
     title: str
     email: EmailStr
+    photo_url: str | None = None
     display_order: int
 
 

@@ -151,6 +151,7 @@ export interface CreateStaff {
   last_name: string;
   title: string;
   email: string;
+  photo_url: string | null;
   display_order: number;
 }
 
