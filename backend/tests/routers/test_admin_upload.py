@@ -47,8 +47,15 @@ def test_valid_upload(admin_client, tmp_path, monkeypatch):
     assert body["url"].startswith("/api/uploads/")
 
     filename = body["url"].split("/")[-1]
+    thumb_filename = f"{filename.rsplit('.', 1)[0]}_thumb.{filename.rsplit('.', 1)[1]}"
     assert (tmp_path / filename).exists()
-    assert (tmp_path / f"{filename.rsplit('.', 1)[0]}_thumb.{filename.rsplit('.', 1)[1]}").exists()
+    assert (tmp_path / thumb_filename).exists()
+
+    with Image.open(tmp_path / filename) as uploaded:
+        assert uploaded.size == (800, 480)
+
+    with Image.open(tmp_path / thumb_filename) as thumb:
+        assert thumb.size == (150, 150)
 
     get_response = admin_client.get(body["url"])
     assert get_response.status_code == 200
@@ -81,3 +88,22 @@ def test_oversized_file(admin_client, tmp_path, monkeypatch):
 
     assert response.status_code == 413
     assert response.json()["detail"] == "File too large. Max size is 5MB"
+
+
+def test_standard_resize_only_limits_width(admin_client, tmp_path, monkeypatch):
+    from app.routers.admin import upload as upload_router
+
+    monkeypatch.setattr(upload_router, "UPLOAD_DIR", str(tmp_path))
+
+    # Width is already under 800, so the standard image should keep original dimensions.
+    payload = _make_png_bytes(width=600, height=2000)
+    response = admin_client.post(
+        "/api/admin/upload",
+        files={"file": ("portrait.png", payload, "image/png")},
+    )
+
+    assert response.status_code == 200
+    filename = response.json()["url"].split("/")[-1]
+
+    with Image.open(tmp_path / filename) as uploaded:
+        assert uploaded.size == (600, 2000)

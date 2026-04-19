@@ -5,7 +5,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from app.config import MAX_UPLOAD_SIZE_BYTES, UPLOAD_BASE_URL, UPLOAD_DIR
 from app.dependencies.auth import get_current_user
@@ -56,11 +56,13 @@ def _save_resized_images(image: Image.Image, extension: str) -> str:
     working = image.convert("RGB") if extension == "jpg" else image.copy()
 
     standard = working.copy()
-    standard.thumbnail((800, 800))
+    if standard.width > 800:
+        ratio = 800 / standard.width
+        resized_height = round(standard.height * ratio)
+        standard = standard.resize((800, resized_height), Image.Resampling.LANCZOS)
     standard.save(uploads_dir / main_filename, **save_kwargs)
 
-    thumb = working.copy()
-    thumb.thumbnail((150, 150))
+    thumb = ImageOps.fit(working.copy(), (150, 150), method=Image.Resampling.LANCZOS)
     thumb.save(uploads_dir / thumb_filename, **save_kwargs)
 
     return main_filename
