@@ -30,7 +30,9 @@ export function SenatorForm({
   const [sessionNumber, setSessionNumber] = useState(
     initialData?.session_number?.toString() ?? "",
   );
-  const [headshotUrl, setHeadshotUrl] = useState(initialData?.headshot_url ?? "");
+  const [headshotUrl, setHeadshotUrl] = useState(
+    initialData?.headshot_url ?? "",
+  );
   const [isActive, setIsActive] = useState(initialData?.is_active ?? true);
 
   useEffect(() => {
