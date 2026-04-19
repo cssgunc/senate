@@ -46,6 +46,9 @@ export function UNCUtilityBar() {
               />
             </svg>
           </span>
+          <span className="hidden text-[11px] font-medium uppercase tracking-[0.09em] text-white/90 lg:inline-block">
+            The University of North Carolina at Chapel Hill
+          </span>
         </a>
 
         <div className="flex min-w-0 flex-nowrap items-center gap-0.5 overflow-x-auto lg:hidden">
