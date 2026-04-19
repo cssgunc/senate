@@ -248,3 +248,20 @@ export async function getBudget(fiscalYear?: string): Promise<BudgetData[]> {
 export async function getStaticPage(slug: string): Promise<StaticPage> {
   return fetchAPI<StaticPage>(`/api/pages/${slug}`);
 }
+
+export interface ContactFormData {
+  name: string;
+  email: string;
+  message: string;
+  senator_id?: number;
+}
+
+export async function submitContactForm(data: ContactFormData): Promise<{ success: boolean }> {
+  return fetchAPI<{ success: boolean }>("/api/contact", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+}
