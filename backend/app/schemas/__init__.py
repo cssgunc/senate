@@ -16,7 +16,7 @@ from .finance import (
     FinanceHearingDateDTO,
     UpdateFinanceHearingConfigDTO,
 )
-from .leadership import LeadershipDTO
+from .leadership import CreateLeadershipDTO, LeadershipDTO, UpdateLeadershipDTO
 from .legislation import (
     CreateLegislationActionDTO,
     CreateLegislationDTO,
@@ -58,7 +58,9 @@ __all__ = [
     "FinanceHearingDateDTO",
     "UpdateFinanceHearingConfigDTO",
     # Leadership
+    "CreateLeadershipDTO",
     "LeadershipDTO",
+    "UpdateLeadershipDTO",
     # Legislation
     "CreateLegislationActionDTO",
     "CreateLegislationDTO",

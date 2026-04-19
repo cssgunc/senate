@@ -1,5 +1,5 @@
 {
-  "devDependencies": {
-    "@types/react": "^19.2.14"
+  "dependencies": {
+    "date-fns": "^4.1.0"
   }
 }
