@@ -14,8 +14,8 @@ import type {
 } from "@/types";
 import type {
   Account,
-  AdminLeadership,
   AdminDistrict,
+  AdminLeadership,
   AdminNews,
   AdminStaff,
   AssignCommitteeMember,
@@ -38,8 +38,8 @@ import type {
   LoginResponse,
   UpdateDistrict,
   UpdateFinanceHearingConfig,
-  UpdateLeadership,
   UpdateFinanceHearingDate,
+  UpdateLeadership,
   UpdateNews,
   UpdateSenator,
   UpdateStaff,
@@ -92,6 +92,71 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!rawBody) return undefined as T;
 
   return JSON.parse(rawBody) as T;
+}
+
+export interface UploadImageResponse {
+  url: string;
+}
+
+export async function uploadAdminImage(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<UploadImageResponse> {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}${buildApiPath("/admin/upload")}`);
+
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
+
+    xhr.upload.onprogress = (event: ProgressEvent<EventTarget>) => {
+      if (!event.lengthComputable || !onProgress) return;
+      const percent = Math.round((event.loaded / event.total) * 100);
+      onProgress(percent);
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Upload failed. Please try again."));
+    };
+
+    xhr.onload = () => {
+      const responseText = xhr.responseText || "";
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const parsed = JSON.parse(responseText) as UploadImageResponse;
+          if (!parsed.url) {
+            reject(new Error("Upload succeeded but no URL was returned."));
+            return;
+          }
+          resolve(parsed);
+        } catch {
+          reject(new Error("Upload succeeded but response parsing failed."));
+        }
+        return;
+      }
+
+      let message = `Upload failed (${xhr.status}).`;
+      if (responseText) {
+        try {
+          const parsed = JSON.parse(responseText) as { detail?: string };
+          if (parsed.detail) {
+            message = parsed.detail;
+          }
+        } catch {
+          message = responseText;
+        }
+      }
+
+      reject(new Error(message));
+    };
+
+    xhr.send(formData);
+  });
 }
 
 // Auth

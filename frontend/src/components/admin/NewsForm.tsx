@@ -1,9 +1,9 @@
 "use client";
 
+import { AdminNews, CreateNews, UpdateNews } from "@/types/admin";
 import { useState } from "react";
+import { ImageUpload } from "./ImageUpload";
 import { RichTextEditor } from "./RichTextEditor";
-import { CreateNews, UpdateNews } from "@/types/admin";
-import { AdminNews } from "@/types/admin";
 
 interface NewsFormProps {
   // If we pass an existing article in, the form starts in "Edit Mode"
@@ -22,17 +22,17 @@ export function NewsForm({
   onCancel,
   isLoading = false,
 }: NewsFormProps) {
-  // We create state for every field on the form. 
+  // We create state for every field on the form.
   // If initialData exists, we load it. Otherwise, we start blank.
   const [title, setTitle] = useState(initialData?.title || "");
   const [summary, setSummary] = useState(initialData?.summary || "");
   const [body, setBody] = useState(initialData?.body || "");
   const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
-  
-  // Note: Your initialData might have 'status' string instead of 'is_published' boolean, 
+
+  // Note: Your initialData might have 'status' string instead of 'is_published' boolean,
   // so we check if it's currently published, otherwise start as false.
   const [isPublished, setIsPublished] = useState(
-    initialData?.is_published ?? false
+    initialData?.is_published ?? false,
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -92,19 +92,12 @@ export function NewsForm({
           />
         </div>
 
-        {/* Image URL Field */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Cover Image URL (Optional)
-          </label>
-          <input
-            type="url"
-            className="w-full p-2 border rounded border-gray-300"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="https://example.com/image.png"
-          />
-        </div>
+        <ImageUpload
+          label="Cover Image (Optional)"
+          value={imageUrl}
+          onChange={setImageUrl}
+          disabled={isLoading}
+        />
 
         {/* Rich Text Body Field */}
         <div>
@@ -124,7 +117,10 @@ export function NewsForm({
             checked={isPublished}
             onChange={(e) => setIsPublished(e.target.checked)}
           />
-          <label htmlFor="published" className="text-sm font-medium text-gray-700">
+          <label
+            htmlFor="published"
+            className="text-sm font-medium text-gray-700"
+          >
             Publish immediately? (Uncheck to save as draft)
           </label>
         </div>
@@ -144,7 +140,11 @@ export function NewsForm({
             disabled={isLoading}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            {isLoading ? "Saving..." : initialData ? "Update Article" : "Create Article"}
+            {isLoading
+              ? "Saving..."
+              : initialData
+                ? "Update Article"
+                : "Create Article"}
           </button>
         </div>
       </form>

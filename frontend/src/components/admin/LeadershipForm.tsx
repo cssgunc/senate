@@ -8,6 +8,7 @@ import {
   UpdateLeadership,
 } from "@/types/admin";
 import { useEffect, useState } from "react";
+import { ImageUpload } from "./ImageUpload";
 
 interface LeadershipFormProps {
   initialData?: AdminLeadership;
@@ -177,19 +178,12 @@ export function LeadershipForm({
           />
         </div>
 
-        {/* Headshot URL Field */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Photo URL (Optional)
-          </label>
-          <input
-            type="url"
-            className="w-full p-2 border rounded border-gray-300"
-            value={headShotUrl}
-            onChange={(e) => setHeadShotUrl(e.target.value)}
-            placeholder="https://example.com/photo.jpg"
-          />
-        </div>
+        <ImageUpload
+          label="Photo (Optional)"
+          value={headShotUrl}
+          onChange={setHeadShotUrl}
+          disabled={isLoading}
+        />
 
         {/* Active Status Checkbox */}
         <div className="flex items-center">

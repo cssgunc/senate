@@ -22,6 +22,7 @@ export interface CreateSenator {
   email: string;
   district_id: number;
   session_number: number;
+  headshot_url?: string | null;
 }
 
 export interface UpdateSenator {
@@ -31,6 +32,7 @@ export interface UpdateSenator {
   district_id?: number;
   is_active?: boolean;
   session_number?: number;
+  headshot_url?: string | null;
 }
 
 export interface CreateNews {
@@ -149,6 +151,7 @@ export interface CreateStaff {
   last_name: string;
   title: string;
   email: string;
+  photo_url: string | null;
   display_order: number;
 }
 

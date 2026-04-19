@@ -4,6 +4,7 @@ import { getDistricts } from "@/lib/api";
 import type { District, Senator } from "@/types";
 import type { CreateSenator, UpdateSenator } from "@/types/admin";
 import { useEffect, useState } from "react";
+import { ImageUpload } from "./ImageUpload";
 
 interface SenatorFormProps {
   initialData?: Senator;
@@ -28,6 +29,9 @@ export function SenatorForm({
   );
   const [sessionNumber, setSessionNumber] = useState(
     initialData?.session_number?.toString() ?? "",
+  );
+  const [headshotUrl, setHeadshotUrl] = useState(
+    initialData?.headshot_url ?? "",
   );
   const [isActive, setIsActive] = useState(initialData?.is_active ?? true);
 
@@ -55,6 +59,7 @@ export function SenatorForm({
       email: email.trim(),
       district_id: Number(districtId),
       session_number: Number(sessionNumber),
+      headshot_url: headshotUrl || null,
     };
 
     if (initialData) {
@@ -154,6 +159,13 @@ export function SenatorForm({
             />
           </div>
         </div>
+
+        <ImageUpload
+          label="Headshot (Optional)"
+          value={headshotUrl}
+          onChange={setHeadshotUrl}
+          disabled={isLoading}
+        />
 
         {initialData ? (
           <div className="flex items-center gap-2">
