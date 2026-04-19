@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getStaff } from "@/lib/api";
+import { loadStaffForPage } from "@/lib/staff";
 import Image from "next/image";
 
 export default async function StaffPage() {
-  const staff = await getStaff();
+  const staff = await loadStaffForPage(() => getStaff());
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -23,7 +24,8 @@ export default async function StaffPage() {
               Staff Information Unavailable
             </h2>
             <p className="mt-2 text-gray-600">
-              We are unable to load current staff data right now. Please check back soon.
+              We are unable to load current staff data right now. Please check
+              back soon.
             </p>
           </div>
         ) : (
