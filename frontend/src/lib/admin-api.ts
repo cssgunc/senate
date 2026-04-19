@@ -159,6 +159,27 @@ export async function createSenator(data: CreateSenator): Promise<Senator> {
   });
 }
 
+export async function getAdminSenators(
+  page: number = 1,
+  limit: number = 20,
+  is_active?: boolean,
+  session?: number,
+): Promise<PaginatedResponse<Senator>> {
+  const searchParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  if (is_active !== undefined) {
+    searchParams.set("is_active", is_active.toString());
+  }
+  if (session !== undefined) {
+    searchParams.set("session", session.toString());
+  }
+  return request(`/admin/senators?${searchParams.toString()}`, {
+    method: "GET",
+  });
+}
+
 export async function updateSenator(
   id: number,
   data: UpdateSenator,
