@@ -18,3 +18,14 @@ export async function fetchAPI<T>(endpoint: string, options?: RequestInit): Prom
 }
 
 // Intentionally minimal: restore full implementation later if needed.
+
+// Small helpers expected by other modules (stubs)
+export async function getLegislation(params: { search?: string; status?: string; type?: string; session?: number; page?: number; limit?: number } ) {
+  const { page = 1, limit = 20, search, status, type, session } = params;
+  const qs = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (search) qs.set("search", search);
+  if (status) qs.set("status", status);
+  if (type) qs.set("type", type);
+  if (session) qs.set("session", String(session));
+  return fetchAPI(`/legislation?${qs.toString()}`);
+}

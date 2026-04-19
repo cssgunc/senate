@@ -36,8 +36,8 @@ export default function AdminNewsPage() {
         return;
       }
 
-      const allItems = [...firstPage.items];
-      const totalPages = Math.ceil(firstPage.total / firstPage.limit);
+  const allItems = [...firstPage.items];
+  const totalPages = Math.ceil(firstPage.total / (firstPage.limit || 1));
 
       for (let page = 2; page <= totalPages; page += 1) {
         const response = await getAdminNews(page, ADMIN_NEWS_PAGE_SIZE);

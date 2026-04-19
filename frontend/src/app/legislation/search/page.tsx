@@ -101,7 +101,7 @@ function LegislationSearchContent() {
           limit,
         });
         if (requestId === requestIdRef.current) {
-          setData(result);
+          setData(result as any);
         }
       } catch (err) {
         if (requestId !== requestIdRef.current) {

@@ -4,24 +4,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import (
-    budget,
-    carousel,
-    committees,
-    districts,
-    events,
-    finance,
-    health,
-    leadership,
-    legislation,
-    news,
-    pages,
-    senators,
-    staff,
-)
-from app.routers.admin import committees as admin_committees
+from app.routers import health, leadership, news, senators
 from app.routers.admin import leadership as admin_leadership
-from app.routers.admin import news as admin_news
 from app.routers.admin import senators as admin_senators
 
 load_dotenv()
@@ -46,20 +30,10 @@ app.include_router(health.router)
 app.include_router(news.router)
 app.include_router(senators.router)
 
+# leadership router (public)
 app.include_router(leadership.router)
-app.include_router(committees.router)
-app.include_router(carousel.router)
-app.include_router(districts.router)
-app.include_router(staff.router)
-app.include_router(finance.router)
-app.include_router(budget.router)
-app.include_router(pages.router)
-app.include_router(events.router)
-app.include_router(legislation.router)
-app.include_router(admin_news.router)
 
-# Include Admin routers
-app.include_router(admin_committees.router)
+# Include Admin routers that exist
 app.include_router(admin_senators.router)
 app.include_router(admin_leadership.router)
 

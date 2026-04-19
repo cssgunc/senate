@@ -8,7 +8,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchAPI("/health")
-      .then((data) => setApiStatus(data.status))
+      .then((data: any) => setApiStatus(data.status))
       .catch(() => setApiStatus("disconnected"));
   }, []);
 
