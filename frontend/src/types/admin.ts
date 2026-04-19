@@ -22,15 +22,17 @@ export interface CreateSenator {
   email: string;
   district_id: number;
   session_number: number;
+  headshot_url?: string | null;
 }
 
 export interface UpdateSenator {
-  first_name: string;
-  last_name: string;
-  email: string;
-  district_id: number;
-  is_active: boolean;
-  session_number: number;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  district_id?: number;
+  is_active?: boolean;
+  session_number?: number;
+  headshot_url?: string | null;
 }
 
 export interface CreateNews {
@@ -111,12 +113,21 @@ export interface CreateFinanceHearingDate {
   description: string | null;
 }
 
+export interface UpdateFinanceHearingDate {
+  hearing_date: string;
+  hearing_time: string;
+  location: string | null;
+  description: string | null;
+  is_full: boolean;
+}
+
 export interface CreateCommittee {
   name: string;
   description: string;
   chair_senator_id: number | null;
   chair_name: string;
   chair_email: string;
+  is_active: boolean;
 }
 
 export interface AssignCommitteeMember {
@@ -124,12 +135,60 @@ export interface AssignCommitteeMember {
   role: string;
 }
 
+export interface AdminStaff {
+  id: number;
+  first_name: string;
+  last_name: string;
+  title: string;
+  email: string;
+  photo_url: string | null;
+  display_order: number;
+  is_active: boolean;
+}
+
 export interface CreateStaff {
   first_name: string;
   last_name: string;
   title: string;
   email: string;
+  photo_url: string | null;
   display_order: number;
+}
+
+export interface UpdateStaff {
+  first_name: string;
+  last_name: string;
+  title: string;
+  email: string;
+  photo_url: string | null;
+  display_order: number;
+  is_active: boolean;
+}
+
+export interface AdminDistrict {
+  id: number;
+  district_name: string;
+  description: string | null;
+}
+
+export interface CreateDistrict {
+  district_name: string;
+  description: string | null;
+}
+
+export interface UpdateDistrict {
+  district_name: string | null;
+  description: string | null;
+}
+
+export interface DistrictMapping {
+  id: number;
+  district_id: number;
+  mapping_value: string;
+}
+
+export interface CreateDistrictMapping {
+  mapping_value: string;
 }
 
 export interface CreateBudgetData {
@@ -152,4 +211,38 @@ export interface CreateAccount {
   first_name: string;
   last_name: string;
   role: "admin" | "staff";
+}
+
+export interface CreateLeadership {
+  senator_id: number | null;
+  title: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  headshot_url?: string | null;
+  is_active?: boolean;
+  session_number: number;
+}
+
+export interface UpdateLeadership {
+  senator_id?: number | null;
+  title?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  headshot_url?: string | null;
+  is_active?: boolean;
+  session_number?: number;
+}
+
+export interface AdminLeadership {
+  id: number;
+  senator_id: number | null;
+  title: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  photo_url: string | null;
+  session_number: number;
+  is_current: boolean;
 }

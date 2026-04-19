@@ -47,6 +47,17 @@ def test_create_committee(admin_client, test_db):
     assert len(data["members"]) == 0
 
 
+def test_list_committees(admin_client, seeded_committees):
+    response = admin_client.get("/api/admin/committees")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) >= 1
+    assert all("id" in committee for committee in data)
+    assert all("members" in committee for committee in data)
+
+
 def test_update_committee(admin_client, seeded_committees):
     committee = seeded_committees["committees"][0]
     response = admin_client.put(

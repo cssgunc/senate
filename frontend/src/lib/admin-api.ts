@@ -14,30 +14,48 @@ import type {
 } from "@/types";
 import type {
   Account,
+  AdminDistrict,
+  AdminLeadership,
   AdminNews,
+  AdminStaff,
   AssignCommitteeMember,
   CreateAccount,
   CreateBudgetData,
   CreateCalendarEvent,
   CreateCarouselSlide,
   CreateCommittee,
+  CreateDistrict,
+  CreateDistrictMapping,
   CreateFinanceHearingDate,
+  CreateLeadership,
   CreateLegislation,
   CreateLegislationAction,
   CreateNews,
   CreateSenator,
   CreateStaff,
+  DistrictMapping,
   LoginCredentials,
   LoginResponse,
+  UpdateDistrict,
   UpdateFinanceHearingConfig,
+  UpdateFinanceHearingDate,
+  UpdateLeadership,
   UpdateNews,
   UpdateSenator,
+  UpdateStaff,
   UpdateStaticPage,
 } from "@/types/admin";
 import type { PaginatedResponse } from "@/types/api";
 import { clearToken, getToken, setToken } from "./token";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api"
+).replace(/\/+$/, "");
+
+function buildApiPath(path: string): string {
+  if (path.startsWith("/api/")) return path;
+  return API_BASE.endsWith("/api") ? path : `/api${path}`;
+}
 
 interface AssignCommitteeMemberResponse {
   message: string;
@@ -52,7 +70,7 @@ function authHeaders(): HeadersInit {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${API_BASE}${buildApiPath(path)}`, {
     ...init,
     headers: {
       ...authHeaders(),
@@ -74,6 +92,71 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!rawBody) return undefined as T;
 
   return JSON.parse(rawBody) as T;
+}
+
+export interface UploadImageResponse {
+  url: string;
+}
+
+export async function uploadAdminImage(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<UploadImageResponse> {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}${buildApiPath("/admin/upload")}`);
+
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
+
+    xhr.upload.onprogress = (event: ProgressEvent<EventTarget>) => {
+      if (!event.lengthComputable || !onProgress) return;
+      const percent = Math.round((event.loaded / event.total) * 100);
+      onProgress(percent);
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Upload failed. Please try again."));
+    };
+
+    xhr.onload = () => {
+      const responseText = xhr.responseText || "";
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const parsed = JSON.parse(responseText) as UploadImageResponse;
+          if (!parsed.url) {
+            reject(new Error("Upload succeeded but no URL was returned."));
+            return;
+          }
+          resolve(parsed);
+        } catch {
+          reject(new Error("Upload succeeded but response parsing failed."));
+        }
+        return;
+      }
+
+      let message = `Upload failed (${xhr.status}).`;
+      if (responseText) {
+        try {
+          const parsed = JSON.parse(responseText) as { detail?: string };
+          if (parsed.detail) {
+            message = parsed.detail;
+          }
+        } catch {
+          message = responseText;
+        }
+      }
+
+      reject(new Error(message));
+    };
+
+    xhr.send(formData);
+  });
 }
 
 // Auth
@@ -141,6 +224,27 @@ export async function createSenator(data: CreateSenator): Promise<Senator> {
   });
 }
 
+export async function getAdminSenators(
+  page: number = 1,
+  limit: number = 20,
+  is_active?: boolean,
+  session?: number,
+): Promise<PaginatedResponse<Senator>> {
+  const searchParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  if (is_active !== undefined) {
+    searchParams.set("is_active", is_active.toString());
+  }
+  if (session !== undefined) {
+    searchParams.set("session", session.toString());
+  }
+  return request(`/admin/senators?${searchParams.toString()}`, {
+    method: "GET",
+  });
+}
+
 export async function updateSenator(
   id: number,
   data: UpdateSenator,
@@ -153,6 +257,47 @@ export async function updateSenator(
 
 export async function deleteSenator(id: number) {
   return request<void>(`/admin/senators/${id}`, { method: "DELETE" });
+}
+
+// Leadership
+export async function getAdminLeadership(
+  page: number = 1,
+  limit: number = 20,
+  session_number?: number,
+): Promise<PaginatedResponse<AdminLeadership>> {
+  const searchParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  if (session_number !== undefined) {
+    searchParams.set("session_number", session_number.toString());
+  }
+  return request(`/admin/leadership?${searchParams.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function createLeadership(
+  data: CreateLeadership,
+): Promise<AdminLeadership> {
+  return request("/admin/leadership", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateLeadership(
+  id: number,
+  data: UpdateLeadership,
+): Promise<AdminLeadership> {
+  return request(`/admin/leadership/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteLeadership(id: number): Promise<void> {
+  return request<void>(`/admin/leadership/${id}`, { method: "DELETE" });
 }
 
 // Legislation
@@ -261,6 +406,16 @@ export async function createFinanceHearingDate(
   });
 }
 
+export async function updateFinanceHearingDate(
+  id: number,
+  data: UpdateFinanceHearingDate,
+): Promise<FinanceHearingDate> {
+  return request(`/admin/finance-hearings/dates/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function deleteFinanceHearingDate(id: number): Promise<void> {
   return request<void>(`/admin/finance-hearings/dates/${id}`, {
     method: "DELETE",
@@ -268,6 +423,12 @@ export async function deleteFinanceHearingDate(id: number): Promise<void> {
 }
 
 // Committees
+export async function getAdminCommittees(): Promise<Committee[]> {
+  return request("/admin/committees", {
+    method: "GET",
+  });
+}
+
 export async function createCommittee(
   data: CreateCommittee,
 ): Promise<Committee> {
@@ -314,6 +475,10 @@ export async function removeCommitteeMember(
 }
 
 // Staff
+export async function listAdminStaff(): Promise<AdminStaff[]> {
+  return request("/admin/staff", { method: "GET" });
+}
+
 export async function createStaff(data: CreateStaff): Promise<Staff> {
   return request("/admin/staff", {
     method: "POST",
@@ -323,7 +488,7 @@ export async function createStaff(data: CreateStaff): Promise<Staff> {
 
 export async function updateStaff(
   id: number,
-  data: CreateStaff,
+  data: UpdateStaff,
 ): Promise<Staff> {
   return request(`/admin/staff/${id}`, {
     method: "PUT",
@@ -359,7 +524,65 @@ export async function deleteBudgetData(id: number): Promise<void> {
   return request<void>(`/admin/budget/${id}`, { method: "DELETE" });
 }
 
+// Districts
+export async function listAdminDistricts(): Promise<AdminDistrict[]> {
+  return request("/admin/districts", { method: "GET" });
+}
+
+export async function createDistrict(
+  data: CreateDistrict,
+): Promise<AdminDistrict> {
+  return request("/admin/districts", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateDistrict(
+  id: number,
+  data: UpdateDistrict,
+): Promise<AdminDistrict> {
+  return request(`/admin/districts/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteDistrict(id: number): Promise<void> {
+  return request<void>(`/admin/districts/${id}`, { method: "DELETE" });
+}
+
+// District Mappings
+export async function listDistrictMappings(
+  districtId: number,
+): Promise<DistrictMapping[]> {
+  return request(`/admin/districts/${districtId}/mappings`, { method: "GET" });
+}
+
+export async function createDistrictMapping(
+  districtId: number,
+  data: CreateDistrictMapping,
+): Promise<DistrictMapping> {
+  return request(`/admin/districts/${districtId}/mappings`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteDistrictMapping(
+  districtId: number,
+  mapId: number,
+): Promise<void> {
+  return request<void>(`/admin/districts/${districtId}/mappings/${mapId}`, {
+    method: "DELETE",
+  });
+}
+
 // Static pages
+export async function listStaticPages(): Promise<StaticPage[]> {
+  return request("/admin/pages", { method: "GET" });
+}
+
 export async function updateStaticPage(
   slug: string,
   data: UpdateStaticPage,
@@ -371,6 +594,15 @@ export async function updateStaticPage(
 }
 
 // Accounts
+export async function listAdminAccounts(
+  page: number = 1,
+  limit: number = 100,
+): Promise<PaginatedResponse<Account>> {
+  return request(`/admin/accounts?page=${page}&limit=${limit}`, {
+    method: "GET",
+  });
+}
+
 export async function createAccount(data: CreateAccount): Promise<Account> {
   return request("/admin/accounts", {
     method: "POST",

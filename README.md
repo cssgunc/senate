@@ -181,3 +181,9 @@ python -m script.seed_data
 # Drop/recreate tables, then seed from scratch
 python -m script.reset_dev
 ```
+
+After running `python -m script.seed_data`, you can log into the admin dashboard with these seeded development accounts:
+
+- **alex.thompson@unc.edu** / **720114563** (admin)
+- **morgan.lee@unc.edu** / **681905244** (admin)
+- **jordan.rivera@unc.edu** / **538227190** (staff)
