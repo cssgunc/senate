@@ -6,17 +6,13 @@ import {
   createSenator,
   deleteSenator,
   getAdminSenators,
-  listAdminDistricts,
   updateSenator,
 } from "@/lib/admin-api";
-import type { Senator } from "@/types";
-import type {
-  AdminDistrict,
-  CreateSenator,
-  UpdateSenator,
-} from "@/types/admin";
+import { getDistricts } from "@/lib/api";
+import type { District, Senator } from "@/types";
+import type { CreateSenator, UpdateSenator } from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const ADMIN_SENATORS_PAGE_SIZE = 100;
 
@@ -24,7 +20,7 @@ type ActiveFilter = "all" | "active" | "inactive";
 
 export default function AdminSenatorsPage() {
   const [data, setData] = useState<Senator[]>([]);
-  const [districts, setDistricts] = useState<AdminDistrict[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSenator, setEditingSenator] = useState<Senator | undefined>(
@@ -33,10 +29,11 @@ export default function AdminSenatorsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
   const [sessionFilter, setSessionFilter] = useState("");
+  const latestFetchRequestId = useRef(0);
 
   const loadDistricts = async () => {
     try {
-      const response = await listAdminDistricts();
+      const response = await getDistricts();
       setDistricts(response);
     } catch (error) {
       console.error("Failed to fetch districts:", error);
@@ -44,6 +41,7 @@ export default function AdminSenatorsPage() {
   };
 
   const fetchSenators = useCallback(async () => {
+    const requestId = ++latestFetchRequestId.current;
     setIsLoading(true);
     try {
       const parsedSession = sessionFilter.trim()
@@ -68,13 +66,19 @@ export default function AdminSenatorsPage() {
       );
 
       if (Array.isArray(firstPage)) {
-        setData(firstPage);
+        if (requestId === latestFetchRequestId.current) {
+          setData(firstPage);
+        }
         return;
       }
 
       const allItems = [...firstPage.items];
       const totalPages = Math.ceil(firstPage.total / firstPage.limit);
       for (let page = 2; page <= totalPages; page += 1) {
+        if (requestId !== latestFetchRequestId.current) {
+          return;
+        }
+
         const response = await getAdminSenators(
           page,
           ADMIN_SENATORS_PAGE_SIZE,
@@ -88,11 +92,17 @@ export default function AdminSenatorsPage() {
         }
       }
 
-      setData(allItems);
+      if (requestId === latestFetchRequestId.current) {
+        setData(allItems);
+      }
     } catch (error) {
-      console.error("Failed to fetch senators:", error);
+      if (requestId === latestFetchRequestId.current) {
+        console.error("Failed to fetch senators:", error);
+      }
     } finally {
-      setIsLoading(false);
+      if (requestId === latestFetchRequestId.current) {
+        setIsLoading(false);
+      }
     }
   }, [activeFilter, sessionFilter]);
 

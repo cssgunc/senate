@@ -1,12 +1,8 @@
 "use client";
 
-import { listAdminDistricts } from "@/lib/admin-api";
-import type { Senator } from "@/types";
-import type {
-  AdminDistrict,
-  CreateSenator,
-  UpdateSenator,
-} from "@/types/admin";
+import { getDistricts } from "@/lib/api";
+import type { District, Senator } from "@/types";
+import type { CreateSenator, UpdateSenator } from "@/types/admin";
 import { useEffect, useState } from "react";
 
 interface SenatorFormProps {
@@ -22,7 +18,7 @@ export function SenatorForm({
   onCancel,
   isLoading = false,
 }: SenatorFormProps) {
-  const [districts, setDistricts] = useState<AdminDistrict[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
   const [districtsLoading, setDistrictsLoading] = useState(true);
   const [firstName, setFirstName] = useState(initialData?.first_name ?? "");
   const [lastName, setLastName] = useState(initialData?.last_name ?? "");
@@ -38,7 +34,7 @@ export function SenatorForm({
   useEffect(() => {
     const loadDistricts = async () => {
       try {
-        const data = await listAdminDistricts();
+        const data = await getDistricts();
         setDistricts(data);
       } catch (error) {
         console.error("Failed to fetch districts:", error);
