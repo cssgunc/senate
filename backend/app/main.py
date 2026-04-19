@@ -19,6 +19,7 @@ from app.routers import (
     pages,
     senators,
     staff,
+    uploads,
 )
 from app.routers.admin import accounts as admin_accounts
 from app.routers.admin import budget as admin_budget
@@ -34,6 +35,7 @@ from app.routers.admin import news as admin_news
 from app.routers.admin import pages as admin_pages
 from app.routers.admin import senators as admin_senators
 from app.routers.admin import staff as admin_staff
+from app.routers.admin import upload as admin_upload
 
 load_dotenv()
 
@@ -67,6 +69,7 @@ app.include_router(budget.router)
 app.include_router(pages.router)
 app.include_router(events.router)
 app.include_router(legislation.router)
+app.include_router(uploads.router)
 app.include_router(admin_news.router)
 
 # Include Admin routers
@@ -83,6 +86,7 @@ app.include_router(admin_pages.router)
 app.include_router(admin_districts.router)
 app.include_router(admin_district_mapping.router)
 app.include_router(admin_accounts.router)
+app.include_router(admin_upload.router)
 
 
 @app.get("/")
