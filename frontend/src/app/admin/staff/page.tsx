@@ -1,7 +1,14 @@
 "use client";
 
+import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { StaffForm } from "@/components/admin/StaffForm";
+import { Button } from "@/components/ui/button";
 import {
   createStaff,
   deleteStaff,
@@ -82,14 +89,15 @@ export default function AdminStaffPage() {
       accessorKey: "display_order",
       header: "Order",
       cell: ({ row }) => (
-        <span className="text-gray-500 text-sm">{row.getValue("display_order")}</span>
+        <span className="text-gray-500 text-sm">
+          {row.getValue("display_order")}
+        </span>
       ),
     },
     {
       id: "name",
       header: "Name",
-      cell: ({ row }) =>
-        `${row.original.first_name} ${row.original.last_name}`,
+      cell: ({ row }) => `${row.original.first_name} ${row.original.last_name}`,
     },
     {
       accessorKey: "title",
@@ -140,16 +148,14 @@ export default function AdminStaffPage() {
 
   if (isFormOpen) {
     return (
-      <div className="max-w-2xl mx-auto space-y-4">
-        <button
+      <AdminPageShell className="max-w-3xl">
+        <AdminBackButton
           onClick={() => {
             setIsFormOpen(false);
             setEditingStaff(undefined);
           }}
-          className="text-blue-600 hover:underline mb-4 inline-block font-medium"
-        >
-          &larr; Back to Staff Table
-        </button>
+          label="Back to Staff Table"
+        />
         <StaffForm
           initialData={editingStaff}
           onSubmit={handleFormSubmit}
@@ -159,34 +165,36 @@ export default function AdminStaffPage() {
           }}
           isLoading={isSaving}
         />
-      </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Staff Management</h1>
-        <button
-          onClick={() => {
-            setEditingStaff(undefined);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-        >
-          Add Staff Member
-        </button>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Staff Management"
+        action={
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingStaff(undefined);
+              setIsFormOpen(true);
+            }}
+          >
+            Add Staff Member
+          </Button>
+        }
+      />
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <AdminCard>
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">
+          <div className="py-20 text-center text-slate-500">
             Loading staff...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />
         )}
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }

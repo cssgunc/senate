@@ -1,6 +1,13 @@
 "use client";
 
+import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
 import { CarouselSlideForm } from "@/components/admin/CarouselSlideForm";
+import { Button } from "@/components/ui/button";
 import {
   createCarouselSlide,
   deleteCarouselSlide,
@@ -115,16 +122,14 @@ export default function AdminCarouselPage() {
 
   if (isFormOpen) {
     return (
-      <div className="max-w-4xl mx-auto space-y-4">
-        <button
+      <AdminPageShell className="max-w-4xl">
+        <AdminBackButton
           onClick={() => {
             setIsFormOpen(false);
             setEditingSlide(undefined);
           }}
-          className="text-blue-600 hover:underline mb-4 inline-block font-medium"
-        >
-          &larr; Back to Carousel List
-        </button>
+          label="Back to Carousel List"
+        />
         <CarouselSlideForm
           initialData={editingSlide}
           onSubmit={handleFormSubmit}
@@ -134,32 +139,34 @@ export default function AdminCarouselPage() {
           }}
           isLoading={isSaving}
         />
-      </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Carousel Management</h1>
-        <button
-          onClick={() => {
-            setEditingSlide(undefined);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-        >
-          Create Slide
-        </button>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Carousel Management"
+        action={
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingSlide(undefined);
+              setIsFormOpen(true);
+            }}
+          >
+            Create Slide
+          </Button>
+        }
+      />
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <AdminCard>
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">
+          <div className="py-20 text-center text-slate-500">
             Loading slides...
           </div>
         ) : slides.length === 0 ? (
-          <div className="text-center py-10 text-gray-500">
+          <div className="py-10 text-center text-slate-500">
             No slides found. Create one!
           </div>
         ) : (
@@ -245,7 +252,7 @@ export default function AdminCarouselPage() {
             ))}
           </div>
         )}
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }

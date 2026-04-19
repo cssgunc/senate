@@ -1,15 +1,22 @@
 "use client";
 
+import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
 import { CalendarEventForm } from "@/components/admin/CalendarEventForm";
 import { DataTable } from "@/components/admin/DataTable";
-import { CalendarEvent } from "@/types";
-import { CreateCalendarEvent } from "@/types/admin";
+import { Button } from "@/components/ui/button";
 import {
   createCalendarEvent,
   deleteCalendarEvent,
   getAdminEvents,
   updateCalendarEvent,
 } from "@/lib/admin-api";
+import { CalendarEvent } from "@/types";
+import { CreateCalendarEvent } from "@/types/admin";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -154,16 +161,14 @@ export default function AdminEventsPage() {
 
   if (isFormOpen) {
     return (
-      <div className="max-w-4xl mx-auto space-y-4">
-        <button
+      <AdminPageShell className="max-w-4xl">
+        <AdminBackButton
           onClick={() => {
             setIsFormOpen(false);
             setEditingEvent(undefined);
           }}
-          className="text-blue-600 hover:underline mb-4 inline-block font-medium"
-        >
-          &larr; Back to Events Table
-        </button>
+          label="Back to Events Table"
+        />
         <CalendarEventForm
           initialData={editingEvent}
           onSubmit={handleFormSubmit}
@@ -173,32 +178,36 @@ export default function AdminEventsPage() {
           }}
           isLoading={isSaving}
         />
-      </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Events Management</h1>
-        <button
-          onClick={() => {
-            setEditingEvent(undefined);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-        >
-          Create Event
-        </button>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Events Management"
+        action={
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingEvent(undefined);
+              setIsFormOpen(true);
+            }}
+          >
+            Create Event
+          </Button>
+        }
+      />
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <AdminCard>
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">Loading events...</div>
+          <div className="py-20 text-center text-slate-500">
+            Loading events...
+          </div>
         ) : (
           <DataTable columns={columns} data={data} />
         )}
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }

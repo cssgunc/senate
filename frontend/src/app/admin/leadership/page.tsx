@@ -1,7 +1,14 @@
 "use client";
 
+import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { LeadershipForm } from "@/components/admin/LeadershipForm";
+import { Button } from "@/components/ui/button";
 import {
   createLeadership,
   deleteLeadership,
@@ -175,16 +182,14 @@ export default function AdminLeadershipPage() {
 
   if (isFormOpen) {
     return (
-      <div className="max-w-4xl mx-auto space-y-4">
-        <button
+      <AdminPageShell className="max-w-4xl">
+        <AdminBackButton
           onClick={() => {
             setIsFormOpen(false);
             setEditingLeadership(undefined);
           }}
-          className="text-blue-600 hover:underline mb-4 inline-block font-medium"
-        >
-          &larr; Back to Leadership Table
-        </button>
+          label="Back to Leadership Table"
+        />
         <LeadershipForm
           initialData={editingLeadership}
           onSubmit={handleFormSubmit}
@@ -194,34 +199,36 @@ export default function AdminLeadershipPage() {
           }}
           isLoading={isSaving}
         />
-      </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Leadership Management</h1>
-        <button
-          onClick={() => {
-            setEditingLeadership(undefined);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-        >
-          Add Leadership
-        </button>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Leadership Management"
+        action={
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingLeadership(undefined);
+              setIsFormOpen(true);
+            }}
+          >
+            Add Leadership
+          </Button>
+        }
+      />
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <AdminCard>
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">
+          <div className="py-20 text-center text-slate-500">
             Loading leadership entries...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />
         )}
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }

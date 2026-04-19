@@ -1,7 +1,14 @@
 "use client";
 
-import { DataTable } from "@/components/admin/DataTable";
 import { AccountForm } from "@/components/admin/AccountForm";
+import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
+import { DataTable } from "@/components/admin/DataTable";
+import { Button } from "@/components/ui/button";
 import {
   createAccount,
   deleteAccount,
@@ -98,8 +105,7 @@ export default function AdminAccountsPage() {
     {
       id: "name",
       header: "Name",
-      cell: ({ row }) =>
-        `${row.original.first_name} ${row.original.last_name}`,
+      cell: ({ row }) => `${row.original.first_name} ${row.original.last_name}`,
     },
     {
       accessorKey: "email",
@@ -156,16 +162,14 @@ export default function AdminAccountsPage() {
 
   if (isFormOpen) {
     return (
-      <div className="max-w-2xl mx-auto space-y-4">
-        <button
+      <AdminPageShell className="max-w-3xl">
+        <AdminBackButton
           onClick={() => {
             setIsFormOpen(false);
             setEditingAccount(undefined);
           }}
-          className="text-blue-600 hover:underline mb-4 inline-block font-medium"
-        >
-          &larr; Back to Accounts Table
-        </button>
+          label="Back to Accounts Table"
+        />
         <AccountForm
           initialData={editingAccount}
           onSubmit={handleFormSubmit}
@@ -175,34 +179,36 @@ export default function AdminAccountsPage() {
           }}
           isLoading={isSaving}
         />
-      </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Accounts Management</h1>
-        <button
-          onClick={() => {
-            setEditingAccount(undefined);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-        >
-          Create Account
-        </button>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Accounts Management"
+        action={
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingAccount(undefined);
+              setIsFormOpen(true);
+            }}
+          >
+            Create Account
+          </Button>
+        }
+      />
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <AdminCard>
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">
+          <div className="py-20 text-center text-slate-500">
             Loading accounts...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />
         )}
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }

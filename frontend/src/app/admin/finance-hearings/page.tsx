@@ -1,6 +1,15 @@
 "use client";
 
 import {
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
   createFinanceHearingDate,
   deleteFinanceHearingDate,
   updateFinanceHearingConfig,
@@ -186,13 +195,11 @@ export default function AdminFinanceHearingsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Finance Hearings</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Manage hearing season availability and date slots.
-        </p>
-      </div>
+    <AdminPageShell className="space-y-8">
+      <AdminPageHeader
+        title="Finance Hearings"
+        description="Manage hearing season availability and date slots."
+      />
 
       {error ? (
         <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
@@ -200,50 +207,49 @@ export default function AdminFinanceHearingsPage() {
         </p>
       ) : null}
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
+      <AdminCard className="p-4">
         <h2 className="text-lg font-semibold text-slate-900">Season Config</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="hearing-active"
               checked={isActive}
-              onChange={(event) => setIsActive(event.target.checked)}
+              onCheckedChange={(checked) => setIsActive(Boolean(checked))}
             />
-            Hearing season active
-          </label>
+            <Label htmlFor="hearing-active">Hearing season active</Label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Season start
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="season-start">Season start</Label>
+            <Input
+              id="season-start"
               type="date"
               value={seasonStart}
               onChange={(event) => setSeasonStart(event.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
             />
-          </label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Season end
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="season-end">Season end</Label>
+            <Input
+              id="season-end"
               type="date"
               value={seasonEnd}
               onChange={(event) => setSeasonEnd(event.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
             />
-          </label>
+          </div>
         </div>
 
-        <button
-          type="button"
+        <Button
           onClick={onSaveConfig}
           disabled={isSavingConfig}
-          className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="mt-4"
         >
           {isSavingConfig ? "Saving..." : "Save Config"}
-        </button>
-      </section>
+        </Button>
+      </AdminCard>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
+      <AdminCard className="p-4">
         <h2 className="text-lg font-semibold text-slate-900">
           {dateForm.id === null ? "Add Hearing Date" : "Edit Hearing Date"}
         </h2>
@@ -252,9 +258,10 @@ export default function AdminFinanceHearingsPage() {
           className="mt-4 grid gap-4 md:grid-cols-2"
           onSubmit={onSubmitDate}
         >
-          <label className="text-sm text-slate-700">
-            Date
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="hearing-date">Date</Label>
+            <Input
+              id="hearing-date"
               type="date"
               value={dateForm.hearing_date}
               onChange={(event) =>
@@ -263,14 +270,14 @@ export default function AdminFinanceHearingsPage() {
                   hearing_date: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               required
             />
-          </label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Time
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="hearing-time">Time</Label>
+            <Input
+              id="hearing-time"
               type="time"
               value={dateForm.hearing_time}
               onChange={(event) =>
@@ -279,14 +286,14 @@ export default function AdminFinanceHearingsPage() {
                   hearing_time: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               required
             />
-          </label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Location
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="hearing-location">Location</Label>
+            <Input
+              id="hearing-location"
               type="text"
               value={dateForm.location}
               onChange={(event) =>
@@ -295,13 +302,13 @@ export default function AdminFinanceHearingsPage() {
                   location: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
             />
-          </label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Description
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="hearing-description">Description</Label>
+            <Input
+              id="hearing-description"
               type="text"
               value={dateForm.description}
               onChange={(event) =>
@@ -310,52 +317,47 @@ export default function AdminFinanceHearingsPage() {
                   description: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
             />
-          </label>
+          </div>
 
           {dateForm.id !== null ? (
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="hearing-full"
                 checked={dateForm.is_full}
-                onChange={(event) =>
+                onCheckedChange={(checked) =>
                   setDateForm((current) => ({
                     ...current,
-                    is_full: event.target.checked,
+                    is_full: Boolean(checked),
                   }))
                 }
               />
-              Mark this hearing as full
-            </label>
+              <Label htmlFor="hearing-full">Mark this hearing as full</Label>
+            </div>
           ) : null}
 
           <div className="flex gap-2 md:col-span-2">
-            <button
-              type="submit"
-              disabled={isSavingDate}
-              className="rounded-md bg-sky-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-            >
+            <Button type="submit" disabled={isSavingDate}>
               {isSavingDate
                 ? "Saving..."
                 : dateForm.id === null
                   ? "Add Date"
                   : "Save Date"}
-            </button>
+            </Button>
             {dateForm.id !== null ? (
-              <button
+              <Button
                 type="button"
+                variant="destructive"
                 onClick={() => setDateForm(EMPTY_DATE_FORM)}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
               >
                 Cancel Edit
-              </button>
+              </Button>
             ) : null}
           </div>
         </form>
-      </section>
+      </AdminCard>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
+      <AdminCard className="p-4">
         <h2 className="text-lg font-semibold text-slate-900">Hearing Dates</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
@@ -437,7 +439,7 @@ export default function AdminFinanceHearingsPage() {
             </tbody>
           </table>
         </div>
-      </section>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }
