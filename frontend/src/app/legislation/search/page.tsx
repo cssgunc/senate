@@ -51,6 +51,7 @@ function LegislationSearchContent() {
   const [data, setData] = useState<PaginatedResponse<Legislation> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const requestIdRef = useRef(0);
 
   // Initialize form state from URL params
@@ -111,9 +112,7 @@ function LegislationSearchContent() {
           return;
         }
         if (err instanceof ApiError) {
-          setError(
-            `Unable to load legislation. ${err.message}`,
-          );
+          setError(`Unable to load legislation. ${err.message}`);
         } else {
           setError("Unable to load legislation. Please try again.");
         }
@@ -125,7 +124,7 @@ function LegislationSearchContent() {
     };
 
     fetchLegislation();
-  }, [debouncedSearch, status, type, session, page, limit]);
+  }, [debouncedSearch, status, type, session, page, limit, retryCount]);
 
   // Update URL when filters change
   const updateSearchParams = useCallback(
@@ -300,6 +299,7 @@ function LegislationSearchContent() {
           onRetry={() => {
             setError(null);
             setIsLoading(true);
+            setRetryCount((current) => current + 1);
           }}
         />
       )}

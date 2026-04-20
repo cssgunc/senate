@@ -3,20 +3,54 @@ import Carousel from "@/components/home/Carousel";
 import ContactCTA from "@/components/home/ContactCTA";
 import FinanceHearingButton from "@/components/home/FinanceHearingButton";
 import RecentNews from "@/components/home/RecentNews";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 import { getCarousel, getEvents, getFinanceHearings } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const slides = await getCarousel().catch(() => []);
-  const events = await getEvents().catch(() => []);
-  const financeHearings = await getFinanceHearings().catch(() => null);
+  let slides: Awaited<ReturnType<typeof getCarousel>> = [];
+  let events: Awaited<ReturnType<typeof getEvents>> = [];
+  let financeHearings: Awaited<ReturnType<typeof getFinanceHearings>> | null =
+    null;
+  let carouselError = false;
+  let eventsError = false;
+  let financeError = false;
+
+  try {
+    slides = await getCarousel();
+  } catch {
+    carouselError = true;
+  }
+
+  try {
+    events = await getEvents();
+  } catch {
+    eventsError = true;
+  }
+
+  try {
+    financeHearings = await getFinanceHearings();
+  } catch {
+    financeError = true;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Carousel slides={slides} />
+      {carouselError ? (
+        <div className="container mx-auto px-4 pt-6">
+          <ErrorMessage message="Unable to load homepage highlights. Please try again." />
+        </div>
+      ) : (
+        <Carousel slides={slides} />
+      )}
       <div className="container mx-auto px-4 py-12">
-        {financeHearings?.is_active ? (
+        {financeError ? (
+          <div className="mb-10">
+            <ErrorMessage message="Unable to load finance hearing information. Please try again." />
+          </div>
+        ) : financeHearings?.is_active ? (
           <div className="mb-10">
             <FinanceHearingButton />
           </div>
@@ -29,7 +63,16 @@ export default async function Home() {
             <RecentNews />
           </div>
           <div>
-            <CalendarWidget events={events} compact={true} />
+            {eventsError ? (
+              <ErrorMessage message="Unable to load upcoming meetings. Please try again." />
+            ) : events.length === 0 ? (
+              <EmptyState
+                message="No upcoming meetings right now."
+                description="Check back soon for the latest calendar updates."
+              />
+            ) : (
+              <CalendarWidget events={events} compact={true} />
+            )}
           </div>
         </div>
       </div>
