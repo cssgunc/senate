@@ -20,5 +20,12 @@ pre-commit==3.7.1
 ruff==0.9.3
 junitparser==3.2.0
 
+# Security & Sanitization
+bleach==6.1.0
+
 # JSON Web Token
 python-jose[cryptography]==3.3.0
+
+# Uploads & image processing
+python-multipart==0.0.20
+Pillow==11.2.1

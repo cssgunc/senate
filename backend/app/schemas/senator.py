@@ -31,12 +31,14 @@ class CreateSenatorDTO(BaseModel):
     email: EmailStr
     district_id: int
     session_number: int
+    headshot_url: str | None = None
 
 
 class UpdateSenatorDTO(BaseModel):
-    first_name: str
-    last_name: str
-    email: EmailStr
-    district_id: int
-    is_active: bool
-    session_number: int
+    first_name: str | None = None
+    last_name: str | None = None
+    email: EmailStr | None = None
+    district_id: int | None = None
+    is_active: bool | None = None
+    session_number: int | None = None
+    headshot_url: str | None = None

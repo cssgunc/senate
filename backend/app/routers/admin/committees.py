@@ -20,6 +20,21 @@ router = APIRouter(
 )
 
 
+@router.get("", response_model=list[CommitteeDTO])
+def list_committees(
+    db: Session = Depends(get_db),
+    _current_user: Admin = Depends(get_current_user),
+):
+    committees = (
+        db.query(Committee)
+        .options(selectinload(Committee.memberships).selectinload(CommitteeMembership.senator))
+        .order_by(Committee.name)
+        .all()
+    )
+
+    return [serialize_committee(committee) for committee in committees]
+
+
 def serialize_committee(committee: Committee) -> dict:
     members = []
     # If memberships are loaded

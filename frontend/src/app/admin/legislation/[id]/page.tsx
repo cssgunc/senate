@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getLegislationById } from "@/lib/api";
 import { createLegislationAction, deleteLegislationAction } from "@/lib/admin-api";
@@ -19,7 +19,7 @@ export default function LegislationDetailsPage() {
   const [actionType, setActionType] = useState("");
   const [actionDescription, setActionDescription] = useState("");
 
-  const fetchDetails = async () => {
+  const fetchDetails = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await getLegislationById(numId);
@@ -29,11 +29,11 @@ export default function LegislationDetailsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [numId]);
 
   useEffect(() => {
     fetchDetails();
-  }, [id]);
+  }, [fetchDetails]);
 
   const handleAddAction = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +110,7 @@ export default function LegislationDetailsPage() {
               <input required type="date" className="w-full p-2 border rounded" value={actionDate} onChange={e => setActionDate(e.target.value)} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Type (e.g. "Sent to Committee")</label>
+              <label className="block text-sm font-medium mb-1">Type (for example, Sent to Committee)</label>
               <input required type="text" className="w-full p-2 border rounded" value={actionType} onChange={e => setActionType(e.target.value)} />
             </div>
             <div>
