@@ -6,7 +6,6 @@ import { useState } from "react";
 
 import { ImageUpload } from "./ImageUpload";
 
-
 interface CarouselSlideFormProps {
   initialData?: CarouselSlide;
   onSubmit: (data: CreateCarouselSlide) => void;
@@ -128,7 +127,11 @@ export function CarouselSlideForm({
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-{isLoading ? "Saving..." : initialData ? "Update Slide" : "Create Slide"}
+            {isLoading
+              ? "Saving..."
+              : initialData
+                ? "Update Slide"
+                : "Create Slide"}
           </button>
         </div>
       </form>
