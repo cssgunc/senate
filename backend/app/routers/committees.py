@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.database import get_db
 from app.models import Committee, CommitteeMembership
 from app.schemas.committee import CommitteeDTO
+from app.utils.sanitization import sanitize_html
 
 router = APIRouter(prefix="/api/committees", tags=["committees"])
 
@@ -47,7 +48,7 @@ def get_committees(db: Session = Depends(get_db)):
             {
                 "id": committee.id,
                 "name": committee.name,
-                "description": committee.description,
+                "description": sanitize_html(committee.description),
                 "chair_name": committee.chair_name,
                 "chair_email": committee.chair_email,
                 "is_active": committee.is_active,
@@ -98,7 +99,7 @@ def get_committee(id: int, db: Session = Depends(get_db)):
     return {
         "id": committee.id,
         "name": committee.name,
-        "description": committee.description,
+        "description": sanitize_html(committee.description),
         "chair_name": committee.chair_name,
         "chair_email": committee.chair_email,
         "members": members,

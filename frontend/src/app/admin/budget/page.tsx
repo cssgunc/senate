@@ -1,6 +1,21 @@
 "use client";
 
 import {
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   createBudgetData,
   deleteBudgetData,
   updateBudgetData,
@@ -37,6 +52,8 @@ const EMPTY_FORM: BudgetFormState = {
   description: "",
   parent_category_id: null,
 };
+
+const TOP_LEVEL_PARENT_VALUE = "__top_level__";
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Request failed";
@@ -291,13 +308,11 @@ export default function AdminBudgetPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Budget</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Manage fiscal-year categories for the budget visualization.
-        </p>
-      </div>
+    <AdminPageShell className="space-y-8">
+      <AdminPageHeader
+        title="Budget"
+        description="Manage fiscal-year categories for the budget visualization."
+      />
 
       {error ? (
         <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
@@ -305,37 +320,37 @@ export default function AdminBudgetPage() {
         </p>
       ) : null}
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
+      <AdminCard className="p-4">
         <h2 className="text-lg font-semibold text-slate-900">Fiscal Year</h2>
         <div className="mt-3 flex flex-wrap items-end gap-3">
-          <label className="text-sm text-slate-700">
-            Select or enter fiscal year
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="fiscal-year-select">
+              Select or enter fiscal year
+            </Label>
+            <Input
+              id="fiscal-year-select"
               type="text"
               value={selectedFiscalYear}
               onChange={(event) => setSelectedFiscalYear(event.target.value)}
               list="fiscal-year-options"
               placeholder="FY 2026"
-              className="mt-1 block rounded-md border border-slate-300 px-3 py-2"
             />
-          </label>
+          </div>
           <datalist id="fiscal-year-options">
             {availableFiscalYears.map((year) => (
               <option key={year} value={year} />
             ))}
           </datalist>
-          <button
-            type="button"
+          <Button
             onClick={() => void loadBudget(selectedFiscalYear || undefined)}
             disabled={isLoading}
-            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
           >
             {isLoading ? "Loading..." : "Load Year"}
-          </button>
+          </Button>
         </div>
-      </section>
+      </AdminCard>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
+      <AdminCard className="p-4">
         <h2 className="text-lg font-semibold text-slate-900">
           Add Top-Level Category
         </h2>
@@ -354,9 +369,10 @@ export default function AdminBudgetPage() {
             );
           }}
         >
-          <label className="text-sm text-slate-700">
-            Fiscal year
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="top-fiscal-year">Fiscal year</Label>
+            <Input
+              id="top-fiscal-year"
               type="text"
               value={topLevelForm.fiscal_year}
               onChange={(event) =>
@@ -365,14 +381,14 @@ export default function AdminBudgetPage() {
                   fiscal_year: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               required
             />
-          </label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Category
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="top-category">Category</Label>
+            <Input
+              id="top-category"
               type="text"
               value={topLevelForm.category}
               onChange={(event) =>
@@ -381,14 +397,14 @@ export default function AdminBudgetPage() {
                   category: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               required
             />
-          </label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Amount
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="top-amount">Amount</Label>
+            <Input
+              id="top-amount"
               type="number"
               min="0"
               step="0.01"
@@ -399,14 +415,14 @@ export default function AdminBudgetPage() {
                   amount: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               required
             />
-          </label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Description
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="top-description">Description</Label>
+            <Input
+              id="top-description"
               type="text"
               value={topLevelForm.description}
               onChange={(event) =>
@@ -415,21 +431,20 @@ export default function AdminBudgetPage() {
                   description: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
             />
-          </label>
+          </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isSaving}
-            className="md:col-span-2 w-fit rounded-md bg-sky-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+            className="md:col-span-2 w-fit"
           >
             Add Top-Level Category
-          </button>
+          </Button>
         </form>
-      </section>
+      </AdminCard>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
+      <AdminCard className="p-4">
         <h2 className="text-lg font-semibold text-slate-900">
           Add Sub-Category
         </h2>
@@ -448,9 +463,10 @@ export default function AdminBudgetPage() {
             );
           }}
         >
-          <label className="text-sm text-slate-700">
-            Fiscal year
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="sub-fiscal-year">Fiscal year</Label>
+            <Input
+              id="sub-fiscal-year"
               type="text"
               value={subCategoryForm.fiscal_year}
               onChange={(event) =>
@@ -459,39 +475,39 @@ export default function AdminBudgetPage() {
                   fiscal_year: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               required
             />
-          </label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Parent category
-            <select
-              value={subCategoryForm.parent_category_id ?? ""}
-              onChange={(event) =>
+          <div className="space-y-2">
+            <Label htmlFor="sub-parent">Parent category</Label>
+            <Select
+              value={String(subCategoryForm.parent_category_id ?? "")}
+              onValueChange={(value) =>
                 setSubCategoryForm((current) => ({
                   ...current,
-                  parent_category_id: event.target.value
-                    ? Number(event.target.value)
-                    : null,
+                  parent_category_id: value ? Number(value) : null,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
-              required
             >
-              <option value="">Select parent</option>
-              {flatRows.map((row) => (
-                <option key={row.id} value={row.id}>
-                  {"  ".repeat(row.depth)}
-                  {row.category}
-                </option>
-              ))}
-            </select>
-          </label>
+              <SelectTrigger id="sub-parent">
+                <SelectValue placeholder="Select parent" />
+              </SelectTrigger>
+              <SelectContent>
+                {flatRows.map((row) => (
+                  <SelectItem key={row.id} value={String(row.id)}>
+                    {"  ".repeat(row.depth)}
+                    {row.category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Category
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="sub-category">Category</Label>
+            <Input
+              id="sub-category"
               type="text"
               value={subCategoryForm.category}
               onChange={(event) =>
@@ -500,14 +516,14 @@ export default function AdminBudgetPage() {
                   category: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               required
             />
-          </label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Amount
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="sub-amount">Amount</Label>
+            <Input
+              id="sub-amount"
               type="number"
               min="0"
               step="0.01"
@@ -518,14 +534,14 @@ export default function AdminBudgetPage() {
                   amount: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               required
             />
-          </label>
+          </div>
 
-          <label className="text-sm text-slate-700">
-            Description
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="sub-description">Description</Label>
+            <Input
+              id="sub-description"
               type="text"
               value={subCategoryForm.description}
               onChange={(event) =>
@@ -534,21 +550,20 @@ export default function AdminBudgetPage() {
                   description: event.target.value,
                 }))
               }
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
             />
-          </label>
+          </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isSaving}
-            className="md:col-span-2 w-fit rounded-md bg-sky-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+            className="md:col-span-2 w-fit"
           >
             Add Sub-Category
-          </button>
+          </Button>
         </form>
-      </section>
+      </AdminCard>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4">
+      <AdminCard className="p-4">
         <h2 className="text-lg font-semibold text-slate-900">Budget Tree</h2>
         <div className="mt-4 overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
@@ -575,7 +590,7 @@ export default function AdminBudgetPage() {
                     colSpan={4}
                     className="px-3 py-6 text-center text-slate-500"
                   >
-                    Loading budget data...
+                    Loading data...
                   </td>
                 </tr>
               ) : flatRows.length === 0 ? (
@@ -584,7 +599,7 @@ export default function AdminBudgetPage() {
                     colSpan={4}
                     className="px-3 py-6 text-center text-slate-500"
                   >
-                    No budget rows for this fiscal year.
+                    No records found.
                   </td>
                 </tr>
               ) : (
@@ -626,17 +641,18 @@ export default function AdminBudgetPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </AdminCard>
 
       {editingId !== null ? (
-        <section className="rounded-lg border border-amber-300 bg-amber-50 p-4">
+        <AdminCard className="border-amber-300 bg-amber-50 p-4">
           <h2 className="text-lg font-semibold text-amber-900">
             Edit Budget Row
           </h2>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <label className="text-sm text-slate-700">
-              Fiscal year
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="edit-fiscal-year">Fiscal year</Label>
+              <Input
+                id="edit-fiscal-year"
                 type="text"
                 value={editForm.fiscal_year}
                 onChange={(event) =>
@@ -645,39 +661,48 @@ export default function AdminBudgetPage() {
                     fiscal_year: event.target.value,
                   }))
                 }
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               />
-            </label>
+            </div>
 
-            <label className="text-sm text-slate-700">
-              Parent category
-              <select
-                value={editForm.parent_category_id ?? ""}
-                onChange={(event) =>
+            <div className="space-y-2">
+              <Label htmlFor="edit-parent">Parent category</Label>
+              <Select
+                value={
+                  editForm.parent_category_id === null
+                    ? TOP_LEVEL_PARENT_VALUE
+                    : String(editForm.parent_category_id)
+                }
+                onValueChange={(value) =>
                   setEditForm((current) => ({
                     ...current,
-                    parent_category_id: event.target.value
-                      ? Number(event.target.value)
-                      : null,
+                    parent_category_id:
+                      value === TOP_LEVEL_PARENT_VALUE ? null : Number(value),
                   }))
                 }
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               >
-                <option value="">Top-level</option>
-                {flatRows
-                  .filter((row) => !disallowedParentIds.has(row.id))
-                  .map((row) => (
-                    <option key={row.id} value={row.id}>
-                      {"  ".repeat(row.depth)}
-                      {row.category}
-                    </option>
-                  ))}
-              </select>
-            </label>
+                <SelectTrigger id="edit-parent">
+                  <SelectValue placeholder="Top-level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={TOP_LEVEL_PARENT_VALUE}>
+                    Top-level
+                  </SelectItem>
+                  {flatRows
+                    .filter((row) => !disallowedParentIds.has(row.id))
+                    .map((row) => (
+                      <SelectItem key={row.id} value={String(row.id)}>
+                        {"  ".repeat(row.depth)}
+                        {row.category}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <label className="text-sm text-slate-700">
-              Category
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="edit-category">Category</Label>
+              <Input
+                id="edit-category"
                 type="text"
                 value={editForm.category}
                 onChange={(event) =>
@@ -686,13 +711,13 @@ export default function AdminBudgetPage() {
                     category: event.target.value,
                   }))
                 }
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               />
-            </label>
+            </div>
 
-            <label className="text-sm text-slate-700">
-              Amount
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="edit-amount">Amount</Label>
+              <Input
+                id="edit-amount"
                 type="number"
                 min="0"
                 step="0.01"
@@ -703,13 +728,13 @@ export default function AdminBudgetPage() {
                     amount: event.target.value,
                   }))
                 }
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               />
-            </label>
+            </div>
 
-            <label className="text-sm text-slate-700 md:col-span-2">
-              Description
-              <input
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Input
+                id="edit-description"
                 type="text"
                 value={editForm.description}
                 onChange={(event) =>
@@ -718,33 +743,30 @@ export default function AdminBudgetPage() {
                     description: event.target.value,
                   }))
                 }
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2"
               />
-            </label>
+            </div>
 
             <div className="md:col-span-2 flex gap-2">
-              <button
-                type="button"
+              <Button
                 onClick={() => void saveEdit()}
                 disabled={isSaving}
-                className="rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+                variant="outline"
               >
                 Save Changes
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
                 onClick={() => {
                   setEditingId(null);
                   setEditForm(EMPTY_FORM);
                 }}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
+                variant="outline"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
-        </section>
+        </AdminCard>
       ) : null}
-    </div>
+    </AdminPageShell>
   );
 }

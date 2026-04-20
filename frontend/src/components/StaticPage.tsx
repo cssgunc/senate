@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { HtmlContent } from "@/components/content/HtmlContent";
 import { ApiError, getStaticPage } from "@/lib/api";
 import type { StaticPage as StaticPageContent } from "@/types";
 
@@ -76,10 +77,7 @@ export default function StaticPage({ slug }: StaticPageProps) {
     <section>
       <h1>{title}</h1>
       {errorMessage ? <p>{errorMessage}</p> : null}
-      <div
-        // TODO: Add server-side sanitization before rendering user-managed HTML.
-        dangerouslySetInnerHTML={{ __html: body }}
-      />
+      <HtmlContent html={body} />
     </section>
   );
 }

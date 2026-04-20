@@ -21,6 +21,7 @@ from app.models.cms import News
 from app.schemas.news import AdminNewsDTO, CreateNewsDTO, UpdateNewsDTO
 from app.schemas.pagination import PaginatedResponse
 from app.utils.pagination import paginate
+from app.utils.sanitization import sanitize_html
 
 router = APIRouter(prefix="/api/admin/news", tags=["admin-news"])
 
@@ -35,7 +36,7 @@ def _news_to_dict(news: News) -> dict[str, Any]:
         "id": news.id,
         "title": news.title,
         "summary": news.summary,
-        "body": news.body,
+        "body": sanitize_html(news.body),
         "image_url": news.image_url,
         "is_published": news.is_published,
         "date_published": news.date_published,
@@ -71,7 +72,10 @@ def create_news(
     db: Session = Depends(get_db),
 ):
     """Create a new news article. author_id is set from the authenticated user."""
-    article = News(**body.model_dump(), author_id=current_user.id)
+    payload = body.model_dump()
+    payload["body"] = sanitize_html(payload["body"])
+
+    article = News(**payload, author_id=current_user.id)
     db.add(article)
     db.commit()
     db.refresh(article)
@@ -90,6 +94,8 @@ def update_news(
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found")
     for field, value in body.model_dump().items():
+        if field == "body":
+            value = sanitize_html(value)
         setattr(article, field, value)
     db.commit()
     db.refresh(article)

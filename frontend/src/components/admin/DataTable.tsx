@@ -1,16 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import { useState } from "react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -41,30 +43,37 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <input
+      <Input
         type="text"
         placeholder="Search all columns..."
         value={globalFilter}
         onChange={(e) => setGlobalFilter(e.target.value)}
-        className="mb-4 p-2 border border-gray-300 rounded"
+        className="max-w-sm"
       />
 
-      <div className="border rounded-md overflow-hidden bg-white">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
         <table className="w-full text-sm text-left">
-          <thead className="bg-gray-50 border-b">
+          <thead className="border-b border-slate-200 bg-slate-50">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <th key={header.id} className="px-6 py-3 font-medium text-gray-500 uppercase tracking-wider">
+                    <th
+                      key={header.id}
+                      className="px-6 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
                       {header.isPlaceholder ? null : (
                         <div
-                          className={header.column.getCanSort() ? "cursor-pointer select-none flex items-center gap-2" : ""}
+                          className={
+                            header.column.getCanSort()
+                              ? "flex cursor-pointer select-none items-center gap-2"
+                              : ""
+                          }
                           onClick={header.column.getToggleSortingHandler()}
                         >
                           {flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                           {{
                             asc: " 🔼",
@@ -79,15 +88,18 @@ export function DataTable<TData, TValue>({
             ))}
           </thead>
 
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-slate-100">
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
+                <tr key={row.id} className="hover:bg-slate-50/70">
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                    <td
+                      key={cell.id}
+                      className="whitespace-nowrap px-6 py-4 text-slate-700"
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </td>
                   ))}
@@ -95,8 +107,11 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="h-24 text-center text-gray-500">
-                  No results found.
+                <td
+                  colSpan={columns.length}
+                  className="h-24 text-center text-slate-500"
+                >
+                  No records found.
                 </td>
               </tr>
             )}
@@ -106,22 +121,26 @@ export function DataTable<TData, TValue>({
 
       <div className="flex items-center justify-between">
         <div className="flex gap-2">
-          <button
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="px-3 py-1 border rounded disabled:opacity-50"
           >
             Previous
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="px-3 py-1 border rounded disabled:opacity-50"
           >
             Next
-          </button>
+          </Button>
         </div>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-slate-500">
           Page {table.getState().pagination.pageIndex + 1} of{" "}
           {table.getPageCount()}
         </span>

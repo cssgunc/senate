@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getCommittees } from "@/lib/api";
+import { stripHtmlTags } from "@/lib/html";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,7 @@ export default async function CommitteesPage() {
             <CardHeader>
               <CardTitle>{committee.name}</CardTitle>
               <CardDescription className="line-clamp-2">
-                {committee.description}
+                {stripHtmlTags(committee.description)}
               </CardDescription>
             </CardHeader>
             <CardContent>

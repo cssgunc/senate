@@ -21,6 +21,7 @@ from app.schemas.finance import (
     UpdateFinanceHearingConfigDTO,
     UpdateFinanceHearingDateDTO,
 )
+from app.utils.sanitization import sanitize_html
 
 router = APIRouter(
     prefix="/api/admin/finance-hearings",
@@ -78,7 +79,11 @@ def create_finance_date(
     db: Session = Depends(get_db),
 ):
     """Create a finance hearing date slot."""
-    date_entry = FinanceHearingDate(**body.model_dump())
+    payload = body.model_dump()
+    if payload.get("description") is not None:
+        payload["description"] = sanitize_html(payload["description"])
+
+    date_entry = FinanceHearingDate(**payload)
     db.add(date_entry)
     db.commit()
     db.refresh(date_entry)
@@ -101,7 +106,11 @@ def update_finance_date(
     if date_entry is None:
         raise HTTPException(status_code=404, detail="Hearing date not found")
 
-    for field, value in body.model_dump(exclude_unset=True).items():
+    update_data = body.model_dump(exclude_unset=True)
+    if update_data.get("description") is not None:
+        update_data["description"] = sanitize_html(update_data["description"])
+
+    for field, value in update_data.items():
         setattr(date_entry, field, value)
 
     db.commit()
