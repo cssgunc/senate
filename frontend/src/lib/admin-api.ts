@@ -40,6 +40,7 @@ import type {
   UpdateFinanceHearingConfig,
   UpdateFinanceHearingDate,
   UpdateLeadership,
+  UpdateLegislationAction,
   UpdateNews,
   UpdateSenator,
   UpdateStaff,
@@ -325,18 +326,36 @@ export async function deleteLegislation(id: number): Promise<void> {
 }
 
 export async function createLegislationAction(
-  data: CreateLegislationAction,
+  legislationId: number,
+  data: Omit<CreateLegislationAction, "legislation_id">,
 ): Promise<LegislationAction> {
-  return request("/admin/legislation/actions", {
+  return request(`/admin/legislation/${legislationId}/actions`, {
     method: "POST",
+    body: JSON.stringify({ legislation_id: legislationId, ...data }),
+  });
+}
+
+export async function updateLegislationAction(
+  legislationId: number,
+  actionId: number,
+  data: UpdateLegislationAction,
+): Promise<LegislationAction> {
+  return request(`/admin/legislation/${legislationId}/actions/${actionId}`, {
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
 
-export async function deleteLegislationAction(id: number): Promise<void> {
-  return request<void>(`/admin/legislation/actions/${id}`, {
-    method: "DELETE",
-  });
+export async function deleteLegislationAction(
+  legislationId: number,
+  actionId: number,
+): Promise<void> {
+  return request<void>(
+    `/admin/legislation/${legislationId}/actions/${actionId}`,
+    {
+      method: "DELETE",
+    },
+  );
 }
 
 // Calendar events

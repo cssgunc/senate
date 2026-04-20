@@ -1,3 +1,4 @@
+import { HtmlContent } from "@/components/content/HtmlContent";
 import { ApiError, getLegislationById } from "@/lib/api";
 import type { Legislation, LegislationAction } from "@/types";
 import { format, parseISO } from "date-fns";
@@ -39,7 +40,10 @@ function ActionTimeline({ actions }: { actions: LegislationAction[] }) {
               {format(parseISO(action.action_date), "MMMM d, yyyy")} &middot;{" "}
               {action.action_type}
             </p>
-            <p className="text-sm text-gray-800">{action.description}</p>
+            <HtmlContent
+              html={action.description}
+              className="prose prose-sm max-w-none text-gray-800"
+            />
           </li>
         ))}
       </ol>
@@ -99,14 +103,18 @@ export default async function LegislationDetailPage({
 
       <section className="mb-8">
         <h2 className="text-xl font-semibold mb-2">Summary</h2>
-        <p className="text-gray-700 leading-relaxed">{legislation.summary}</p>
+        <HtmlContent
+          html={legislation.summary}
+          className="prose max-w-none text-gray-700"
+        />
       </section>
 
       <section className="mb-8">
         <h2 className="text-xl font-semibold mb-2">Full Text</h2>
-        <div className="prose max-w-none whitespace-pre-line text-gray-700 leading-relaxed">
-          {legislation.full_text}
-        </div>
+        <HtmlContent
+          html={legislation.full_text}
+          className="prose max-w-none text-gray-700"
+        />
       </section>
 
       {legislation.actions && legislation.actions.length > 0 && (

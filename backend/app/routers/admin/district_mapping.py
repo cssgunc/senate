@@ -31,9 +31,7 @@ def list_district_mappings(
     if district is None:
         raise HTTPException(status_code=404, detail="District not found")
 
-    mappings = db.query(DistrictMapping).filter(
-        DistrictMapping.district_id == district_id
-    ).all()
+    mappings = db.query(DistrictMapping).filter(DistrictMapping.district_id == district_id).all()
     return [DistrictMappingDTO.model_validate(m) for m in mappings]
 
 
@@ -80,10 +78,14 @@ def delete_district_mapping(
     if district is None:
         raise HTTPException(status_code=404, detail="District not found")
 
-    mapping = db.query(DistrictMapping).filter(
-        DistrictMapping.id == map_id,
-        DistrictMapping.district_id == district_id,
-    ).first()
+    mapping = (
+        db.query(DistrictMapping)
+        .filter(
+            DistrictMapping.id == map_id,
+            DistrictMapping.district_id == district_id,
+        )
+        .first()
+    )
     if mapping is None:
         raise HTTPException(status_code=404, detail="Mapping not found")
 

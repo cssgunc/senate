@@ -76,9 +76,9 @@ def update_admin_budget(
     if "parent_category_id" in update_data and update_data["parent_category_id"] is not None:
         if update_data["parent_category_id"] == budget_id:
             raise HTTPException(status_code=400, detail="Budget entry cannot be its own parent")
-        parent = db.query(BudgetData).filter(
-            BudgetData.id == update_data["parent_category_id"]
-        ).first()
+        parent = (
+            db.query(BudgetData).filter(BudgetData.id == update_data["parent_category_id"]).first()
+        )
         if parent is None:
             raise HTTPException(status_code=404, detail="Parent category not found")
 

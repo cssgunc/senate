@@ -1,3 +1,4 @@
+import { HtmlContent } from "@/components/content/HtmlContent";
 import { ApiError, getNewsById } from "@/lib/api";
 import { IMAGE_PATHS } from "@/lib/imagePaths";
 import { format } from "date-fns";
@@ -38,17 +39,17 @@ export default async function NewsDetailPage({
           </p>
         )}
       </div>
-      <div className="relative w-full h-80 mb-4">
-        <Image
-          src={article.image_url || IMAGE_PATHS.newsDetailFallback}
-          alt={article.title}
-          fill
-          className="object-cover rounded-md"
-        />
-      </div>
-      <div className="prose max-w-none whitespace-pre-line">
-        <p>{article.body}</p>
-      </div>
+      {article.image_url && (
+        <div className="relative w-full h-80 mb-4">
+          <Image
+            src={article.image_url}
+            alt={article.title}
+            fill
+            className="object-cover rounded-md"
+          />
+        </div>
+      )}
+      <HtmlContent html={article.body} className="prose max-w-none" />
     </div>
   );
 }
