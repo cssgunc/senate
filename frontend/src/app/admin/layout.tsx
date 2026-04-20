@@ -3,7 +3,7 @@
 import { Sidebar } from "@/components/admin/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { getMe, logout } from "@/lib/admin-api";
+import { getMe, logout } from "@/lib/mock/admin-api";
 import type { Account } from "@/types/admin";
 import { Menu } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";

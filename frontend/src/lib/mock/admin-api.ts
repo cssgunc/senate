@@ -46,10 +46,10 @@ import type {
   UpdateStaticPage,
 } from "@/types/admin";
 import type { PaginatedResponse } from "@/types/api";
-import { clearToken, getToken, setToken } from "./token";
+import { clearToken, getToken, setToken } from "../token";
 
 const API_BASE = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api"
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
 ).replace(/\/+$/, "");
 
 function buildApiPath(path: string): string {

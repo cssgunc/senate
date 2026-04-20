@@ -7,7 +7,7 @@ import {
   deleteLeadership,
   getAdminLeadership,
   updateLeadership,
-} from "@/lib/admin-api";
+} from "@/lib/mock/admin-api";
 import {
   AdminLeadership,
   CreateLeadership,

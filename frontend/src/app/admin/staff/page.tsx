@@ -7,7 +7,7 @@ import {
   deleteStaff,
   listAdminStaff,
   updateStaff,
-} from "@/lib/admin-api";
+} from "@/lib/mock/admin-api";
 import type { AdminStaff, CreateStaff, UpdateStaff } from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
@@ -82,14 +82,15 @@ export default function AdminStaffPage() {
       accessorKey: "display_order",
       header: "Order",
       cell: ({ row }) => (
-        <span className="text-gray-500 text-sm">{row.getValue("display_order")}</span>
+        <span className="text-gray-500 text-sm">
+          {row.getValue("display_order")}
+        </span>
       ),
     },
     {
       id: "name",
       header: "Name",
-      cell: ({ row }) =>
-        `${row.original.first_name} ${row.original.last_name}`,
+      cell: ({ row }) => `${row.original.first_name} ${row.original.last_name}`,
     },
     {
       accessorKey: "title",

@@ -7,8 +7,12 @@ import {
   deleteDistrict,
   listAdminDistricts,
   updateDistrict,
-} from "@/lib/admin-api";
-import type { AdminDistrict, CreateDistrict, UpdateDistrict } from "@/types/admin";
+} from "@/lib/mock/admin-api";
+import type {
+  AdminDistrict,
+  CreateDistrict,
+  UpdateDistrict,
+} from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 
@@ -53,8 +57,7 @@ export default function AdminDistrictsPage() {
       await deleteDistrict(districtId);
       await fetchDistricts();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
       if (message.includes("409")) {
         alert(
           "Cannot delete this district — senators are still assigned to it. Reassign or delete them first.",

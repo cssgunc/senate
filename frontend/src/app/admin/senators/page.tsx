@@ -2,13 +2,13 @@
 
 import { DataTable } from "@/components/admin/DataTable";
 import { SenatorForm } from "@/components/admin/SenatorForm";
+import { getDistricts } from "@/lib/api";
 import {
   createSenator,
   deleteSenator,
   getAdminSenators,
   updateSenator,
-} from "@/lib/admin-api";
-import { getDistricts } from "@/lib/api";
+} from "@/lib/mock/admin-api";
 import type { District, Senator } from "@/types";
 import type { CreateSenator, UpdateSenator } from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";

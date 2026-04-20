@@ -2,14 +2,14 @@
 
 import { CalendarEventForm } from "@/components/admin/CalendarEventForm";
 import { DataTable } from "@/components/admin/DataTable";
-import { CalendarEvent } from "@/types";
-import { CreateCalendarEvent } from "@/types/admin";
 import {
   createCalendarEvent,
   deleteCalendarEvent,
   getAdminEvents,
   updateCalendarEvent,
-} from "@/lib/admin-api";
+} from "@/lib/mock/admin-api";
+import { CalendarEvent } from "@/types";
+import { CreateCalendarEvent } from "@/types/admin";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -194,7 +194,9 @@ export default function AdminEventsPage() {
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">Loading events...</div>
+          <div className="text-center py-20 text-gray-500">
+            Loading events...
+          </div>
         ) : (
           <DataTable columns={columns} data={data} />
         )}

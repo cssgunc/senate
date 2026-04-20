@@ -1,6 +1,6 @@
 "use client";
 
-import { uploadAdminImage } from "@/lib/admin-api";
+import { uploadAdminImage } from "@/lib/mock/admin-api";
 import { useEffect, useId, useRef, useState } from "react";
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;

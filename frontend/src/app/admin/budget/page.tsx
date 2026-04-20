@@ -1,11 +1,11 @@
 "use client";
 
+import { getBudget } from "@/lib/api";
 import {
   createBudgetData,
   deleteBudgetData,
   updateBudgetData,
-} from "@/lib/admin-api";
-import { getBudget } from "@/lib/api";
+} from "@/lib/mock/admin-api";
 import type { BudgetData } from "@/types";
 import { useEffect, useMemo, useState } from "react";
 

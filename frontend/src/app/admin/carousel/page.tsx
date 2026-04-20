@@ -7,7 +7,7 @@ import {
   getAdminCarouselSlides,
   reorderCarouselSlides,
   updateCarouselSlide,
-} from "@/lib/admin-api";
+} from "@/lib/mock/admin-api";
 import { CarouselSlide } from "@/types";
 import { CreateCarouselSlide } from "@/types/admin";
 import { useEffect, useState } from "react";

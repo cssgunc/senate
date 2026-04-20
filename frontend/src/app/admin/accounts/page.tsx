@@ -1,14 +1,14 @@
 "use client";
 
-import { DataTable } from "@/components/admin/DataTable";
 import { AccountForm } from "@/components/admin/AccountForm";
+import { DataTable } from "@/components/admin/DataTable";
 import {
   createAccount,
   deleteAccount,
   getMe,
   listAdminAccounts,
   updateAccount,
-} from "@/lib/admin-api";
+} from "@/lib/mock/admin-api";
 import type { Account, CreateAccount } from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
@@ -98,8 +98,7 @@ export default function AdminAccountsPage() {
     {
       id: "name",
       header: "Name",
-      cell: ({ row }) =>
-        `${row.original.first_name} ${row.original.last_name}`,
+      cell: ({ row }) => `${row.original.first_name} ${row.original.last_name}`,
     },
     {
       accessorKey: "email",

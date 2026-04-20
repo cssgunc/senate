@@ -1,12 +1,12 @@
 "use client";
 
+import { getFinanceHearings } from "@/lib/api";
 import {
   createFinanceHearingDate,
   deleteFinanceHearingDate,
   updateFinanceHearingConfig,
   updateFinanceHearingDate,
-} from "@/lib/admin-api";
-import { getFinanceHearings } from "@/lib/api";
+} from "@/lib/mock/admin-api";
 import type { FinanceHearingDate } from "@/types";
 import { useEffect, useMemo, useState } from "react";
 

@@ -7,7 +7,7 @@ import {
   deleteNews,
   getAdminNews,
   updateNews,
-} from "@/lib/admin-api";
+} from "@/lib/mock/admin-api";
 import { AdminNews, CreateNews, UpdateNews } from "@/types/admin";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";

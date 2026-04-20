@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { getSenators } from "@/lib/api";
 import {
   assignCommitteeMember,
   createCommittee,
@@ -8,8 +9,7 @@ import {
   getAdminCommittees,
   removeCommitteeMember,
   updateCommittee,
-} from "@/lib/admin-api";
-import { getSenators } from "@/lib/api";
+} from "@/lib/mock/admin-api";
 import type { Committee, CommitteeAssignment, Senator } from "@/types";
 import type { CreateCommittee } from "@/types/admin";
 import { Fragment, useEffect, useState } from "react";
