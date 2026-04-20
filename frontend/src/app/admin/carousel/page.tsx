@@ -8,6 +8,7 @@ import {
   reorderCarouselSlides,
   updateCarouselSlide,
 } from "@/lib/admin-api";
+import { IMAGE_PATHS } from "@/lib/imagePaths";
 import { CarouselSlide } from "@/types";
 import { CreateCarouselSlide } from "@/types/admin";
 import { useEffect, useState } from "react";
@@ -192,12 +193,12 @@ export default function AdminCarouselPage() {
                 {/* Preview Image */}
                 <div className="w-48 h-28 relative bg-gray-200 rounded overflow-hidden flex-shrink-0">
                   <img
-                    src={slide.image_url}
+                    src={slide.image_url || IMAGE_PATHS.carouselFallback}
                     alt={slide.overlay_text || "Carousel slide"}
                     className="object-cover w-full h-full"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
-                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect width='100%25' height='100%25' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='12px' fill='%239ca3af'%3EError loading image%3C/text%3E%3C/svg%3E";
+                        IMAGE_PATHS.carouselFallback;
                     }}
                   />
                 </div>

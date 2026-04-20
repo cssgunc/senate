@@ -1,6 +1,6 @@
 "use client";
 
-import { UNCUtilityBar, utilityLinks } from "@/components/layout/UNCUtilityBar";
+import { UNCUtilityBar } from "@/components/layout/UNCUtilityBar";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
 
@@ -64,13 +63,9 @@ export function Header() {
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3.5 lg:px-6">
           <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/USG logo.png"
-              alt="USG logo"
-              width={44}
-              height={44}
-              className="h-11 w-11 rounded-full object-contain shadow-sm"
-            />
+            <div className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-slate-100 text-base font-semibold uppercase text-slate-700 shadow-sm">
+              S
+            </div>
             <span className="flex flex-col leading-tight">
               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-950 sm:text-sm sm:tracking-[0.22em]">
                 Senate

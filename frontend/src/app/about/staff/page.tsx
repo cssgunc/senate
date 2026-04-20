@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getStaff } from "@/lib/api";
+import { IMAGE_PATHS } from "@/lib/imagePaths";
 import { loadStaffForPage } from "@/lib/staff";
 import Image from "next/image";
 
@@ -38,19 +39,12 @@ export default async function StaffPage() {
                 <CardHeader className="pb-4">
                   <div className="flex justify-center mb-4">
                     <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-200">
-                      {member.photo_url ? (
-                        <Image
-                          src={member.photo_url}
-                          alt={`${member.first_name} ${member.last_name}`}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl font-bold">
-                          {member.first_name[0]}
-                          {member.last_name[0]}
-                        </div>
-                      )}
+                      <Image
+                        src={member.photo_url || IMAGE_PATHS.staffFallback}
+                        alt={`${member.first_name} ${member.last_name}`}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                   </div>
                   <CardTitle className="text-center text-xl">
