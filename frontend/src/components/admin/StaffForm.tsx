@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import type { AdminStaff, CreateStaff, UpdateStaff } from "@/types/admin";
+import { useState } from "react";
+import { ImageUpload } from "./ImageUpload";
 
 interface StaffFormProps {
   initialData?: AdminStaff;
@@ -45,6 +46,7 @@ export function StaffForm({
         last_name: lastName,
         title,
         email,
+        photo_url: photoUrl || null,
         display_order: displayOrder,
       };
       onSubmit(data);
@@ -112,18 +114,12 @@ export function StaffForm({
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Photo URL (Optional)
-          </label>
-          <input
-            type="url"
-            className="w-full p-2 border rounded border-gray-300"
-            value={photoUrl}
-            onChange={(e) => setPhotoUrl(e.target.value)}
-            placeholder="https://example.com/photo.jpg"
-          />
-        </div>
+        <ImageUpload
+          label="Photo (Optional)"
+          value={photoUrl}
+          onChange={setPhotoUrl}
+          disabled={isLoading}
+        />
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

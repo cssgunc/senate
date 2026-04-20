@@ -32,6 +32,7 @@ def override_get_db():
     finally:
         db.close()
 
+
 # -----------------------------
 # Adds REGEXP support for SQLite with seeded_admin
 # -----------------------------
@@ -178,6 +179,7 @@ def seeded_leadership(test_db):
 
     yield {"records": [l1, l2, l3, l4]}
 
+
 @pytest.fixture(scope="module")
 def seeded_admins(test_db):
     admin = Admin(
@@ -186,7 +188,7 @@ def seeded_admins(test_db):
         first_name="Admin",
         last_name="Tester",
         pid="123456789",
-        role="admin"
+        role="admin",
     )
     user = Admin(
         id=2,
@@ -194,7 +196,7 @@ def seeded_admins(test_db):
         first_name="Normal",
         last_name="User",
         pid="987654321",
-        role="staff"
+        role="staff",
     )
     test_db.add_all([admin, user])
     test_db.commit()

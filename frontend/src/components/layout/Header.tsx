@@ -1,5 +1,6 @@
 "use client";
 
+import { UNCUtilityBar } from "@/components/layout/UNCUtilityBar";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -18,7 +19,6 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
 
@@ -57,329 +57,340 @@ export function Header() {
   const [isOpen, setIsOpen] = React.useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex flex-col items-center">
-        {/* Very Top Row: Title Bar (Black with White Text) */}
-        <div className="w-full bg-carolina-black px-4 py-2 flex justify-start">
-          <span className="text-xl font-bold tracking-tight text-carolina-white">
-            The University of North Carolina at Chapel Hill
-          </span>
-        </div>
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <UNCUtilityBar />
 
-        {/* Middle Row: Logo & Mobile Trigger Row (White Background) */}
-        <div className="w-full bg-white border-b">
-          <div className="container mx-auto px-4 py-3 flex items-center justify-between relative">
-            <div className="flex flex-col items-start gap-2">
-              <Link href="/" className="flex items-center">
-                <Image
-                  src="/UNClogo.png"
-                  alt="UNC Senate Logo"
-                  width={800}
-                  height={800}
-                  className="object-contain"
-                />
-              </Link>
+      <div className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3.5 lg:px-6">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-slate-100 text-base font-semibold uppercase text-slate-700 shadow-sm">
+              S
             </div>
+            <span className="flex flex-col leading-tight">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-950 sm:text-sm sm:tracking-[0.22em]">
+                Senate
+              </span>
+              <span className="text-[10px] text-slate-500 sm:text-xs">
+                Undergraduate Senate
+              </span>
+            </span>
+          </Link>
 
-            {/* Mobile Menu Trigger (Right-aligned on small screens) */}
-            <div className="absolute right-0 flex md:hidden items-center">
-              <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Toggle mobile menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className="w-[300px] sm:w-[400px] overflow-y-auto bg-black text-white border-r border-gray-800"
-                >
-                  <SheetTitle className="text-white text-xl font-bold">
-                    Menu
-                  </SheetTitle>
-                  <nav className="flex flex-col gap-4 mt-8">
-                    <Link
-                      onClick={() => setIsOpen(false)}
-                      href="/"
-                      className="text-lg py-2 font-medium hover:text-primary transition-colors"
-                    >
-                      Home
-                    </Link>
-                    <Link
-                      onClick={() => setIsOpen(false)}
-                      href="/news"
-                      className="text-lg py-2 font-medium hover:text-primary transition-colors"
-                    >
-                      News
-                    </Link>
+          <div className="hidden md:flex items-center gap-1">
+            <NavigationMenu>
+              <NavigationMenuList className="space-x-0 rounded-full border border-slate-200 bg-slate-50 p-1.5 shadow-sm">
+                <NavigationMenuItem>
+                  <Link
+                    href="/"
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
+                    )}
+                  >
+                    Home
+                  </Link>
+                </NavigationMenuItem>
 
-                    <div className="space-y-3 pt-2">
-                      <h4 className="font-semibold text-muted-foreground uppercase tracking-wider text-sm">
-                        Senators
-                      </h4>
-                      <div className="flex flex-col gap-2 pl-4">
-                        {senatorsItems.map((item) => (
-                          <Link
-                            onClick={() => setIsOpen(false)}
-                            key={item.title}
-                            href={item.href}
-                            className="text-sm py-1 pt-1 text-muted-foreground hover:text-primary transition-colors"
+                <NavigationMenuItem>
+                  <Link
+                    href="/news"
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
+                    )}
+                  >
+                    News
+                  </Link>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white">
+                    Senators
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[380px] gap-3 border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
+                      {senatorsItems.map((item) => (
+                        <ListItem
+                          key={item.title}
+                          title={item.title}
+                          href={item.href}
+                        />
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <Link
+                    href="/committees"
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
+                    )}
+                  >
+                    Committees
+                  </Link>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white">
+                    Legislation
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[380px] gap-3 border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
+                      {legislationItems.map((item) => (
+                        <ListItem
+                          key={item.title}
+                          title={item.title}
+                          href={item.href}
+                        />
+                      ))}
+                      <li>
+                        <NavigationMenuLink asChild>
+                          <a
+                            href="https://drive.google.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block select-none space-y-1 rounded-md border border-transparent p-3 leading-none no-underline outline-none transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950 focus:border-slate-200 focus:bg-slate-50"
+                            aria-label="Senate Archives (opens in a new tab)"
                           >
-                            {item.title}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
+                            <div className="text-sm font-medium leading-none text-slate-900">
+                              Senate Archives
+                            </div>
+                          </a>
+                        </NavigationMenuLink>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
 
-                    <div className="space-y-3 pt-2">
-                      <h4 className="font-semibold text-muted-foreground uppercase tracking-wider text-sm">
-                        Committees
-                      </h4>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white">
+                    About
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[380px] gap-3 border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
+                      {aboutItems.map((item) => (
+                        <ListItem
+                          key={item.title}
+                          title={item.title}
+                          href={item.href}
+                        />
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white">
+                    Funding
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[380px] gap-3 border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
+                      {fundingItems.map((item) => (
+                        <ListItem
+                          key={item.title}
+                          title={item.title}
+                          href={item.href}
+                        />
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <Link
+                    href="/meetings"
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
+                    )}
+                  >
+                    Meetings
+                  </Link>
+                </NavigationMenuItem>
+
+                <NavigationMenuItem>
+                  <Link
+                    href="/admin/login"
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
+                    )}
+                  >
+                    Internal Login
+                  </Link>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+          </div>
+
+          <div className="ml-auto flex md:hidden items-center">
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-9 rounded-full border border-slate-200 bg-slate-50 px-3 text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                >
+                  <Menu className="h-5 w-5" />
+                  <span className="ml-2 text-xs font-semibold uppercase tracking-[0.18em]">
+                    Menu
+                  </span>
+                  <span className="sr-only">Open navigation menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="left"
+                className="w-[320px] overflow-y-auto border-r border-slate-800 bg-slate-950 text-white sm:w-[380px]"
+              >
+                <SheetTitle className="text-sm font-semibold uppercase tracking-[0.24em] text-white/70">
+                  Menu
+                </SheetTitle>
+                <nav className="mt-8 flex flex-col gap-6">
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
+                      Main
+                    </h4>
+                    <div className="grid gap-2">
+                      <Link
+                        onClick={() => setIsOpen(false)}
+                        href="/"
+                        className="rounded border border-white/8 px-3 py-2 text-sm text-white/85 transition-colors hover:border-white/16 hover:bg-white/8 hover:text-white"
+                      >
+                        Home
+                      </Link>
+                      <Link
+                        onClick={() => setIsOpen(false)}
+                        href="/news"
+                        className="rounded border border-white/8 px-3 py-2 text-sm text-white/85 transition-colors hover:border-white/16 hover:bg-white/8 hover:text-white"
+                      >
+                        News
+                      </Link>
+                      <Link
+                        onClick={() => setIsOpen(false)}
+                        href="/meetings"
+                        className="rounded border border-white/8 px-3 py-2 text-sm text-white/85 transition-colors hover:border-white/16 hover:bg-white/8 hover:text-white"
+                      >
+                        Meetings
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
+                      Senators
+                    </h4>
+                    <div className="grid gap-2">
+                      {senatorsItems.map((item) => (
+                        <Link
+                          key={item.title}
+                          onClick={() => setIsOpen(false)}
+                          href={item.href}
+                          className="rounded border border-white/8 px-3 py-2 text-sm text-white/85 transition-colors hover:border-white/16 hover:bg-white/8 hover:text-white"
+                        >
+                          {item.title}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
+                      Committees
+                    </h4>
+                    <div className="grid gap-2">
                       <Link
                         onClick={() => setIsOpen(false)}
                         href="/committees"
-                        className="text-lg py-2 font-medium hover:text-primary transition-colors"
+                        className="rounded border border-white/8 px-3 py-2 text-sm text-white/85 transition-colors hover:border-white/16 hover:bg-white/8 hover:text-white"
                       >
-                        Committees
+                        All Committees
                       </Link>
                     </div>
+                  </div>
 
-                    <div className="space-y-3 pt-2">
-                      <h4 className="font-semibold text-muted-foreground uppercase tracking-wider text-sm">
-                        Legislation
-                      </h4>
-                      <div className="flex flex-col gap-2 pl-4">
-                        {legislationItems.map((item) => (
-                          <Link
-                            onClick={() => setIsOpen(false)}
-                            key={item.title}
-                            href={item.href}
-                            className="text-sm py-1 pt-1 text-muted-foreground hover:text-primary transition-colors"
-                          >
-                            {item.title}
-                          </Link>
-                        ))}
-                        <a
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
+                      Legislation
+                    </h4>
+                    <div className="grid gap-2">
+                      {legislationItems.map((item) => (
+                        <Link
+                          key={item.title}
                           onClick={() => setIsOpen(false)}
-                          href="https://drive.google.com/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm py-1 pt-1 text-muted-foreground hover:text-primary transition-colors"
+                          href={item.href}
+                          className="rounded border border-white/8 px-3 py-2 text-sm text-white/85 transition-colors hover:border-white/16 hover:bg-white/8 hover:text-white"
                         >
-                          Senate Archives
-                        </a>
-                      </div>
+                          {item.title}
+                        </Link>
+                      ))}
+                      <a
+                        href="https://drive.google.com/"
+                        onClick={() => setIsOpen(false)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded border border-white/8 px-3 py-2 text-sm text-white/85 transition-colors hover:border-white/16 hover:bg-white/8 hover:text-white"
+                        aria-label="Senate Archives (opens in a new tab)"
+                      >
+                        Senate Archives
+                      </a>
                     </div>
+                  </div>
 
-                    <div className="space-y-3 pt-2">
-                      <h4 className="font-semibold text-muted-foreground uppercase tracking-wider text-sm">
-                        About
-                      </h4>
-                      <div className="flex flex-col gap-2 pl-4">
-                        {aboutItems.map((item) => (
-                          <Link
-                            onClick={() => setIsOpen(false)}
-                            key={item.title}
-                            href={item.href}
-                            className="text-sm py-1 pt-1 text-muted-foreground hover:text-primary transition-colors"
-                          >
-                            {item.title}
-                          </Link>
-                        ))}
-                      </div>
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
+                      About
+                    </h4>
+                    <div className="grid gap-2">
+                      {aboutItems.map((item) => (
+                        <Link
+                          key={item.title}
+                          onClick={() => setIsOpen(false)}
+                          href={item.href}
+                          className="rounded border border-white/8 px-3 py-2 text-sm text-white/85 transition-colors hover:border-white/16 hover:bg-white/8 hover:text-white"
+                        >
+                          {item.title}
+                        </Link>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="space-y-3 pt-2">
-                      <h4 className="font-semibold text-muted-foreground uppercase tracking-wider text-sm">
-                        Funding
-                      </h4>
-                      <div className="flex flex-col gap-2 pl-4">
-                        {fundingItems.map((item) => (
-                          <Link
-                            onClick={() => setIsOpen(false)}
-                            key={item.title}
-                            href={item.href}
-                            className="text-sm py-1 pt-1 text-muted-foreground hover:text-primary transition-colors"
-                          >
-                            {item.title}
-                          </Link>
-                        ))}
-                      </div>
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
+                      Funding
+                    </h4>
+                    <div className="grid gap-2">
+                      {fundingItems.map((item) => (
+                        <Link
+                          key={item.title}
+                          onClick={() => setIsOpen(false)}
+                          href={item.href}
+                          className="rounded border border-white/8 px-3 py-2 text-sm text-white/85 transition-colors hover:border-white/16 hover:bg-white/8 hover:text-white"
+                        >
+                          {item.title}
+                        </Link>
+                      ))}
                     </div>
+                  </div>
 
-                    <Link
-                      onClick={() => setIsOpen(false)}
-                      href="/meetings"
-                      className="text-lg py-2 mt-2 font-medium hover:text-primary transition-colors"
-                    >
-                      Meetings
-                    </Link>
-
-                    <div className="mt-4 pt-4 border-t border-gray-800">
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
+                      Admin
+                    </h4>
+                    <div className="grid gap-2">
                       <Link
                         onClick={() => setIsOpen(false)}
                         href="/admin/login"
-                        className="text-lg py-2 font-semibold text-white hover:text-primary transition-colors"
+                        className="rounded border border-white/8 px-3 py-2 text-sm text-white/85 transition-colors hover:border-white/16 hover:bg-white/8 hover:text-white"
                       >
                         Internal Login
                       </Link>
                     </div>
-                  </nav>
-                </SheetContent>
-              </Sheet>
-            </div>
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
-        </div>
-
-        {/* Bottom Row: Desktop Navigation (Black Background) */}
-        <div className="w-full bg-carolina-black hidden md:flex items-center justify-center py-1">
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <Link
-                  href="/"
-                  className={cn(
-                    navigationMenuTriggerStyle(),
-                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
-                  )}
-                >
-                  Home
-                </Link>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <Link
-                  href="/news"
-                  className={cn(
-                    navigationMenuTriggerStyle(),
-                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
-                  )}
-                >
-                  News
-                </Link>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className="bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10">
-                  Senators
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-black border border-gray-800">
-                    {senatorsItems.map((item) => (
-                      <ListItem
-                        key={item.title}
-                        title={item.title}
-                        href={item.href}
-                      />
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <Link
-                  href="/committees"
-                  className={cn(
-                    navigationMenuTriggerStyle(),
-                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
-                  )}
-                >
-                  Committees
-                </Link>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className="bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10">
-                  Legislation
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-black border border-gray-800">
-                    {legislationItems.map((item) => (
-                      <ListItem
-                        key={item.title}
-                        title={item.title}
-                        href={item.href}
-                      />
-                    ))}
-                    {/* External Link for Senate Archives */}
-                    <li>
-                      <NavigationMenuLink asChild>
-                        <a
-                          href="https://drive.google.com/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 focus:bg-white/10 text-white hover:text-white focus:text-white"
-                          aria-label="Senate Archives (opens in a new tab)"
-                        >
-                          <div className="text-sm font-medium leading-none">
-                            Senate Archives
-                          </div>
-                        </a>
-                      </NavigationMenuLink>
-                    </li>
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className="bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10">
-                  About
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-black border border-gray-800">
-                    {aboutItems.map((item) => (
-                      <ListItem
-                        key={item.title}
-                        title={item.title}
-                        href={item.href}
-                      />
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className="bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10">
-                  Funding
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-black border border-gray-800">
-                    {fundingItems.map((item) => (
-                      <ListItem
-                        key={item.title}
-                        title={item.title}
-                        href={item.href}
-                      />
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <Link
-                  href="/meetings"
-                  className={cn(
-                    navigationMenuTriggerStyle(),
-                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
-                  )}
-                >
-                  Meetings
-                </Link>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <Link
-                  href="/admin/login"
-                  className={cn(
-                    navigationMenuTriggerStyle(),
-                    "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white data-[active]:bg-white/10 data-[state=open]:bg-white/10",
-                  )}
-                >
-                  Internal Login
-                </Link>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
         </div>
       </div>
     </header>
@@ -393,18 +404,19 @@ const ListItem = React.forwardRef<
   return (
     <li>
       <NavigationMenuLink asChild>
-        {/* Wrap the accessible Shadcn a-tag in a Next.js Link to enable client-side routing */}
         <Link
           href={href}
           className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/10 focus:bg-white/10 text-white hover:text-white focus:text-white",
+            "block select-none space-y-1 rounded-md border border-transparent p-3.5 leading-none no-underline outline-none transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950 focus:border-slate-200 focus:bg-slate-50",
             className,
           )}
           {...props}
         >
-          <div className="text-sm font-medium leading-none">{title}</div>
+          <div className="text-sm font-medium leading-none text-slate-900">
+            {title}
+          </div>
           {children && (
-            <p className="line-clamp-2 text-sm leading-snug text-gray-400 mt-1">
+            <p className="mt-1 line-clamp-2 text-sm leading-snug text-slate-500">
               {children}
             </p>
           )}

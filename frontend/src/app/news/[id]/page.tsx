@@ -1,4 +1,6 @@
+import { HtmlContent } from "@/components/content/HtmlContent";
 import { ApiError, getNewsById } from "@/lib/api";
+import { IMAGE_PATHS } from "@/lib/imagePaths";
 import { format } from "date-fns";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -47,9 +49,7 @@ export default async function NewsDetailPage({
           />
         </div>
       )}
-      <div className="prose max-w-none whitespace-pre-line">
-        <p>{article.body}</p>
-      </div>
+      <HtmlContent html={article.body} className="prose max-w-none" />
     </div>
   );
 }

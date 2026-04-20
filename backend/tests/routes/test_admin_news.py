@@ -49,14 +49,11 @@ def _make_engine():
     # Strip SQL Server-specific CHECK constraints only for table creation,
     # then restore metadata so other test modules are unaffected.
     original_constraints = {
-        table: set(table.constraints)
-        for table in Base.metadata.tables.values()
+        table: set(table.constraints) for table in Base.metadata.tables.values()
     }
     try:
         for table in Base.metadata.tables.values():
-            table.constraints = {
-                c for c in table.constraints if not isinstance(c, CheckConstraint)
-            }
+            table.constraints = {c for c in table.constraints if not isinstance(c, CheckConstraint)}
         Base.metadata.create_all(bind=engine)
     finally:
         for table, constraints in original_constraints.items():

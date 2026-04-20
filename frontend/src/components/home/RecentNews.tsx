@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { getNews } from "@/lib/api";
+import { IMAGE_PATHS } from "@/lib/imagePaths";
 import type { News } from "@/types";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -28,11 +29,19 @@ export default async function RecentNews() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {newsData.items.map((article: News) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {newsData.items.map((article: News, index) => {
+          const fallbackImage =
+            IMAGE_PATHS.newsFallbacks[
+              index % IMAGE_PATHS.newsFallbacks.length
+            ] || IMAGE_PATHS.newsFallback;
+
+          return (
             <Link href={`/news/${article.id}`} key={article.id}>
               <Card className="p-4 h-full transition-shadow hover:shadow-lg flex flex-col">
                 <div className="relative w-full h-48 mb-4">
                   <Image
-                    src={article.image_url || "/UNClogo.png"}
+                    src={article.image_url || fallbackImage}
                     alt={article.title}
                     fill
                     className="object-cover rounded-md"
@@ -47,9 +56,9 @@ export default async function RecentNews() {
                 </p>
               </Card>
             </Link>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
       <div className="mt-8 text-center">
         <Link
           href="/news"

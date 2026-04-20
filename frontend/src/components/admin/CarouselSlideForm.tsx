@@ -4,6 +4,8 @@ import type { CarouselSlide } from "@/types";
 import type { CreateCarouselSlide } from "@/types/admin";
 import { useState } from "react";
 
+import { ImageUpload } from "./ImageUpload";
+
 interface CarouselSlideFormProps {
   initialData?: CarouselSlide;
   onSubmit: (data: CreateCarouselSlide) => void;
@@ -53,34 +55,18 @@ export function CarouselSlideForm({
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2 md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Image URL *
-            </label>
-            <input
-              type="text"
-              name="image_url"
-              required
+            <ImageUpload
+              label="Slide Image"
               value={formData.image_url}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://example.com/image.jpg"
+              onChange={(url) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  image_url: url,
+                }))
+              }
+              required
+              disabled={isLoading}
             />
-            {formData.image_url && (
-              <div className="mt-2 text-sm text-gray-500">
-                <p className="mb-2">Preview:</p>
-                <div className="relative h-48 w-full rounded bg-gray-100 border overflow-hidden">
-                  <img
-                    src={formData.image_url}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='14px' fill='%239ca3af'%3EInvalid Image URL%3C/text%3E%3C/svg%3E";
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="space-y-2 md:col-span-2">
@@ -141,7 +127,11 @@ export function CarouselSlideForm({
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {isLoading ? "Saving..." : initialData ? "Update Slide" : "Create Slide"}
+            {isLoading
+              ? "Saving..."
+              : initialData
+                ? "Update Slide"
+                : "Create Slide"}
           </button>
         </div>
       </form>

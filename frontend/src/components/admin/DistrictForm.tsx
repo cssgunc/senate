@@ -1,7 +1,12 @@
 "use client";
 
+import type {
+  AdminDistrict,
+  CreateDistrict,
+  UpdateDistrict,
+} from "@/types/admin";
 import { useState } from "react";
-import type { AdminDistrict, CreateDistrict, UpdateDistrict } from "@/types/admin";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface DistrictFormProps {
   initialData?: AdminDistrict;
@@ -56,13 +61,7 @@ export function DistrictForm({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Description (Optional)
           </label>
-          <textarea
-            className="w-full p-2 border rounded border-gray-300"
-            rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Brief description of this district..."
-          />
+          <RichTextEditor value={description} onChange={setDescription} />
         </div>
 
         <div className="flex justify-end gap-3 border-t pt-4">

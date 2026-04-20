@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getCommittees } from "@/lib/api";
+import { stripHtmlTags } from "@/lib/html";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +60,28 @@ export default async function CommitteesPage() {
           ))}
         </div>
       )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {committees.map((committee) => (
+          <Card key={committee.id}>
+            <CardHeader>
+              <CardTitle>{committee.name}</CardTitle>
+              <CardDescription className="line-clamp-2">
+                {stripHtmlTags(committee.description)}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm font-medium text-muted-foreground">
+                Chair: {committee.chair_name}
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button asChild>
+                <Link href={`/committees/${committee.id}`}>Learn More</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

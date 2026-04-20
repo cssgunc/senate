@@ -14,8 +14,8 @@ import type {
 } from "@/types";
 import type {
   Account,
-  AdminLeadership,
   AdminDistrict,
+  AdminLeadership,
   AdminNews,
   AdminStaff,
   AssignCommitteeMember,
@@ -38,8 +38,9 @@ import type {
   LoginResponse,
   UpdateDistrict,
   UpdateFinanceHearingConfig,
-  UpdateLeadership,
   UpdateFinanceHearingDate,
+  UpdateLeadership,
+  UpdateLegislationAction,
   UpdateNews,
   UpdateSenator,
   UpdateStaff,
@@ -92,6 +93,71 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!rawBody) return undefined as T;
 
   return JSON.parse(rawBody) as T;
+}
+
+export interface UploadImageResponse {
+  url: string;
+}
+
+export async function uploadAdminImage(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<UploadImageResponse> {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}${buildApiPath("/admin/upload")}`);
+
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
+
+    xhr.upload.onprogress = (event: ProgressEvent<EventTarget>) => {
+      if (!event.lengthComputable || !onProgress) return;
+      const percent = Math.round((event.loaded / event.total) * 100);
+      onProgress(percent);
+    };
+
+    xhr.onerror = () => {
+      reject(new Error("Upload failed. Please try again."));
+    };
+
+    xhr.onload = () => {
+      const responseText = xhr.responseText || "";
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const parsed = JSON.parse(responseText) as UploadImageResponse;
+          if (!parsed.url) {
+            reject(new Error("Upload succeeded but no URL was returned."));
+            return;
+          }
+          resolve(parsed);
+        } catch {
+          reject(new Error("Upload succeeded but response parsing failed."));
+        }
+        return;
+      }
+
+      let message = `Upload failed (${xhr.status}).`;
+      if (responseText) {
+        try {
+          const parsed = JSON.parse(responseText) as { detail?: string };
+          if (parsed.detail) {
+            message = parsed.detail;
+          }
+        } catch {
+          message = responseText;
+        }
+      }
+
+      reject(new Error(message));
+    };
+
+    xhr.send(formData);
+  });
 }
 
 // Auth
@@ -156,6 +222,27 @@ export async function createSenator(data: CreateSenator): Promise<Senator> {
   return request("/admin/senators", {
     method: "POST",
     body: JSON.stringify(data),
+  });
+}
+
+export async function getAdminSenators(
+  page: number = 1,
+  limit: number = 20,
+  is_active?: boolean,
+  session?: number,
+): Promise<PaginatedResponse<Senator>> {
+  const searchParams = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  if (is_active !== undefined) {
+    searchParams.set("is_active", is_active.toString());
+  }
+  if (session !== undefined) {
+    searchParams.set("session", session.toString());
+  }
+  return request(`/admin/senators?${searchParams.toString()}`, {
+    method: "GET",
   });
 }
 
@@ -239,18 +326,36 @@ export async function deleteLegislation(id: number): Promise<void> {
 }
 
 export async function createLegislationAction(
-  data: CreateLegislationAction,
+  legislationId: number,
+  data: Omit<CreateLegislationAction, "legislation_id">,
 ): Promise<LegislationAction> {
-  return request("/admin/legislation/actions", {
+  return request(`/admin/legislation/${legislationId}/actions`, {
     method: "POST",
+    body: JSON.stringify({ legislation_id: legislationId, ...data }),
+  });
+}
+
+export async function updateLegislationAction(
+  legislationId: number,
+  actionId: number,
+  data: UpdateLegislationAction,
+): Promise<LegislationAction> {
+  return request(`/admin/legislation/${legislationId}/actions/${actionId}`, {
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
 
-export async function deleteLegislationAction(id: number): Promise<void> {
-  return request<void>(`/admin/legislation/actions/${id}`, {
-    method: "DELETE",
-  });
+export async function deleteLegislationAction(
+  legislationId: number,
+  actionId: number,
+): Promise<void> {
+  return request<void>(
+    `/admin/legislation/${legislationId}/actions/${actionId}`,
+    {
+      method: "DELETE",
+    },
+  );
 }
 
 // Calendar events

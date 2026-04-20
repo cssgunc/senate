@@ -1,6 +1,7 @@
 import EmptyState from "@/components/ui/EmptyState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLeadership } from "@/lib/api";
+import { IMAGE_PATHS } from "@/lib/imagePaths";
 import { loadLeadershipForPage } from "@/lib/leadership";
 import Image from "next/image";
 
@@ -34,19 +35,12 @@ export default async function LeadershipPage() {
                 <CardHeader className="pb-4">
                   <div className="flex justify-center mb-4">
                     <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-200">
-                      {leader.photo_url ? (
-                        <Image
-                          src={leader.photo_url}
-                          alt={`${leader.first_name} ${leader.last_name}`}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl font-bold">
-                          {leader.first_name[0]}
-                          {leader.last_name[0]}
-                        </div>
-                      )}
+                      <Image
+                        src={leader.photo_url || IMAGE_PATHS.leadershipFallback}
+                        alt={`${leader.first_name} ${leader.last_name}`}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                   </div>
                   <CardTitle className="text-center text-xl">
