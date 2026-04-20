@@ -15,6 +15,7 @@ import {
   reorderCarouselSlides,
   updateCarouselSlide,
 } from "@/lib/admin-api";
+import { IMAGE_PATHS } from "@/lib/imagePaths";
 import { CarouselSlide } from "@/types";
 import { CreateCarouselSlide } from "@/types/admin";
 import Image from "next/image";

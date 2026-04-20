@@ -1,5 +1,6 @@
 "use client";
 
+import { IMAGE_PATHS } from "@/lib/imagePaths";
 import type { CarouselSlide } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,18 +10,49 @@ interface CarouselProps {
   slides: CarouselSlide[];
 }
 
+const fallbackSlides: CarouselSlide[] = [
+  {
+    id: -1,
+    image_url: IMAGE_PATHS.carouselFrontFallbacks[0],
+    overlay_text: "Welcome to the UNC Undergraduate Senate",
+    link_url: "/about/powers",
+    display_order: 0,
+    is_active: true,
+  },
+  {
+    id: -2,
+    image_url: IMAGE_PATHS.carouselFrontFallbacks[1],
+    overlay_text: "Track legislation, meetings, and resources",
+    link_url: "/legislation/search",
+    display_order: 1,
+    is_active: true,
+  },
+  {
+    id: -3,
+    image_url: IMAGE_PATHS.carouselFrontFallbacks[2],
+    overlay_text: "Stay current with senate updates",
+    link_url: "/news",
+    display_order: 2,
+    is_active: true,
+  },
+];
+
 function isExternalUrl(url: string): boolean {
   return /^https?:\/\//i.test(url);
 }
 
 export default function Carousel({ slides }: CarouselProps) {
-  const activeSlides = useMemo(
-    () =>
-      slides
-        .filter((slide) => slide.is_active)
-        .sort((a, b) => a.display_order - b.display_order),
-    [slides],
-  );
+  const activeSlides = useMemo(() => {
+    const filteredSlides = slides
+      .filter((slide) => slide.is_active)
+      .sort((a, b) => a.display_order - b.display_order);
+
+    if (filteredSlides.length > 0) {
+      return filteredSlides;
+    }
+
+    return fallbackSlides;
+  }, [slides]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -43,10 +75,6 @@ export default function Carousel({ slides }: CarouselProps) {
       setCurrentIndex(0);
     }
   }, [currentIndex, slideCount]);
-
-  if (slideCount === 0) {
-    return null;
-  }
 
   const goToPrevious = () => {
     setCurrentIndex((previousIndex) =>
@@ -74,7 +102,7 @@ export default function Carousel({ slides }: CarouselProps) {
             const slideContent = (
               <>
                 <Image
-                  src={slide.image_url}
+                  src={slide.image_url || IMAGE_PATHS.carouselFallback}
                   alt={slide.overlay_text || "Homepage carousel slide"}
                   fill
                   className="object-cover"
