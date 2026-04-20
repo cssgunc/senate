@@ -28,50 +28,36 @@ export default async function RecentNews() {
         <p className="text-sm text-gray-500">No news articles yet.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {newsData.items.map((article: News) => (
-<<<<<<< HEAD
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {newsData.items.map((article: News, index) => {
-          const fallbackImage =
-            IMAGE_PATHS.newsFallbacks[
-              index % IMAGE_PATHS.newsFallbacks.length
-            ] || IMAGE_PATHS.newsFallback;
+          {newsData.items.map((article: News, index) => {
+            const fallbackImage =
+              IMAGE_PATHS.newsFallbacks[
+                index % IMAGE_PATHS.newsFallbacks.length
+              ] || IMAGE_PATHS.newsFallback;
 
-          return (
-=======
->>>>>>> 451b048 (Add loading, error, and empty states across all pages (#119))
-            <Link href={`/news/${article.id}`} key={article.id}>
-              <Card className="p-4 h-full transition-shadow hover:shadow-lg flex flex-col">
-                <div className="relative w-full h-48 mb-4">
-                  <Image
-<<<<<<< HEAD
-                    src={article.image_url || fallbackImage}
-=======
-                    src={article.image_url || "/UNClogo.png"}
->>>>>>> 451b048 (Add loading, error, and empty states across all pages (#119))
-                    alt={article.title}
-                    fill
-                    className="object-cover rounded-md"
-                  />
-                </div>
-                <h3 className="text-lg font-bold mb-2">{article.title}</h3>
-                <p className="text-sm text-gray-600 mb-2 line-clamp-3">
-                  {article.summary}
-                </p>
-                <p className="text-xs text-gray-500 mt-auto">
-                  {format(new Date(article.date_published), "MMMM d, yyyy")}
-                </p>
-              </Card>
-            </Link>
-<<<<<<< HEAD
-          );
-        })}
-      </div>
-=======
-          ))}
+            return (
+              <Link href={`/news/${article.id}`} key={article.id}>
+                <Card className="p-4 h-full transition-shadow hover:shadow-lg flex flex-col">
+                  <div className="relative w-full h-48 mb-4">
+                    <Image
+                      src={article.image_url || fallbackImage}
+                      alt={article.title}
+                      fill
+                      className="object-cover rounded-md"
+                    />
+                  </div>
+                  <h3 className="text-lg font-bold mb-2">{article.title}</h3>
+                  <p className="text-sm text-gray-600 mb-2 line-clamp-3">
+                    {article.summary}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-auto">
+                    {format(new Date(article.date_published), "MMMM d, yyyy")}
+                  </p>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       )}
->>>>>>> 451b048 (Add loading, error, and empty states across all pages (#119))
       <div className="mt-8 text-center">
         <Link
           href="/news"
