@@ -10,7 +10,7 @@ export default function ContactCTA({
   return (
     <Link
       href={href}
-      className="block rounded-lg border border-slate-300 bg-white p-5 transition hover:bg-slate-50"
+      className="group block rounded-lg border border-slate-300 bg-white p-5 transition hover:bg-slate-50"
       aria-label="Contact your senator"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -24,7 +24,7 @@ export default function ContactCTA({
             concerns.
           </p>
         </div>
-        <span className="inline-flex items-center justify-center rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800">
+        <span className="inline-flex shrink-0 items-center justify-center rounded-md bg-slate-900 px-4 py-1.5 text-sm font-medium text-white transition group-hover:bg-slate-700">
           Find Contact Info
         </span>
       </div>

@@ -1,6 +1,13 @@
 "use client";
 
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   getDistricts,
   getLeadership,
   getSenators,
@@ -170,25 +177,26 @@ export default function ContactPage() {
           {isLoadingSenators ? (
             <p className="text-sm text-gray-500">Loading senators...</p>
           ) : (
-            <select
-              id="recipient"
-              value={senatorId}
-              onChange={(e) => setSenatorId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <Select
+              value={senatorId || "default"}
+              onValueChange={(val) => setSenatorId(val === "default" ? "" : val)}
             >
-              <option value="">
-                Speaker of the Senate
-                {speaker
-                  ? ` (${speaker.first_name} ${speaker.last_name})`
-                  : ""}{" "}
-                (Default General Contact)
-              </option>
-              {recipientOptions.map((senator) => (
-                <option key={senator.id} value={senator.id.toString()}>
-                  {senator.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">
+                  Speaker of the Senate
+                  {speaker ? ` (${speaker.first_name} ${speaker.last_name})` : ""}{" "}
+                  — Default General Contact
+                </SelectItem>
+                {recipientOptions.map((senator) => (
+                  <SelectItem key={senator.id} value={senator.id.toString()}>
+                    {senator.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         </div>
 

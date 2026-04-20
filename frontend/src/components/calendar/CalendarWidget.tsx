@@ -48,6 +48,11 @@ export default function CalendarWidget({
     return grouped;
   }, [events, currentMonth]);
 
+  const today = new Date();
+  const isCurrentMonth =
+    format(today, "yyyy-MM") === format(currentMonth, "yyyy-MM");
+  const todayDate = isCurrentMonth ? getDate(today) : null;
+
   const firstDay = getDay(startOfMonth(currentMonth));
   const daysInMonth = getDaysInMonth(currentMonth);
 
@@ -125,9 +130,11 @@ export default function CalendarWidget({
                     ? "text-gray-300"
                     : selectedDate === day
                       ? "bg-blue-500 text-white font-bold"
-                      : eventsByDate[day]
-                        ? "bg-blue-50 border-2 border-blue-300"
-                        : "hover:bg-gray-50"
+                      : day === todayDate
+                        ? "bg-blue-600 text-white font-bold ring-2 ring-blue-400"
+                        : eventsByDate[day]
+                          ? "bg-blue-50 border-2 border-blue-300"
+                          : "hover:bg-gray-50"
                 }`}
                 onClick={() => day !== null && handleDayClick(day)}
               >
@@ -227,7 +234,15 @@ export default function CalendarWidget({
             >
               {day !== null && (
                 <>
-                  <div className="font-semibold text-lg mb-2">{day}</div>
+                  <div
+                    className={`font-semibold text-lg mb-2 w-8 h-8 flex items-center justify-center rounded-full ${
+                      day === todayDate
+                        ? "bg-blue-600 text-white"
+                        : ""
+                    }`}
+                  >
+                    {day}
+                  </div>
                   <div className="space-y-1">
                     {eventsByDate[day]?.slice(0, 3).map((event) => (
                       <div

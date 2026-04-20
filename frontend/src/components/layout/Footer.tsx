@@ -103,7 +103,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} 2026 UNC Undergraduate Senate</p>
+          <p>&copy; {new Date().getFullYear()} UNC Undergraduate Senate</p>
         </div>
       </div>
     </footer>

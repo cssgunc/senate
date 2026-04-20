@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getDistricts } from "@/lib/api";
 import type { District, Senator } from "@/types";
 import type { CreateSenator, UpdateSenator } from "@/types/admin";
@@ -125,24 +132,26 @@ export function SenatorForm({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               District
             </label>
-            <select
-              required
-              className="w-full p-2 border rounded border-gray-300 bg-white"
-              value={districtId}
-              onChange={(event) => setDistrictId(event.target.value)}
+            <Select
+              value={districtId || "none"}
+              onValueChange={(val) => setDistrictId(val === "none" ? "" : val)}
               disabled={districtsLoading}
+              required
             >
-              <option value="">
-                {districtsLoading
-                  ? "Loading districts..."
-                  : "Select a district"}
-              </option>
-              {districts.map((district) => (
-                <option key={district.id} value={district.id}>
-                  {district.district_name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={districtsLoading ? "Loading districts…" : "Select a district"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none" disabled>
+                  {districtsLoading ? "Loading districts…" : "Select a district"}
+                </SelectItem>
+                {districts.map((district) => (
+                  <SelectItem key={district.id} value={String(district.id)}>
+                    {district.district_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
