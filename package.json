@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "@tanstack/react-table": "^8.21.3",
-    "@tiptap/react": "^3.22.2",
-    "@tiptap/starter-kit": "^3.22.2",
-    "date-fns": "^4.1.0"
-  }
-}
