@@ -1,3 +1,5 @@
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 import { getRecentLegislation } from "@/lib/api";
 import type { Legislation } from "@/types";
 import { format, parseISO } from "date-fns";
@@ -24,14 +26,27 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default async function RecentLegislationPage() {
-  const legislation: Legislation[] = await getRecentLegislation(20);
+  let legislation: Legislation[];
+  try {
+    legislation = await getRecentLegislation(20);
+  } catch {
+    return (
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-6">Recent Legislation</h1>
+        <ErrorMessage message="Unable to load recent legislation. Please try again." />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Recent Legislation</h1>
 
       {legislation.length === 0 ? (
-        <p className="text-gray-500">No recent legislation found.</p>
+        <EmptyState
+          message="No recent legislation found."
+          description="Check back soon for newly introduced bills and resolutions."
+        />
       ) : (
         <ul className="divide-y divide-gray-200">
           {legislation.map((item) => (
@@ -41,9 +56,7 @@ export default async function RecentLegislationPage() {
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-4 hover:bg-gray-50 px-2 rounded-md transition-colors"
               >
                 <div className="flex flex-col gap-1">
-                  <span className="font-medium text-gray-900">
-                    {item.title}
-                  </span>
+                  <span className="font-medium text-gray-900">{item.title}</span>
                   <span className="text-sm text-gray-500 font-mono">
                     {item.bill_number}
                   </span>

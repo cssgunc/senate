@@ -2,6 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorMessage from "@/components/ui/ErrorMessage";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -108,9 +111,11 @@ function LegislationSearchContent() {
           return;
         }
         if (err instanceof ApiError) {
-          setError(`Failed to fetch legislation: ${err.message}`);
+          setError(
+            `Unable to load legislation. ${err.message}`,
+          );
         } else {
-          setError("An unexpected error occurred");
+          setError("Unable to load legislation. Please try again.");
         }
       } finally {
         if (requestId === requestIdRef.current) {
@@ -290,21 +295,17 @@ function LegislationSearchContent() {
 
       {/* Results Section */}
       {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6">
-            <p className="text-red-800">{error}</p>
-          </CardContent>
-        </Card>
+        <ErrorMessage
+          message={error}
+          onRetry={() => {
+            setError(null);
+            setIsLoading(true);
+          }}
+        />
       )}
 
       {isLoading ? (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              Loading legislation...
-            </p>
-          </CardContent>
-        </Card>
+        <LoadingSpinner message="Loading legislation..." />
       ) : data && data.items.length > 0 ? (
         <>
           {/* Results Count */}
@@ -411,13 +412,12 @@ function LegislationSearchContent() {
           </div>
         </>
       ) : (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              No legislation found matching your filters.
-            </p>
-          </CardContent>
-        </Card>
+        !error && (
+          <EmptyState
+            message="No legislation found."
+            description="Try adjusting your search filters."
+          />
+        )
       )}
     </div>
   );
@@ -425,13 +425,7 @@ function LegislationSearchContent() {
 
 export default function LegislationPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="container mx-auto py-8">
-          <p className="text-center text-muted-foreground">Loading...</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingSpinner message="Loading legislation..." />}>
       <LegislationSearchContent />
     </Suspense>
   );

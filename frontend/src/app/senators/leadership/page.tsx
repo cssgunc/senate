@@ -1,3 +1,4 @@
+import EmptyState from "@/components/ui/EmptyState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLeadership } from "@/lib/api";
 import { loadLeadershipForPage } from "@/lib/leadership";
@@ -19,15 +20,10 @@ export default async function LeadershipPage() {
         </div>
 
         {leadership.length === 0 ? (
-          <div className="mx-auto mt-8 max-w-2xl rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
-            <h2 className="text-2xl font-semibold text-gray-900">
-              Leadership Information Unavailable
-            </h2>
-            <p className="mt-2 text-gray-600">
-              We are unable to load current leadership data right now. Please
-              check back soon.
-            </p>
-          </div>
+          <EmptyState
+            message="Leadership information unavailable."
+            description="We are unable to load current leadership data right now. Please check back soon."
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {leadership.map((leader) => (
