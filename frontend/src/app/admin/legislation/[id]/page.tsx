@@ -6,10 +6,11 @@ import {
   AdminPageHeader,
   AdminPageShell,
 } from "@/components/admin/AdminPageShell";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { HtmlContent } from "@/components/content/HtmlContent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   createLegislationAction,
   deleteLegislationAction,
@@ -198,13 +199,9 @@ export default function LegislationDetailsPage() {
                         value={editActionType}
                         onChange={(e) => setEditActionType(e.target.value)}
                       />
-                      <Textarea
-                        required
-                        rows={2}
+                      <RichTextEditor
                         value={editActionDescription}
-                        onChange={(e) =>
-                          setEditActionDescription(e.target.value)
-                        }
+                        onChange={setEditActionDescription}
                       />
                       <div className="flex gap-2">
                         <Button type="submit" size="sm">
@@ -242,9 +239,10 @@ export default function LegislationDetailsPage() {
                           </button>
                         </div>
                       </div>
-                      <p className="mt-1 text-sm text-slate-700">
-                        {action.description}
-                      </p>
+                      <HtmlContent
+                        html={action.description}
+                        className="prose prose-sm mt-1 max-w-none text-slate-700"
+                      />
                     </>
                   )}
                 </div>
@@ -282,12 +280,9 @@ export default function LegislationDetailsPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="new-action-description">Description</Label>
-              <Textarea
-                id="new-action-description"
-                required
-                rows={3}
+              <RichTextEditor
                 value={actionDescription}
-                onChange={(e) => setActionDescription(e.target.value)}
+                onChange={setActionDescription}
               />
             </div>
             <Button type="submit" className="w-full">

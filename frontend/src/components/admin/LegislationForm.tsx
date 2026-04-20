@@ -12,10 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { getSenators } from "@/lib/api";
 import type { Legislation, Senator } from "@/types";
 import type { CreateLegislation } from "@/types/admin";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface LegislationFormProps {
   initialData?: Legislation & { sponsor_id?: number | null };
@@ -226,24 +226,12 @@ export function LegislationForm({
 
         <div className="space-y-2">
           <Label htmlFor="summary">Summary</Label>
-          <Textarea
-            id="summary"
-            required
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            rows={3}
-          />
+          <RichTextEditor value={summary} onChange={setSummary} />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="full-text">Full Text</Label>
-          <Textarea
-            id="full-text"
-            required
-            value={fullText}
-            onChange={(e) => setFullText(e.target.value)}
-            rows={8}
-          />
+          <RichTextEditor value={fullText} onChange={setFullText} />
         </div>
 
         <div className="flex justify-end gap-3 pt-2">
