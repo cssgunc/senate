@@ -2,6 +2,7 @@
 
 import { fetchAPI } from "@/lib/api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type CommitteeAssignmentDTO = {
@@ -28,6 +29,7 @@ function initials(name: string) {
 }
 
 export default function SenatorRosterPage() {
+  const router = useRouter();
   const [items, setItems] = useState<SenatorDTO[]>([]);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{
@@ -42,6 +44,7 @@ export default function SenatorRosterPage() {
     const load = async () => {
       try {
         setLoading(true);
+        setError(null);
         const data = await fetchAPI<SenatorDTO[]>("/api/senators");
         if (!mounted) return;
         setItems(
@@ -54,8 +57,11 @@ export default function SenatorRosterPage() {
             committees: s.committees ?? (s as any).committee_assignments ?? [],
           })),
         );
-      } catch (err) {
-        // fallback to mock data if API not ready
+      } catch {
+        const isDev = process.env.NODE_ENV !== "production";
+
+        // Keep mock fallback for local/dev workflows, but avoid silently
+        // displaying fake data in production when the API fails.
         const mock: SenatorDTO[] = [
           {
             id: 1,
@@ -79,8 +85,14 @@ export default function SenatorRosterPage() {
             committees: [{ committee_name: "Health", role: "Chair" }],
           },
         ];
-        setItems(mock);
-        setError(null);
+
+        if (isDev) {
+          setItems(mock);
+          setError("Unable to reach the API. Showing mock data.");
+        } else {
+          setItems([]);
+          setError("Unable to load the senator roster right now.");
+        }
       } finally {
         setLoading(false);
       }
@@ -131,6 +143,17 @@ export default function SenatorRosterPage() {
     setSort({ key, dir: sort.dir === "asc" ? "desc" : "asc" });
   };
 
+  const handleRowNavigate = (id: number) => {
+    router.push(`/senators/${id}`);
+  };
+
+  const isInteractiveTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) {
+      return false;
+    }
+    return Boolean(target.closest("a, button, input, select, textarea"));
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-4">Senator Roster</h1>
@@ -147,22 +170,48 @@ export default function SenatorRosterPage() {
         </div>
       </div>
 
+      {error && <p className="mb-4 text-sm text-amber-700">{error}</p>}
+
       <div className="overflow-x-auto">
         <table className="w-full table-auto border-collapse">
           <thead>
             <tr className="text-left border-b">
               <th className="p-2">Headshot</th>
               <th
-                className="p-2 cursor-pointer"
-                onClick={() => toggleSort("name")}
+                className="p-2"
+                aria-sort={
+                  sort?.key === "name"
+                    ? sort.dir === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                }
               >
-                Full name
+                <button
+                  type="button"
+                  className="font-semibold hover:underline"
+                  onClick={() => toggleSort("name")}
+                >
+                  Full name
+                </button>
               </th>
               <th
-                className="p-2 cursor-pointer"
-                onClick={() => toggleSort("district")}
+                className="p-2"
+                aria-sort={
+                  sort?.key === "district"
+                    ? sort.dir === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                }
               >
-                District
+                <button
+                  type="button"
+                  className="font-semibold hover:underline"
+                  onClick={() => toggleSort("district")}
+                >
+                  District
+                </button>
               </th>
               <th className="p-2">Committees</th>
               <th className="p-2">Email</th>
@@ -170,7 +219,23 @@ export default function SenatorRosterPage() {
           </thead>
           <tbody>
             {filtered.map((s) => (
-              <tr key={s.id} className="border-b hover:bg-gray-50">
+              <tr
+                key={s.id}
+                className="border-b hover:bg-gray-50 cursor-pointer"
+                tabIndex={0}
+                role="link"
+                onClick={(e) => {
+                  if (isInteractiveTarget(e.target)) return;
+                  handleRowNavigate(s.id);
+                }}
+                onKeyDown={(e) => {
+                  if (isInteractiveTarget(e.target)) return;
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleRowNavigate(s.id);
+                  }
+                }}
+              >
                 <td className="p-2 align-middle">
                   {s.headshot_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -204,6 +269,13 @@ export default function SenatorRosterPage() {
                 <td className="p-2 align-middle">{s.email ?? "—"}</td>
               </tr>
             ))}
+            {!loading && filtered.length === 0 && (
+              <tr>
+                <td className="p-4 text-sm text-muted-foreground" colSpan={5}>
+                  No senators found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
