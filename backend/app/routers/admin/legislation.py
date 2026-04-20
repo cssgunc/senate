@@ -39,6 +39,7 @@ def _sync_last_action(db: Session, legislation: Legislation) -> None:
     )
     legislation.date_last_action = latest_action_date or legislation.date_introduced
 
+
 @router.post("", response_model=LegislationDTO)
 def create_legislation(
     payload: CreateLegislationDTO,
@@ -51,7 +52,7 @@ def create_legislation(
 
     legislation = Legislation(
         **payload,
-        date_last_action=payload["date_introduced"] # could change to be None
+        date_last_action=payload["date_introduced"],  # could change to be None
     )
 
     db.add(legislation)
@@ -61,6 +62,7 @@ def create_legislation(
     legislation.actions = []
 
     return legislation
+
 
 @router.put("/{id}", response_model=LegislationDTO)
 def update_legislation(
@@ -92,6 +94,7 @@ def update_legislation(
 
     return legislation
 
+
 @router.delete("/{id}", status_code=204)
 def delete_legislation(
     id: int,
@@ -103,10 +106,13 @@ def delete_legislation(
     if not legislation:
         raise HTTPException(404, "Legislation not found")
 
-    db.query(LegislationAction).filter(LegislationAction.legislation_id == id).delete(synchronize_session=False)
+    db.query(LegislationAction).filter(LegislationAction.legislation_id == id).delete(
+        synchronize_session=False
+    )
 
     db.delete(legislation)
     db.commit()
+
 
 @router.post("/{id}/actions", response_model=LegislationActionDTO)
 def add_action(
@@ -115,19 +121,12 @@ def add_action(
     db: Session = Depends(get_db),
     _current_user: Admin = Depends(get_current_user),
 ):
-    legislation = (
-        db.query(Legislation)
-        .filter(Legislation.id == id)
-        .first()
-    )
+    legislation = db.query(Legislation).filter(Legislation.id == id).first()
 
     if not legislation:
         raise HTTPException(404, "Legislation not found")
 
-    display_order = (
-        db.query(LegislationAction)
-        .filter(LegislationAction.legislation_id == id).all()
-    )
+    display_order = db.query(LegislationAction).filter(LegislationAction.legislation_id == id).all()
 
     newDisplayOrder = -1
     for action in display_order:
@@ -150,6 +149,7 @@ def add_action(
     db.refresh(action)
 
     return action
+
 
 @router.put("/{id}/actions/{action_id}", response_model=LegislationActionDTO)
 def update_action(
@@ -190,6 +190,7 @@ def update_action(
     db.refresh(action)
 
     return action
+
 
 @router.delete("/{id}/actions/{action_id}", status_code=204)
 def delete_action(

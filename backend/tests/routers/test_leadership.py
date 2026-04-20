@@ -67,9 +67,9 @@ def test_get_all_leadership_sessions(client, seeded_leadership):
         first_2023_idx = next(
             i for i, leader in enumerate(data) if leader["session_number"] == 2023
         )
-        assert all(
-            leader["session_number"] == 2025 for leader in data[:first_2023_idx]
-        ), "Sessions should be ordered descending"
+        assert all(leader["session_number"] == 2025 for leader in data[:first_2023_idx]), (
+            "Sessions should be ordered descending"
+        )
 
     # Total count should match seeded data
     assert len(data) == 4  # 3 from 2025 + 1 from 2023

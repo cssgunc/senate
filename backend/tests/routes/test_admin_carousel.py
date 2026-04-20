@@ -18,7 +18,9 @@ _SQLITE_URL = "sqlite:///:memory:"
 
 
 def _make_engine():
-    engine = create_engine(_SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        _SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
 
     @event.listens_for(engine, "connect")
     def _fk_on(dbapi_conn, _record):
@@ -41,11 +43,37 @@ def _seed(engine) -> list[int]:
     """Returns the IDs of the seeded slides in insertion order."""
     Session = sessionmaker(bind=engine)
     db = Session()
-    db.add(Admin(email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"))
+    db.add(
+        Admin(
+            email="admin@unc.edu",
+            first_name="Admin",
+            last_name="User",
+            pid="100000001",
+            role="admin",
+        )
+    )
     db.flush()
-    s1 = CarouselSlide(image_url="https://img.unc.edu/1.jpg", overlay_text="Slide 1", link_url=None, display_order=1, is_active=True)
-    s2 = CarouselSlide(image_url="https://img.unc.edu/2.jpg", overlay_text="Slide 2", link_url=None, display_order=2, is_active=True)
-    s3 = CarouselSlide(image_url="https://img.unc.edu/3.jpg", overlay_text="Slide 3", link_url=None, display_order=3, is_active=False)
+    s1 = CarouselSlide(
+        image_url="https://img.unc.edu/1.jpg",
+        overlay_text="Slide 1",
+        link_url=None,
+        display_order=1,
+        is_active=True,
+    )
+    s2 = CarouselSlide(
+        image_url="https://img.unc.edu/2.jpg",
+        overlay_text="Slide 2",
+        link_url=None,
+        display_order=2,
+        is_active=True,
+    )
+    s3 = CarouselSlide(
+        image_url="https://img.unc.edu/3.jpg",
+        overlay_text="Slide 3",
+        link_url=None,
+        display_order=3,
+        is_active=False,
+    )
     db.add_all([s1, s2, s3])
     db.commit()
     ids = [s1.id, s2.id, s3.id]
@@ -114,7 +142,9 @@ _CREATE_PAYLOAD = {
 
 class TestCreateAdminSlide:
     def test_returns_201(self, write_admin_client):
-        assert write_admin_client.post("/api/admin/carousel", json=_CREATE_PAYLOAD).status_code == 201
+        assert (
+            write_admin_client.post("/api/admin/carousel", json=_CREATE_PAYLOAD).status_code == 201
+        )
 
     def test_response_shape(self, write_admin_client):
         resp = write_admin_client.post("/api/admin/carousel", json=_CREATE_PAYLOAD).json()
@@ -129,7 +159,11 @@ class TestCreateAdminSlide:
         saved = app.dependency_overrides.pop(get_current_user, None)
         try:
             with TestClient(app) as c:
-                assert c.post("/api/admin/carousel", json=_CREATE_PAYLOAD).status_code in {401, 403, 501}
+                assert c.post("/api/admin/carousel", json=_CREATE_PAYLOAD).status_code in {
+                    401,
+                    403,
+                    501,
+                }
         finally:
             if saved:
                 app.dependency_overrides[get_current_user] = saved
@@ -234,15 +268,27 @@ class TestUpdateAdminSlide:
 
     def test_returns_200(self, write_admin_client):
         slide_id = self._create_slide(write_admin_client)
-        assert write_admin_client.put(f"/api/admin/carousel/{slide_id}", json={"is_active": False}).status_code == 200
+        assert (
+            write_admin_client.put(
+                f"/api/admin/carousel/{slide_id}", json={"is_active": False}
+            ).status_code
+            == 200
+        )
 
     def test_fields_updated(self, write_admin_client):
         slide_id = self._create_slide(write_admin_client)
-        resp = write_admin_client.put(f"/api/admin/carousel/{slide_id}", json={"overlay_text": "Changed"})
+        resp = write_admin_client.put(
+            f"/api/admin/carousel/{slide_id}", json={"overlay_text": "Changed"}
+        )
         assert resp.json()["overlay_text"] == "Changed"
 
     def test_returns_404_for_missing(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/carousel/999999", json={"is_active": False}).status_code == 404
+        assert (
+            write_admin_client.put(
+                "/api/admin/carousel/999999", json={"is_active": False}
+            ).status_code
+            == 404
+        )
 
 
 # ---------------------------------------------------------------------------
