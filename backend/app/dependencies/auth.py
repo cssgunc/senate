@@ -18,7 +18,7 @@ def require_role(role: str):
     required role. This mirrors production behavior sufficiently for tests.
     """
 
-    def _inner(_current_user = Depends(get_current_user)):
+    def _inner(_current_user=Depends(get_current_user)):
         if _current_user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
         # assume _current_user has attribute `role` set to 'admin' or 'staff'

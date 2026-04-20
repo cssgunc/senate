@@ -1,5 +1,4 @@
 // lightweight senator detail stub
-import { useRouter } from "next/navigation";
 
 export default async function SenatorStubPage(props: any) {
   const { params } = props as any;
@@ -7,7 +6,9 @@ export default async function SenatorStubPage(props: any) {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold">Senator {id}</h1>
-      <p className="text-sm text-muted-foreground">This is a placeholder page for senator {id}.</p>
+      <p className="text-sm text-muted-foreground">
+        This is a placeholder page for senator {id}.
+      </p>
     </div>
   );
 }

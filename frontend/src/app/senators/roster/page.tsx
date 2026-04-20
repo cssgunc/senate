@@ -1,8 +1,8 @@
 "use client";
 
+import { fetchAPI } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { fetchAPI } from "@/lib/api";
 
 type CommitteeAssignmentDTO = {
   committee_name: string;
@@ -30,9 +30,10 @@ function initials(name: string) {
 export default function SenatorRosterPage() {
   const [items, setItems] = useState<SenatorDTO[]>([]);
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<{ key: "name" | "district"; dir: "asc" | "desc" } | null>(
-    { key: "name", dir: "asc" },
-  );
+  const [sort, setSort] = useState<{
+    key: "name" | "district";
+    dir: "asc" | "desc";
+  } | null>({ key: "name", dir: "asc" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,12 +42,15 @@ export default function SenatorRosterPage() {
     const load = async () => {
       try {
         setLoading(true);
-        const data = await fetchAPI<SenatorDTO[]>('/api/senators');
+        const data = await fetchAPI<SenatorDTO[]>("/api/senators");
         if (!mounted) return;
         setItems(
           data.map((s) => ({
             ...s,
-            district_name: (s as any).district_name ?? (s as any).district ?? s.district_name,
+            district_name:
+              (s as any).district_name ??
+              (s as any).district ??
+              s.district_name,
             committees: s.committees ?? (s as any).committee_assignments ?? [],
           })),
         );
@@ -101,12 +105,16 @@ export default function SenatorRosterPage() {
         if (sort.key === "name") {
           const na = `${a.first_name} ${a.last_name}`.toLowerCase();
           const nb = `${b.first_name} ${b.last_name}`.toLowerCase();
-          return sort.dir === "asc" ? na.localeCompare(nb) : nb.localeCompare(na);
+          return sort.dir === "asc"
+            ? na.localeCompare(nb)
+            : nb.localeCompare(na);
         }
         if (sort.key === "district") {
           const da = (a.district_name ?? "").toLowerCase();
           const db = (b.district_name ?? "").toLowerCase();
-          return sort.dir === "asc" ? da.localeCompare(db) : db.localeCompare(da);
+          return sort.dir === "asc"
+            ? da.localeCompare(db)
+            : db.localeCompare(da);
         }
         return 0;
       });
@@ -134,7 +142,9 @@ export default function SenatorRosterPage() {
           onChange={(e) => setQuery(e.target.value)}
           className="w-full sm:w-1/3 border rounded px-3 py-2"
         />
-        <div className="text-sm text-muted-foreground">{loading ? "Loading..." : `${filtered.length} results`}</div>
+        <div className="text-sm text-muted-foreground">
+          {loading ? "Loading..." : `${filtered.length} results`}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -142,8 +152,18 @@ export default function SenatorRosterPage() {
           <thead>
             <tr className="text-left border-b">
               <th className="p-2">Headshot</th>
-              <th className="p-2 cursor-pointer" onClick={() => toggleSort("name")}>Full name</th>
-              <th className="p-2 cursor-pointer" onClick={() => toggleSort("district")}>District</th>
+              <th
+                className="p-2 cursor-pointer"
+                onClick={() => toggleSort("name")}
+              >
+                Full name
+              </th>
+              <th
+                className="p-2 cursor-pointer"
+                onClick={() => toggleSort("district")}
+              >
+                District
+              </th>
               <th className="p-2">Committees</th>
               <th className="p-2">Email</th>
             </tr>
@@ -154,7 +174,11 @@ export default function SenatorRosterPage() {
                 <td className="p-2 align-middle">
                   {s.headshot_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.headshot_url} alt={`${s.first_name} ${s.last_name}`} className="w-10 h-10 rounded-full object-cover" />
+                    <img
+                      src={s.headshot_url}
+                      alt={`${s.first_name} ${s.last_name}`}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700">
                       {initials(`${s.first_name} ${s.last_name}`)}
@@ -162,14 +186,19 @@ export default function SenatorRosterPage() {
                   )}
                 </td>
                 <td className="p-2 align-middle">
-                  <Link href={`/senators/${s.id}`} className="text-blue-600 hover:underline">
+                  <Link
+                    href={`/senators/${s.id}`}
+                    className="text-blue-600 hover:underline"
+                  >
                     {s.first_name} {s.last_name}
                   </Link>
                 </td>
                 <td className="p-2 align-middle">{s.district_name ?? "—"}</td>
                 <td className="p-2 align-middle">
                   {s.committees && s.committees.length > 0
-                    ? s.committees.map((c) => `${c.committee_name} (${c.role})`).join(", ")
+                    ? s.committees
+                        .map((c) => `${c.committee_name} (${c.role})`)
+                        .join(", ")
                     : "—"}
                 </td>
                 <td className="p-2 align-middle">{s.email ?? "—"}</td>

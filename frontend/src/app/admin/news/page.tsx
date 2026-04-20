@@ -10,7 +10,16 @@ import {
 } from "@/lib/admin-api";
 import { AdminNews, CreateNews, UpdateNews } from "@/types/admin";
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+// lightweight date formatter to avoid adding date-fns during CI
+function formatDate(dateStr: string) {
+  try {
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
+}
 import { useEffect, useMemo, useState } from "react";
 
 type StatusFilter = "All" | "Published" | "Draft";
@@ -36,8 +45,8 @@ export default function AdminNewsPage() {
         return;
       }
 
-  const allItems = [...firstPage.items];
-  const totalPages = Math.ceil(firstPage.total / (firstPage.limit || 1));
+      const allItems = [...firstPage.items];
+      const totalPages = Math.ceil(firstPage.total / (firstPage.limit || 1));
 
       for (let page = 2; page <= totalPages; page += 1) {
         const response = await getAdminNews(page, ADMIN_NEWS_PAGE_SIZE);
@@ -138,11 +147,7 @@ export default function AdminNewsPage() {
       header: "Date Published",
       cell: ({ row }) => {
         const date = row.getValue("date_published") as string;
-        try {
-          return format(new Date(date), "MMM d, yyyy");
-        } catch {
-          return date;
-        }
+        return formatDate(date);
       },
     },
     {
