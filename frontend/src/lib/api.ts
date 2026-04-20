@@ -245,6 +245,10 @@ export async function getBudget(fiscalYear?: string): Promise<BudgetData[]> {
   return fetchAPI<BudgetData[]>(`/api/budget${query}`);
 }
 
+export async function getBudgetYears(): Promise<string[]> {
+  return fetchAPI<string[]>("/api/budget/years");
+}
+
 export async function getStaticPage(slug: string): Promise<StaticPage> {
   return fetchAPI<StaticPage>(`/api/pages/${slug}`);
 }
@@ -256,7 +260,9 @@ export interface ContactFormData {
   senator_id?: number;
 }
 
-export async function submitContactForm(data: ContactFormData): Promise<{ success: boolean }> {
+export async function submitContactForm(
+  data: ContactFormData,
+): Promise<{ success: boolean }> {
   return fetchAPI<{ success: boolean }>("/api/contact", {
     method: "POST",
     headers: {

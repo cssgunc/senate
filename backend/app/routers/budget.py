@@ -71,3 +71,9 @@ def list_budget(
             children_map[row.parent_category_id].append(row)
 
     return [_build_tree(r.id, rows_by_id, children_map) for r in roots]
+
+
+@router.get("/years", response_model=list[str])
+def list_budget_years(db: Session = Depends(get_db)):
+    fiscal_years = [row[0] for row in db.query(BudgetData.fiscal_year).distinct().all()]
+    return sorted(fiscal_years, key=_fiscal_year_sort_key, reverse=True)
