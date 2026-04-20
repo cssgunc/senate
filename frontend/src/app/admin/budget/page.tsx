@@ -618,18 +618,18 @@ export default function AdminBudgetPage() {
                       {row.description || "-"}
                     </td>
                     <td className="px-3 py-2">
-                      <div className="flex gap-2">
+                      <div className="flex gap-3">
                         <button
                           type="button"
                           onClick={() => startEdit(row)}
-                          className="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700"
+                          className="text-sm font-medium text-blue-700 hover:text-blue-800"
                         >
                           Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => void onDelete(row)}
-                          className="rounded border border-rose-300 px-2 py-1 text-xs font-medium text-rose-700"
+                          className="text-sm font-medium text-rose-700 hover:text-rose-800"
                         >
                           Delete
                         </button>

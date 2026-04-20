@@ -145,20 +145,21 @@ export default function CommitteesPage() {
                   <td className="p-3">{committee.is_active ? "Yes" : "No"}</td>
                   <td className="p-3">{committee.members.length}</td>
                   <td className="p-3">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
                         onClick={() =>
                           setExpanded(
                             expanded === committee.id ? null : committee.id,
                           )
                         }
+                        className="text-sm font-medium text-slate-700 hover:text-slate-900"
                       >
                         {expanded === committee.id ? "Hide" : "Manage"}
-                      </Button>
+                      </button>
 
-                      <Button
-                        variant="destructive"
+                      <button
+                        type="button"
                         onClick={async () => {
                           try {
                             await deleteCommittee(committee.id);
@@ -170,9 +171,10 @@ export default function CommitteesPage() {
                             alert("Failed to delete committee.");
                           }
                         }}
+                        className="text-sm font-medium text-rose-700 hover:text-rose-800"
                       >
                         Delete
-                      </Button>
+                      </button>
                     </div>
                   </td>
                 </tr>

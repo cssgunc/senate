@@ -190,7 +190,11 @@ export default function AdminFinanceHearingsPage() {
   }
 
   if (isLoading) {
-    return <p className="text-sm text-slate-600">Loading data...</p>;
+    return (
+      <AdminPageShell>
+        <div className="py-20 text-center text-slate-500">Loading data...</div>
+      </AdminPageShell>
+    );
   }
 
   return (
@@ -413,18 +417,18 @@ export default function AdminFinanceHearingsPage() {
                       </button>
                     </td>
                     <td className="px-3 py-2">
-                      <div className="flex gap-2">
+                      <div className="flex gap-3">
                         <button
                           type="button"
                           onClick={() => onEditDate(item)}
-                          className="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700"
+                          className="text-sm font-medium text-blue-700 hover:text-blue-800"
                         >
                           Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => void onDeleteDate(item.id)}
-                          className="rounded border border-rose-300 px-2 py-1 text-xs font-medium text-rose-700"
+                          className="text-sm font-medium text-rose-700 hover:text-rose-800"
                         >
                           Delete
                         </button>

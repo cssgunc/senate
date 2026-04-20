@@ -59,7 +59,7 @@ export default function AdminStaticPagesPage() {
       accessorKey: "page_slug",
       header: "Slug",
       cell: ({ row }) => (
-        <span className="font-mono text-sm bg-gray-100 px-1.5 py-0.5 rounded">
+        <span className="font-mono text-sm bg-slate-100 px-1.5 py-0.5 rounded">
           {row.getValue("page_slug")}
         </span>
       ),

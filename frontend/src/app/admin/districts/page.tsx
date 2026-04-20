@@ -108,9 +108,9 @@ export default function AdminDistrictsPage() {
       cell: ({ row }) => {
         const desc = row.getValue("description") as string | null;
         return desc ? (
-          <span className="text-gray-700">{desc}</span>
+          <span className="text-slate-700">{desc}</span>
         ) : (
-          <span className="text-gray-400 italic">No description</span>
+          <span className="text-slate-400 italic">No description</span>
         );
       },
     },

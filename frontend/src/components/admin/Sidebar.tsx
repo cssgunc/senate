@@ -39,11 +39,6 @@ export function Sidebar({ role, onNavigate }: SidebarProps) {
 
   return (
     <nav className="h-full w-full overflow-y-auto p-4">
-      <div className="mb-6 rounded-lg bg-slate-900 px-3 py-4 text-white">
-        <p className="text-xs uppercase tracking-[0.2em] text-slate-300">UNC</p>
-        <p className="text-lg font-semibold">Senate Admin</p>
-      </div>
-
       <ul className="space-y-1">
         {NAV_ITEMS.filter((item) => !item.adminOnly || role === "admin").map(
           (item) => {

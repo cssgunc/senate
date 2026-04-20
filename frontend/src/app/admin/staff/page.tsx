@@ -89,7 +89,7 @@ export default function AdminStaffPage() {
       accessorKey: "display_order",
       header: "Order",
       cell: ({ row }) => (
-        <span className="text-gray-500 text-sm">
+        <span className="text-slate-500 text-sm">
           {row.getValue("display_order")}
         </span>
       ),
