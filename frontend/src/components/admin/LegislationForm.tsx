@@ -1,13 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CreateLegislation } from "@/types/admin";
-import { Senator } from "@/types";
+import { useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { getSenators } from "@/lib/api";
+import type { Legislation, Senator } from "@/types";
+import type { CreateLegislation } from "@/types/admin";
 
 interface LegislationFormProps {
-  initialData?: any; // You can type this to Legislation if you prefer
-  onSubmit: (data: CreateLegislation) => void;
+  initialData?: Legislation & { sponsor_id?: number | null };
+  onSubmit: (data: CreateLegislation) => Promise<void> | void;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -18,37 +30,60 @@ export function LegislationForm({
   onCancel,
   isLoading = false,
 }: LegislationFormProps) {
-  // Field States
   const [title, setTitle] = useState(initialData?.title || "");
   const [billNumber, setBillNumber] = useState(initialData?.bill_number || "");
-  const [sessionNumber, setSessionNumber] = useState<number>(initialData?.session_number || 1);
-  const [sponsorId, setSponsorId] = useState<number | null>(initialData?.sponsor_id || null);
-  const [sponsorName, setSponsorName] = useState(initialData?.sponsor_name || "");
+  const [sessionNumber, setSessionNumber] = useState<number>(
+    initialData?.session_number || 1,
+  );
+  const [sponsorId, setSponsorId] = useState<number | null>(
+    initialData?.sponsor_id ?? null,
+  );
+  const [sponsorName, setSponsorName] = useState(
+    initialData?.sponsor_name || "",
+  );
   const [summary, setSummary] = useState(initialData?.summary || "");
   const [fullText, setFullText] = useState(initialData?.full_text || "");
   const [status, setStatus] = useState(initialData?.status || "Introduced");
   const [type, setType] = useState(initialData?.type || "Bill");
-  
-  // Need to format dates nicely for the HTML input (YYYY-MM-DD)
+
   const formatInitialDate = (dateString?: string) => {
     if (!dateString) return "";
-    return new Date(dateString).toISOString().split('T')[0];
+    return new Date(dateString).toISOString().split("T")[0];
   };
-  const [dateIntroduced, setDateIntroduced] = useState(formatInitialDate(initialData?.date_introduced));
+  const [dateIntroduced, setDateIntroduced] = useState(
+    formatInitialDate(initialData?.date_introduced),
+  );
 
-  // Auto-complete Senator logic
   const [senators, setSenators] = useState<Senator[]>([]);
 
   useEffect(() => {
-    // Fetch senators precisely so we can populate the dropdown
     getSenators().then(setSenators).catch(console.error);
   }, []);
 
-  const handleSponsorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = e.target.value ? Number(e.target.value) : null;
+  useEffect(() => {
+    if (
+      sponsorId !== null ||
+      !initialData?.sponsor_name ||
+      senators.length === 0
+    ) {
+      return;
+    }
+
+    const matchedSponsor = senators.find(
+      (senator) =>
+        `${senator.first_name} ${senator.last_name}` ===
+        initialData.sponsor_name,
+    );
+
+    if (matchedSponsor) {
+      setSponsorId(matchedSponsor.id);
+    }
+  }, [initialData?.sponsor_name, senators, sponsorId]);
+
+  const handleSponsorChange = (value: string) => {
+    const selectedId = value ? Number(value) : null;
     setSponsorId(selectedId);
-    
-    // Auto-fill sponsor name based on the ID we just picked
+
     if (selectedId) {
       const selected = senators.find((s) => s.id === selectedId);
       if (selected) {
@@ -62,13 +97,13 @@ export function LegislationForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
-      title,
-      bill_number: billNumber,
+      title: title.trim(),
+      bill_number: billNumber.trim(),
       session_number: sessionNumber,
       sponsor_id: sponsorId,
-      sponsor_name: sponsorName,
-      summary,
-      full_text: fullText,
+      sponsor_name: sponsorName.trim(),
+      summary: summary.trim(),
+      full_text: fullText.trim(),
       status,
       type,
       date_introduced: new Date(dateIntroduced).toISOString(),
@@ -76,85 +111,153 @@ export function LegislationForm({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg border shadow-sm max-w-4xl w-full mx-auto">
-      <h2 className="text-2xl font-bold mb-6">
+    <div className="space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 className="text-2xl font-semibold text-slate-900">
         {initialData ? "Edit Legislation" : "Create New Legislation"}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Bill Number</label>
-            <input required type="text" className="w-full p-2 border rounded" value={billNumber} onChange={e => setBillNumber(e.target.value)} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="bill-number">Bill Number</Label>
+            <Input
+              id="bill-number"
+              required
+              type="text"
+              value={billNumber}
+              onChange={(e) => setBillNumber(e.target.value)}
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input required type="text" className="w-full p-2 border rounded" value={title} onChange={e => setTitle(e.target.value)} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Session Number</label>
-            <input required type="number" className="w-full p-2 border rounded" value={sessionNumber} onChange={e => setSessionNumber(Number(e.target.value))} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Date Introduced</label>
-            <input required type="date" className="w-full p-2 border rounded" value={dateIntroduced} onChange={e => setDateIntroduced(e.target.value)} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Sponsor</label>
-            <select className="w-full p-2 border rounded" value={sponsorId || ""} onChange={handleSponsorChange}>
-              <option value="">Select a Senator...</option>
-              {senators.map(s => (
-                <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Sponsor Name (Auto-filled)</label>
-            <input readOnly type="text" className="w-full p-2 border rounded bg-gray-50" value={sponsorName} />
+          <div className="space-y-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              required
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Status</label>
-            <select className="w-full p-2 border rounded" value={status} onChange={e => setStatus(e.target.value)}>
-              <option value="Introduced">Introduced</option>
-              <option value="In Committee">In Committee</option>
-              <option value="Passed">Passed</option>
-              <option value="Failed">Failed</option>
-            </select>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="session-number">Session Number</Label>
+            <Input
+              id="session-number"
+              required
+              type="number"
+              value={sessionNumber}
+              onChange={(e) => setSessionNumber(Number(e.target.value))}
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Type</label>
-            <select className="w-full p-2 border rounded" value={type} onChange={e => setType(e.target.value)}>
-              <option value="Bill">Bill</option>
-              <option value="Resolution">Resolution</option>
-              <option value="Nomination">Nomination</option>
-            </select>
+          <div className="space-y-2">
+            <Label htmlFor="date-introduced">Date Introduced</Label>
+            <Input
+              id="date-introduced"
+              required
+              type="date"
+              value={dateIntroduced}
+              onChange={(e) => setDateIntroduced(e.target.value)}
+            />
           </div>
         </div>
 
-        <div>
-           <label className="block text-sm font-medium mb-1">Summary</label>
-           <textarea required className="w-full p-2 border rounded" value={summary} onChange={e => setSummary(e.target.value)} rows={3} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="sponsor-select">Sponsor</Label>
+            <Select
+              value={sponsorId ? String(sponsorId) : ""}
+              onValueChange={handleSponsorChange}
+            >
+              <SelectTrigger id="sponsor-select">
+                <SelectValue placeholder="Select a senator" />
+              </SelectTrigger>
+              <SelectContent>
+                {senators.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {s.first_name} {s.last_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="sponsor-name">Sponsor Name</Label>
+            <Input
+              id="sponsor-name"
+              readOnly
+              type="text"
+              className="bg-slate-50"
+              value={sponsorName}
+            />
+          </div>
         </div>
 
-        <div>
-           <label className="block text-sm font-medium mb-1">Full Text</label>
-           <textarea required className="w-full p-2 border rounded" value={fullText} onChange={e => setFullText(e.target.value)} rows={8} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Introduced">Introduced</SelectItem>
+                <SelectItem value="In Committee">In Committee</SelectItem>
+                <SelectItem value="Passed">Passed</SelectItem>
+                <SelectItem value="Failed">Failed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="type">Type</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger id="type">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Bill">Bill</SelectItem>
+                <SelectItem value="Resolution">Resolution</SelectItem>
+                <SelectItem value="Nomination">Nomination</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <button type="button" onClick={onCancel} disabled={isLoading} className="px-4 py-2 border rounded hover:bg-gray-50">Cancel</button>
-          <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <div className="space-y-2">
+          <Label htmlFor="summary">Summary</Label>
+          <Textarea
+            id="summary"
+            required
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            rows={3}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="full-text">Full Text</Label>
+          <Textarea
+            id="full-text"
+            required
+            value={fullText}
+            onChange={(e) => setFullText(e.target.value)}
+            rows={8}
+          />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading}>
             {isLoading ? "Saving..." : "Save Legislation"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

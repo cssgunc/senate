@@ -1,18 +1,25 @@
 "use client";
 
+import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { LegislationForm } from "@/components/admin/LegislationForm";
+import { Button } from "@/components/ui/button";
 import {
   createLegislation,
   deleteLegislation,
   updateLegislation,
 } from "@/lib/admin-api";
 import { getLegislation } from "@/lib/api";
-import { Legislation } from "@/types";
-import { CreateLegislation } from "@/types/admin";
-import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link"; // For linking to details page
-import { useEffect, useState } from "react";
+import type { Legislation } from "@/types";
+import type { CreateLegislation } from "@/types/admin";
+import type { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 
 export default function AdminLegislationPage() {
   const ADMIN_LEGISLATION_PAGE_SIZE = 100;
@@ -25,8 +32,7 @@ export default function AdminLegislationPage() {
   >();
   const [isSaving, setIsSaving] = useState(false);
 
-  // Re-usable fetcher
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const firstPage = await getLegislation({
@@ -51,16 +57,16 @@ export default function AdminLegislationPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [ADMIN_LEGISLATION_PAGE_SIZE]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    void fetchData();
+  }, [fetchData]);
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Delete this legislation?")) return;
     await deleteLegislation(id);
-    fetchData();
+    await fetchData();
   };
 
   const handleFormSubmit = async (formData: CreateLegislation) => {
@@ -72,7 +78,7 @@ export default function AdminLegislationPage() {
         await createLegislation(formData);
       }
       setIsFormOpen(false);
-      fetchData();
+      await fetchData();
     } catch (err) {
       console.error(err);
       alert("Failed to save.");
@@ -93,25 +99,25 @@ export default function AdminLegislationPage() {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <Link
             href={`/admin/legislation/${row.original.id}`}
-            className="text-gray-600 hover:text-black"
+            className="text-sm font-medium text-slate-700 hover:text-slate-900"
           >
-            View Details & Actions
+            Details
           </Link>
           <button
             onClick={() => {
               setEditingLegislation(row.original);
               setIsFormOpen(true);
             }}
-            className="text-blue-600 hover:underline"
+            className="text-sm font-medium text-blue-700 hover:text-blue-800"
           >
             Edit
           </button>
           <button
             onClick={() => handleDelete(row.original.id)}
-            className="text-red-600 hover:underline"
+            className="text-sm font-medium text-rose-700 hover:text-rose-800"
           >
             Delete
           </button>
@@ -122,42 +128,48 @@ export default function AdminLegislationPage() {
 
   if (isFormOpen) {
     return (
-      <div className="space-y-4">
-        <button onClick={() => setIsFormOpen(false)} className="text-blue-600">
-          &larr; Back
-        </button>
+      <AdminPageShell className="max-w-4xl">
+        <AdminBackButton
+          onClick={() => setIsFormOpen(false)}
+          label="Back to Legislation Table"
+        />
         <LegislationForm
           initialData={editingLegislation}
           onSubmit={handleFormSubmit}
           onCancel={() => setIsFormOpen(false)}
           isLoading={isSaving}
         />
-      </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Legislation Management</h1>
-        <button
-          onClick={() => {
-            setEditingLegislation(undefined);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Add Legislation
-        </button>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Legislation Management"
+        description="Create, edit, and maintain legislation records and metadata."
+        action={
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingLegislation(undefined);
+              setIsFormOpen(true);
+            }}
+          >
+            Add Legislation
+          </Button>
+        }
+      />
 
-      <div className="bg-white p-6 rounded shadow-sm border border-gray-200">
+      <AdminCard>
         {isLoading ? (
-          <p>Loading...</p>
+          <div className="py-20 text-center text-slate-500">
+            Loading data...
+          </div>
         ) : (
           <DataTable columns={columns} data={data} />
         )}
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }
