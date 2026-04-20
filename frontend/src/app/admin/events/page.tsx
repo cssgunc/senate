@@ -126,7 +126,7 @@ export default function AdminEventsPage() {
             className={`px-2 py-1 rounded-full text-xs font-medium ${
               isPublished
                 ? "bg-green-100 text-green-800"
-                : "bg-yellow-100 text-yellow-800"
+                : "bg-slate-100 text-slate-700"
             }`}
           >
             {isPublished ? "Published" : "Draft"}
@@ -140,16 +140,16 @@ export default function AdminEventsPage() {
       cell: ({ row }) => {
         const event = row.original;
         return (
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               onClick={() => handleEdit(event)}
-              className="text-blue-600 hover:text-blue-900 font-medium"
+              className="text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Edit
             </button>
             <button
               onClick={() => handleDelete(event.id)}
-              className="text-red-600 hover:text-red-900 font-medium"
+              className="text-sm font-medium text-rose-700 hover:text-rose-800"
             >
               Delete
             </button>
@@ -202,7 +202,7 @@ export default function AdminEventsPage() {
       <AdminCard>
         {isLoading ? (
           <div className="py-20 text-center text-slate-500">
-            Loading events...
+            Loading data...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />

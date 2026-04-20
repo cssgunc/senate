@@ -17,7 +17,11 @@ import {
 } from "@/lib/admin-api";
 import { CarouselSlide } from "@/types";
 import { CreateCarouselSlide } from "@/types/admin";
+import Image from "next/image";
 import { useEffect, useState } from "react";
+
+const IMAGE_ERROR_FALLBACK_SRC =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect width='100%25' height='100%25' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='12px' fill='%239ca3af'%3EError loading image%3C/text%3E%3C/svg%3E";
 
 export default function AdminCarouselPage() {
   const [slides, setSlides] = useState<CarouselSlide[]>([]);
@@ -27,6 +31,9 @@ export default function AdminCarouselPage() {
     undefined,
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [failedImageIds, setFailedImageIds] = useState<Record<number, boolean>>(
+    {},
+  );
 
   const fetchSlides = async () => {
     setIsLoading(true);
@@ -163,11 +170,11 @@ export default function AdminCarouselPage() {
       <AdminCard>
         {isLoading ? (
           <div className="py-20 text-center text-slate-500">
-            Loading slides...
+            Loading data...
           </div>
         ) : slides.length === 0 ? (
           <div className="py-10 text-center text-slate-500">
-            No slides found. Create one!
+            No records found. Create one.
           </div>
         ) : (
           <div className="space-y-4">
@@ -198,14 +205,23 @@ export default function AdminCarouselPage() {
 
                 {/* Preview Image */}
                 <div className="w-48 h-28 relative bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                  <img
-                    src={slide.image_url}
+                  <Image
+                    src={
+                      failedImageIds[slide.id]
+                        ? IMAGE_ERROR_FALLBACK_SRC
+                        : slide.image_url
+                    }
                     alt={slide.overlay_text || "Carousel slide"}
-                    className="object-cover w-full h-full"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect width='100%25' height='100%25' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='12px' fill='%239ca3af'%3EError loading image%3C/text%3E%3C/svg%3E";
-                    }}
+                    className="object-cover"
+                    fill
+                    unoptimized
+                    sizes="192px"
+                    onError={() =>
+                      setFailedImageIds((prev) => ({
+                        ...prev,
+                        [slide.id]: true,
+                      }))
+                    }
                   />
                 </div>
 
@@ -226,7 +242,7 @@ export default function AdminCarouselPage() {
                     className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
                       slide.is_active
                         ? "bg-green-100 text-green-800"
-                        : "bg-gray-200 text-gray-800"
+                        : "bg-slate-100 text-slate-700"
                     }`}
                   >
                     {slide.is_active ? "Active" : "Inactive"}
@@ -235,18 +251,24 @@ export default function AdminCarouselPage() {
 
                 {/* Actions */}
                 <div className="flex sm:flex-col gap-3 sm:ml-auto">
-                  <button
+                  <Button
                     onClick={() => handleEdit(slide)}
-                    className="text-blue-600 hover:text-blue-900 font-medium whitespace-nowrap bg-white px-3 py-1.5 border rounded shadow-sm"
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="whitespace-nowrap"
                   >
                     Edit
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => handleDelete(slide.id)}
-                    className="text-red-600 hover:text-red-900 font-medium whitespace-nowrap bg-white px-3 py-1.5 border border-red-200 rounded shadow-sm"
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="whitespace-nowrap"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}

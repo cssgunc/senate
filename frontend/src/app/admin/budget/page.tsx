@@ -588,7 +588,7 @@ export default function AdminBudgetPage() {
                     colSpan={4}
                     className="px-3 py-6 text-center text-slate-500"
                   >
-                    Loading budget data...
+                    Loading data...
                   </td>
                 </tr>
               ) : flatRows.length === 0 ? (
@@ -597,7 +597,7 @@ export default function AdminBudgetPage() {
                     colSpan={4}
                     className="px-3 py-6 text-center text-slate-500"
                   >
-                    No budget rows for this fiscal year.
+                    No records found.
                   </td>
                 </tr>
               ) : (

@@ -147,7 +147,7 @@ export default function AdminLeadershipPage() {
             className={`px-2 py-1 rounded-full text-xs font-medium ${
               isCurrent
                 ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-700"
+                : "bg-slate-100 text-slate-700"
             }`}
           >
             {isCurrent ? "Active" : "Inactive"}
@@ -161,16 +161,16 @@ export default function AdminLeadershipPage() {
       cell: ({ row }: { row: Row<AdminLeadership> }) => {
         const leadership = row.original;
         return (
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               onClick={() => handleEdit(leadership)}
-              className="text-blue-600 hover:text-blue-900 font-medium"
+              className="text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Edit
             </button>
             <button
               onClick={() => handleDelete(leadership.id)}
-              className="text-red-600 hover:text-red-900 font-medium"
+              className="text-sm font-medium text-rose-700 hover:text-rose-800"
             >
               Delete
             </button>
@@ -223,7 +223,7 @@ export default function AdminLeadershipPage() {
       <AdminCard>
         {isLoading ? (
           <div className="py-20 text-center text-slate-500">
-            Loading leadership entries...
+            Loading data...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />

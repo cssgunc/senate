@@ -1,14 +1,28 @@
 "use client";
 
 import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
   createLegislationAction,
   deleteLegislationAction,
   updateLegislationAction,
 } from "@/lib/admin-api";
 import { getLegislationById } from "@/lib/api";
-import { Legislation, LegislationAction } from "@/types";
+import type { Legislation, LegislationAction } from "@/types";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+
+function toDateInputValue(value: string): string {
+  return new Date(value).toISOString().split("T")[0];
+}
 
 export default function LegislationDetailsPage() {
   const router = useRouter();
@@ -66,7 +80,7 @@ export default function LegislationDetailsPage() {
 
   const beginEditAction = (action: LegislationAction) => {
     setEditingActionId(action.id);
-    setEditActionDate(new Date(action.action_date).toISOString().split("T")[0]);
+    setEditActionDate(toDateInputValue(action.action_date));
     setEditActionType(action.action_type);
     setEditActionDescription(action.description);
   };
@@ -105,112 +119,130 @@ export default function LegislationDetailsPage() {
     }
   };
 
-  if (isLoading) return <div>Loading details...</div>;
-  if (!legislation) return <div>Legislation not found</div>;
+  if (isLoading) {
+    return (
+      <AdminPageShell>
+        <div className="py-20 text-center text-slate-500">Loading data...</div>
+      </AdminPageShell>
+    );
+  }
+
+  if (!legislation) {
+    return (
+      <AdminPageShell>
+        <div className="py-20 text-center text-slate-500">
+          Legislation not found.
+        </div>
+      </AdminPageShell>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <button onClick={() => router.back()} className="text-blue-600">
-        &larr; Back to List
-      </button>
+    <AdminPageShell>
+      <AdminBackButton
+        onClick={() => router.back()}
+        label="Back to Legislation List"
+      />
 
-      <div className="bg-white p-6 border rounded-lg shadow-sm">
-        <h1 className="text-2xl font-bold mb-4">
-          {legislation.bill_number}: {legislation.title}
-        </h1>
-        <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+      <AdminPageHeader
+        title={`${legislation.bill_number}: ${legislation.title}`}
+        description="Review the legislation metadata and manage timeline actions."
+      />
+
+      <AdminCard>
+        <div className="grid gap-4 text-sm text-slate-700 sm:grid-cols-2">
           <p>
-            <strong>Status:</strong> {legislation.status}
+            <span className="font-semibold text-slate-900">Status:</span>{" "}
+            {legislation.status}
           </p>
           <p>
-            <strong>Type:</strong> {legislation.type}
+            <span className="font-semibold text-slate-900">Type:</span>{" "}
+            {legislation.type}
           </p>
           <p>
-            <strong>Sponsor:</strong> {legislation.sponsor_name}
+            <span className="font-semibold text-slate-900">Sponsor:</span>{" "}
+            {legislation.sponsor_name}
           </p>
           <p>
-            <strong>Session:</strong> {legislation.session_number}
+            <span className="font-semibold text-slate-900">Session:</span>{" "}
+            {legislation.session_number}
           </p>
         </div>
-      </div>
+      </AdminCard>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Actions Timeline */}
-        <div className="bg-white p-6 border rounded-lg shadow-sm">
-          <h2 className="text-xl font-bold mb-4">Actions Timeline</h2>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <AdminCard>
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">
+            Actions Timeline
+          </h2>
           {!legislation.actions || legislation.actions.length === 0 ? (
-            <p className="text-gray-500">No actions recorded yet.</p>
+            <p className="text-slate-500">No actions recorded yet.</p>
           ) : (
             <div className="space-y-4">
               {legislation.actions.map((action) => (
                 <div
                   key={action.id}
-                  className="border-l-4 border-blue-500 pl-4 py-1"
+                  className="rounded-md border border-slate-200 bg-slate-50 p-4"
                 >
                   {editingActionId === action.id ? (
                     <form onSubmit={handleUpdateAction} className="space-y-2">
-                      <input
+                      <Input
                         required
                         type="date"
-                        className="w-full p-2 border rounded"
                         value={editActionDate}
                         onChange={(e) => setEditActionDate(e.target.value)}
                       />
-                      <input
+                      <Input
                         required
                         type="text"
-                        className="w-full p-2 border rounded"
                         value={editActionType}
                         onChange={(e) => setEditActionType(e.target.value)}
                       />
-                      <textarea
+                      <Textarea
                         required
-                        className="w-full p-2 border rounded"
                         rows={2}
                         value={editActionDescription}
                         onChange={(e) =>
                           setEditActionDescription(e.target.value)
                         }
                       />
-                      <div className="flex gap-3 text-sm">
-                        <button
-                          type="submit"
-                          className="text-blue-600 hover:underline"
-                        >
+                      <div className="flex gap-2">
+                        <Button type="submit" size="sm">
                           Save
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="sm"
                           onClick={cancelEditAction}
-                          className="text-gray-600 hover:underline"
                         >
                           Cancel
-                        </button>
+                        </Button>
                       </div>
                     </form>
                   ) : (
                     <>
                       <div className="flex justify-between">
-                        <strong>
+                        <strong className="text-slate-900">
                           {new Date(action.action_date).toLocaleDateString()} -{" "}
                           {action.action_type}
                         </strong>
-                        <div className="flex gap-3 text-xs">
+                        <div className="flex gap-3 text-xs font-medium">
                           <button
                             onClick={() => beginEditAction(action)}
-                            className="text-blue-600 hover:underline"
+                            className="text-blue-700 hover:text-blue-800"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDeleteAction(action.id)}
-                            className="text-red-500 hover:underline"
+                            className="text-rose-700 hover:text-rose-800"
                           >
                             Delete
                           </button>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-700 mt-1">
+                      <p className="mt-1 text-sm text-slate-700">
                         {action.description}
                       </p>
                     </>
@@ -219,55 +251,51 @@ export default function LegislationDetailsPage() {
               ))}
             </div>
           )}
-        </div>
+        </AdminCard>
 
-        {/* Add Action Form */}
-        <div className="bg-white p-6 border rounded-lg shadow-sm h-fit">
-          <h2 className="text-xl font-bold mb-4">Add New Action</h2>
+        <AdminCard className="h-fit">
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">
+            Add New Action
+          </h2>
           <form onSubmit={handleAddAction} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Date</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="new-action-date">Date</Label>
+              <Input
+                id="new-action-date"
                 required
                 type="date"
-                className="w-full p-2 border rounded"
                 value={actionDate}
                 onChange={(e) => setActionDate(e.target.value)}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
+            <div className="space-y-2">
+              <Label htmlFor="new-action-type">
                 Type (for example, Sent to Committee)
-              </label>
-              <input
+              </Label>
+              <Input
+                id="new-action-type"
                 required
                 type="text"
-                className="w-full p-2 border rounded"
                 value={actionType}
                 onChange={(e) => setActionType(e.target.value)}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Description
-              </label>
-              <textarea
+            <div className="space-y-2">
+              <Label htmlFor="new-action-description">Description</Label>
+              <Textarea
+                id="new-action-description"
                 required
-                className="w-full p-2 border rounded"
                 rows={3}
                 value={actionDescription}
                 onChange={(e) => setActionDescription(e.target.value)}
               />
             </div>
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white rounded p-2 hover:bg-blue-700"
-            >
+            <Button type="submit" className="w-full">
               Add Action
-            </button>
+            </Button>
           </form>
-        </div>
+        </AdminCard>
       </div>
-    </div>
+    </AdminPageShell>
   );
 }

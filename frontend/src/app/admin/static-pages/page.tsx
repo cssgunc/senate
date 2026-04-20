@@ -88,7 +88,7 @@ export default function AdminStaticPagesPage() {
         return (
           <button
             onClick={() => setEditingPage(page)}
-            className="text-blue-600 hover:text-blue-900 font-medium"
+            className="text-sm font-medium text-blue-700 hover:text-blue-800"
           >
             Edit
           </button>
@@ -124,7 +124,7 @@ export default function AdminStaticPagesPage() {
       <AdminCard>
         {isLoading ? (
           <div className="py-20 text-center text-slate-500">
-            Loading pages...
+            Loading data...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />

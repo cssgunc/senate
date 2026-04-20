@@ -189,9 +189,7 @@ export default function AdminFinanceHearingsPage() {
   }
 
   if (isLoading) {
-    return (
-      <p className="text-sm text-slate-600">Loading finance hearings...</p>
-    );
+    return <p className="text-sm text-slate-600">Loading data...</p>;
   }
 
   return (

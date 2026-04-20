@@ -120,16 +120,16 @@ export default function AdminDistrictsPage() {
       cell: ({ row }) => {
         const district = row.original;
         return (
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               onClick={() => handleEdit(district)}
-              className="text-blue-600 hover:text-blue-900 font-medium"
+              className="text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Edit
             </button>
             <button
               onClick={() => handleDelete(district.id)}
-              className="text-red-600 hover:text-red-900 font-medium"
+              className="text-sm font-medium text-rose-700 hover:text-rose-800"
             >
               Delete
             </button>
@@ -182,7 +182,7 @@ export default function AdminDistrictsPage() {
       <AdminCard>
         {isLoading ? (
           <div className="py-20 text-center text-slate-500">
-            Loading districts...
+            Loading data...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />

@@ -139,17 +139,17 @@ export default function AdminAccountsPage() {
         const account = row.original;
         const isSelf = currentUser?.id === account.id;
         return (
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               onClick={() => handleEdit(account)}
-              className="text-blue-600 hover:text-blue-900 font-medium"
+              className="text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Edit
             </button>
             {!isSelf && (
               <button
                 onClick={() => handleDelete(account.id)}
-                className="text-red-600 hover:text-red-900 font-medium"
+                className="text-sm font-medium text-rose-700 hover:text-rose-800"
               >
                 Delete
               </button>
@@ -203,7 +203,7 @@ export default function AdminAccountsPage() {
       <AdminCard>
         {isLoading ? (
           <div className="py-20 text-center text-slate-500">
-            Loading accounts...
+            Loading data...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />

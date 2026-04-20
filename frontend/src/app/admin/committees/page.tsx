@@ -112,7 +112,7 @@ export default function CommitteesPage() {
 
       <AdminCard className="overflow-x-auto p-0">
         {isLoading && (
-          <p className="p-4 text-sm text-slate-500">Loading committees...</p>
+          <p className="p-4 text-sm text-slate-500">Loading data...</p>
         )}
 
         <table className="w-full text-sm">
