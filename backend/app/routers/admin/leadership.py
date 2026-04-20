@@ -78,7 +78,9 @@ def create_admin_leadership(
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=400, detail="Unable to create leadership due to invalid data")
+        raise HTTPException(
+            status_code=400, detail="Unable to create leadership due to invalid data"
+        )
     db.refresh(leader)
     return LeadershipDTO.model_validate(_serialize_leadership(leader))
 
@@ -112,7 +114,9 @@ def update_admin_leadership(
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=400, detail="Unable to update leadership due to invalid data")
+        raise HTTPException(
+            status_code=400, detail="Unable to update leadership due to invalid data"
+        )
     db.refresh(leader)
     return LeadershipDTO.model_validate(_serialize_leadership(leader))
 

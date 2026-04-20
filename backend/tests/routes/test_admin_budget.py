@@ -18,7 +18,9 @@ _SQLITE_URL = "sqlite:///:memory:"
 
 
 def _make_engine():
-    engine = create_engine(_SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        _SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
 
     @event.listens_for(engine, "connect")
     def _fk_on(dbapi_conn, _record):
@@ -41,13 +43,31 @@ def _seed(engine) -> tuple[int, int]:
     """Returns (parent_id, child_id) of seeded budget rows."""
     Session = sessionmaker(bind=engine)
     db = Session()
-    admin_user = Admin(email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin")
+    admin_user = Admin(
+        email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"
+    )
     db.add(admin_user)
     db.flush()
-    parent = BudgetData(fiscal_year="FY2026", category="Operations", amount=100000.00, description=None, parent_category_id=None, display_order=1, updated_by=admin_user.id)
+    parent = BudgetData(
+        fiscal_year="FY2026",
+        category="Operations",
+        amount=100000.00,
+        description=None,
+        parent_category_id=None,
+        display_order=1,
+        updated_by=admin_user.id,
+    )
     db.add(parent)
     db.flush()
-    child = BudgetData(fiscal_year="FY2026", category="Salaries", amount=60000.00, description=None, parent_category_id=parent.id, display_order=2, updated_by=admin_user.id)
+    child = BudgetData(
+        fiscal_year="FY2026",
+        category="Salaries",
+        amount=60000.00,
+        description=None,
+        parent_category_id=parent.id,
+        display_order=2,
+        updated_by=admin_user.id,
+    )
     db.add(child)
     db.commit()
     ids = (parent.id, child.id)
@@ -183,7 +203,12 @@ class TestUpdateAdminBudget:
 
     def test_returns_200(self, write_admin_client):
         entry_id = self._create_entry(write_admin_client)
-        assert write_admin_client.put(f"/api/admin/budget/{entry_id}", json={"category": "Updated"}).status_code == 200
+        assert (
+            write_admin_client.put(
+                f"/api/admin/budget/{entry_id}", json={"category": "Updated"}
+            ).status_code
+            == 200
+        )
 
     def test_fields_updated(self, write_admin_client):
         entry_id = self._create_entry(write_admin_client)
@@ -192,11 +217,16 @@ class TestUpdateAdminBudget:
 
     def test_self_parent_returns_400(self, write_admin_client):
         entry_id = self._create_entry(write_admin_client)
-        resp = write_admin_client.put(f"/api/admin/budget/{entry_id}", json={"parent_category_id": entry_id})
+        resp = write_admin_client.put(
+            f"/api/admin/budget/{entry_id}", json={"parent_category_id": entry_id}
+        )
         assert resp.status_code == 400
 
     def test_returns_404_for_missing(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/budget/999999", json={"category": "X"}).status_code == 404
+        assert (
+            write_admin_client.put("/api/admin/budget/999999", json={"category": "X"}).status_code
+            == 404
+        )
 
 
 # ---------------------------------------------------------------------------

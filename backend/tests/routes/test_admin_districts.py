@@ -18,7 +18,9 @@ _SQLITE_URL = "sqlite:///:memory:"
 
 
 def _make_engine():
-    engine = create_engine(_SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        _SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
 
     @event.listens_for(engine, "connect")
     def _fk_on(dbapi_conn, _record):
@@ -41,7 +43,15 @@ def _seed(engine) -> int:
     """Returns the ID of the seeded district."""
     Session = sessionmaker(bind=engine)
     db = Session()
-    db.add(Admin(email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"))
+    db.add(
+        Admin(
+            email="admin@unc.edu",
+            first_name="Admin",
+            last_name="User",
+            pid="100000001",
+            role="admin",
+        )
+    )
     db.flush()
     d = District(district_name="On-Campus", description="On-campus students")
     db.add(d)
@@ -55,12 +65,27 @@ def _seed_with_senator(engine) -> tuple[int, int]:
     """Returns (district_id, senator_id) for FK constraint testing."""
     Session = sessionmaker(bind=engine)
     db = Session()
-    db.add(Admin(email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"))
+    db.add(
+        Admin(
+            email="admin@unc.edu",
+            first_name="Admin",
+            last_name="User",
+            pid="100000001",
+            role="admin",
+        )
+    )
     db.flush()
     d = District(district_name="Locked District", description=None)
     db.add(d)
     db.flush()
-    s = Senator(first_name="Alice", last_name="Smith", email="asmith@unc.edu", district=d.id, is_active=True, session_number=35)
+    s = Senator(
+        first_name="Alice",
+        last_name="Smith",
+        email="asmith@unc.edu",
+        district=d.id,
+        is_active=True,
+        session_number=35,
+    )
     db.add(s)
     db.commit()
     ids = (d.id, s.id)
@@ -180,7 +205,9 @@ class TestListAdminDistricts:
 
 class TestCreateAdminDistrict:
     def test_returns_201(self, write_admin_client):
-        assert write_admin_client.post("/api/admin/districts", json=_CREATE_PAYLOAD).status_code == 201
+        assert (
+            write_admin_client.post("/api/admin/districts", json=_CREATE_PAYLOAD).status_code == 201
+        )
 
     def test_response_shape(self, write_admin_client):
         resp = write_admin_client.post("/api/admin/districts", json=_CREATE_PAYLOAD).json()
@@ -188,7 +215,12 @@ class TestCreateAdminDistrict:
             assert key in resp
 
     def test_missing_name_returns_422(self, write_admin_client):
-        assert write_admin_client.post("/api/admin/districts", json={"description": "No name"}).status_code == 422
+        assert (
+            write_admin_client.post(
+                "/api/admin/districts", json={"description": "No name"}
+            ).status_code
+            == 422
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -202,15 +234,27 @@ class TestUpdateAdminDistrict:
 
     def test_returns_200(self, write_admin_client):
         district_id = self._create_district(write_admin_client)
-        assert write_admin_client.put(f"/api/admin/districts/{district_id}", json={"district_name": "Updated"}).status_code == 200
+        assert (
+            write_admin_client.put(
+                f"/api/admin/districts/{district_id}", json={"district_name": "Updated"}
+            ).status_code
+            == 200
+        )
 
     def test_fields_updated(self, write_admin_client):
         district_id = self._create_district(write_admin_client)
-        resp = write_admin_client.put(f"/api/admin/districts/{district_id}", json={"district_name": "Changed"})
+        resp = write_admin_client.put(
+            f"/api/admin/districts/{district_id}", json={"district_name": "Changed"}
+        )
         assert resp.json()["district_name"] == "Changed"
 
     def test_returns_404_for_missing(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/districts/999999", json={"district_name": "X"}).status_code == 404
+        assert (
+            write_admin_client.put(
+                "/api/admin/districts/999999", json={"district_name": "X"}
+            ).status_code
+            == 404
+        )
 
 
 # ---------------------------------------------------------------------------

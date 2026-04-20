@@ -53,9 +53,11 @@ def update_finance_config(
     db.commit()
     db.refresh(config)
 
-    dates = [
-        FinanceHearingDateDTO.model_validate(d) for d in db.query(FinanceHearingDate).all()
-    ] if config.is_active else []
+    dates = (
+        [FinanceHearingDateDTO.model_validate(d) for d in db.query(FinanceHearingDate).all()]
+        if config.is_active
+        else []
+    )
 
     return FinanceHearingConfigDTO(
         is_active=config.is_active,

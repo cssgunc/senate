@@ -114,7 +114,9 @@ def test_remove_committee_member(admin_client, test_db, seeded_committees):
     assert response.status_code == 204
 
     # Verify deletion
-    response_verify = admin_client.delete(f"/api/admin/committees/{committee_id}/members/{senator_id}")
+    response_verify = admin_client.delete(
+        f"/api/admin/committees/{committee_id}/members/{senator_id}"
+    )
     assert response_verify.status_code == 404
 
 
@@ -140,5 +142,7 @@ def test_staff_cannot_delete_committee(staff_client, seeded_committees):
 
 def test_staff_cannot_remove_committee_member(staff_client, seeded_committees):
     m1 = seeded_committees["memberships"][0]
-    response = staff_client.delete(f"/api/admin/committees/{m1.committee_id}/members/{m1.senator_id}")
+    response = staff_client.delete(
+        f"/api/admin/committees/{m1.committee_id}/members/{m1.senator_id}"
+    )
     assert response.status_code == 403

@@ -18,7 +18,9 @@ _SQLITE_URL = "sqlite:///:memory:"
 
 
 def _make_engine():
-    engine = create_engine(_SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        _SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
 
     @event.listens_for(engine, "connect")
     def _fk_on(dbapi_conn, _record):
@@ -40,12 +42,34 @@ def _make_engine():
 def _seed(engine):
     Session = sessionmaker(bind=engine)
     db = Session()
-    db.add_all([
-        Admin(email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"),
-        Admin(email="staff@unc.edu", first_name="Staff", last_name="User", pid="200000002", role="staff"),
-    ])
+    db.add_all(
+        [
+            Admin(
+                email="admin@unc.edu",
+                first_name="Admin",
+                last_name="User",
+                pid="100000001",
+                role="admin",
+            ),
+            Admin(
+                email="staff@unc.edu",
+                first_name="Staff",
+                last_name="User",
+                pid="200000002",
+                role="staff",
+            ),
+        ]
+    )
     db.flush()
-    db.add(Staff(first_name="Existing", last_name="Person", title="Director", email="existing@unc.edu", display_order=1))
+    db.add(
+        Staff(
+            first_name="Existing",
+            last_name="Person",
+            title="Director",
+            email="existing@unc.edu",
+            display_order=1,
+        )
+    )
     db.commit()
     db.close()
 
@@ -133,7 +157,11 @@ class TestCreateAdminStaff:
         saved = app.dependency_overrides.pop(get_current_user, None)
         try:
             with TestClient(app) as c:
-                assert c.post("/api/admin/staff", json=_CREATE_PAYLOAD).status_code in {401, 403, 501}
+                assert c.post("/api/admin/staff", json=_CREATE_PAYLOAD).status_code in {
+                    401,
+                    403,
+                    501,
+                }
         finally:
             if saved:
                 app.dependency_overrides[get_current_user] = saved
@@ -150,21 +178,35 @@ class TestUpdateAdminStaff:
 
     def test_returns_200(self, write_admin_client):
         staff_id = self._create_staff(write_admin_client)
-        assert write_admin_client.put(f"/api/admin/staff/{staff_id}", json={"title": "Updated"}).status_code == 200
+        assert (
+            write_admin_client.put(
+                f"/api/admin/staff/{staff_id}", json={"title": "Updated"}
+            ).status_code
+            == 200
+        )
 
     def test_fields_updated(self, write_admin_client):
         staff_id = self._create_staff(write_admin_client)
-        resp = write_admin_client.put(f"/api/admin/staff/{staff_id}", json={"title": "Manager", "is_active": False})
+        resp = write_admin_client.put(
+            f"/api/admin/staff/{staff_id}", json={"title": "Manager", "is_active": False}
+        )
         assert resp.json()["title"] == "Manager"
 
     def test_returns_404_for_missing(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/staff/999999", json={"title": "X"}).status_code == 404
+        assert (
+            write_admin_client.put("/api/admin/staff/999999", json={"title": "X"}).status_code
+            == 404
+        )
 
     def test_unauthenticated_rejected(self):
         saved = app.dependency_overrides.pop(get_current_user, None)
         try:
             with TestClient(app) as c:
-                assert c.put("/api/admin/staff/1", json={"title": "X"}).status_code in {401, 403, 501}
+                assert c.put("/api/admin/staff/1", json={"title": "X"}).status_code in {
+                    401,
+                    403,
+                    501,
+                }
         finally:
             if saved:
                 app.dependency_overrides[get_current_user] = saved
