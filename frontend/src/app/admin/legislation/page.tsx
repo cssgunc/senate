@@ -15,6 +15,7 @@ import Link from "next/link"; // For linking to details page
 import { useEffect, useState } from "react";
 
 export default function AdminLegislationPage() {
+  const ADMIN_LEGISLATION_PAGE_SIZE = 100;
   const [data, setData] = useState<Legislation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -28,11 +29,23 @@ export default function AdminLegislationPage() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const response = await getLegislation();
-      // Next line assumes standard pagination response from your API client
-      if ("items" in response) {
-        setData(response.items);
+      const firstPage = await getLegislation({
+        page: 1,
+        limit: ADMIN_LEGISLATION_PAGE_SIZE,
+      });
+
+      const allItems = [...firstPage.items];
+      const totalPages = Math.ceil(firstPage.total / firstPage.limit);
+
+      for (let page = 2; page <= totalPages; page += 1) {
+        const response = await getLegislation({
+          page,
+          limit: ADMIN_LEGISLATION_PAGE_SIZE,
+        });
+        allItems.push(...response.items);
       }
+
+      setData(allItems);
     } catch (err) {
       console.error(err);
     } finally {
