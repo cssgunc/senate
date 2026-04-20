@@ -18,7 +18,7 @@ import type { Legislation, Senator } from "@/types";
 import type { CreateLegislation } from "@/types/admin";
 
 interface LegislationFormProps {
-  initialData?: Legislation;
+  initialData?: Legislation & { sponsor_id?: number | null };
   onSubmit: (data: CreateLegislation) => Promise<void> | void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -35,7 +35,9 @@ export function LegislationForm({
   const [sessionNumber, setSessionNumber] = useState<number>(
     initialData?.session_number || 1,
   );
-  const [sponsorId, setSponsorId] = useState<number | null>(null);
+  const [sponsorId, setSponsorId] = useState<number | null>(
+    initialData?.sponsor_id ?? null,
+  );
   const [sponsorName, setSponsorName] = useState(
     initialData?.sponsor_name || "",
   );
@@ -57,6 +59,26 @@ export function LegislationForm({
   useEffect(() => {
     getSenators().then(setSenators).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (
+      sponsorId !== null ||
+      !initialData?.sponsor_name ||
+      senators.length === 0
+    ) {
+      return;
+    }
+
+    const matchedSponsor = senators.find(
+      (senator) =>
+        `${senator.first_name} ${senator.last_name}` ===
+        initialData.sponsor_name,
+    );
+
+    if (matchedSponsor) {
+      setSponsorId(matchedSponsor.id);
+    }
+  }, [initialData?.sponsor_name, senators, sponsorId]);
 
   const handleSponsorChange = (value: string) => {
     const selectedId = value ? Number(value) : null;

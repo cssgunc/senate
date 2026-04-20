@@ -53,6 +53,8 @@ const EMPTY_FORM: BudgetFormState = {
   parent_category_id: null,
 };
 
+const TOP_LEVEL_PARENT_VALUE = "__top_level__";
+
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Request failed";
 }
@@ -665,11 +667,16 @@ export default function AdminBudgetPage() {
             <div className="space-y-2">
               <Label htmlFor="edit-parent">Parent category</Label>
               <Select
-                value={String(editForm.parent_category_id ?? "")}
+                value={
+                  editForm.parent_category_id === null
+                    ? TOP_LEVEL_PARENT_VALUE
+                    : String(editForm.parent_category_id)
+                }
                 onValueChange={(value) =>
                   setEditForm((current) => ({
                     ...current,
-                    parent_category_id: value ? Number(value) : null,
+                    parent_category_id:
+                      value === TOP_LEVEL_PARENT_VALUE ? null : Number(value),
                   }))
                 }
               >
@@ -677,7 +684,9 @@ export default function AdminBudgetPage() {
                   <SelectValue placeholder="Top-level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Top-level</SelectItem>
+                  <SelectItem value={TOP_LEVEL_PARENT_VALUE}>
+                    Top-level
+                  </SelectItem>
                   {flatRows
                     .filter((row) => !disallowedParentIds.has(row.id))
                     .map((row) => (
