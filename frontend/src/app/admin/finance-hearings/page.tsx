@@ -16,7 +16,7 @@ import {
   deleteFinanceHearingDate,
   updateFinanceHearingConfig,
   updateFinanceHearingDate,
-} from "@/lib/mock/admin-api";
+} from "@/lib/admin-api";
 import type { FinanceHearingDate } from "@/types";
 import { useEffect, useMemo, useState } from "react";
 
@@ -403,11 +403,10 @@ export default function AdminFinanceHearingsPage() {
                       <button
                         type="button"
                         onClick={() => void onToggleIsFull(item)}
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          item.is_full
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${item.is_full
                             ? "bg-amber-100 text-amber-800"
                             : "bg-emerald-100 text-emerald-700"
-                        }`}
+                          }`}
                       >
                         {item.is_full ? "Full" : "Open"}
                       </button>

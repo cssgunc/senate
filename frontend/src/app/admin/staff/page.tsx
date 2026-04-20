@@ -14,7 +14,7 @@ import {
   deleteStaff,
   listAdminStaff,
   updateStaff,
-} from "@/lib/mock/admin-api";
+} from "@/lib/admin-api";
 import type { AdminStaff, CreateStaff, UpdateStaff } from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";

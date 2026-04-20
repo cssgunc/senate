@@ -8,7 +8,7 @@ import {
 } from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { StaticPageForm } from "@/components/admin/StaticPageForm";
-import { listStaticPages, updateStaticPage } from "@/lib/mock/admin-api";
+import { listStaticPages, updateStaticPage } from "@/lib/admin-api";
 import type { StaticPage } from "@/types";
 import type { UpdateStaticPage } from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";

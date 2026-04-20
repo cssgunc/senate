@@ -24,7 +24,7 @@ import {
   getAdminCommittees,
   removeCommitteeMember,
   updateCommittee,
-} from "@/lib/mock/admin-api";
+} from "@/lib/admin-api";
 import type { Committee, CommitteeAssignment, Senator } from "@/types";
 import type { CreateCommittee } from "@/types/admin";
 import { Fragment, useEffect, useState } from "react";

@@ -16,7 +16,7 @@ import {
   getMe,
   listAdminAccounts,
   updateAccount,
-} from "@/lib/mock/admin-api";
+} from "@/lib/admin-api";
 import type { Account, CreateAccount } from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";

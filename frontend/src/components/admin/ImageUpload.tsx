@@ -1,7 +1,7 @@
 "use client";
 
 <<<<<<< HEAD
-import { uploadAdminImage } from "@/lib/mock/admin-api";
+import { uploadAdminImage } from "@/lib/admin-api";
 =======
 import { uploadAdminImage } from "@/lib/admin-api";
 import Image from "next/image";
@@ -138,11 +138,10 @@ export function ImageUpload({
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={onDrop}
-        className={`rounded-lg border-2 border-dashed p-4 transition-colors ${
-          isDragging
+        className={`rounded-lg border-2 border-dashed p-4 transition-colors ${isDragging
             ? "border-blue-500 bg-blue-50"
             : "border-gray-300 bg-gray-50"
-        } ${disabled ? "opacity-60" : ""}`}
+          } ${disabled ? "opacity-60" : ""}`}
       >
         <input
           id={inputId}

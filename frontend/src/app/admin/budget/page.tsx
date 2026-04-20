@@ -20,7 +20,7 @@ import {
   createBudgetData,
   deleteBudgetData,
   updateBudgetData,
-} from "@/lib/mock/admin-api";
+} from "@/lib/admin-api";
 import type { BudgetData } from "@/types";
 import { useEffect, useMemo, useState } from "react";
 

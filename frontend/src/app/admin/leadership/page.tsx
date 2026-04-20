@@ -14,7 +14,7 @@ import {
   deleteLeadership,
   getAdminLeadership,
   updateLeadership,
-} from "@/lib/mock/admin-api";
+} from "@/lib/admin-api";
 import {
   AdminLeadership,
   CreateLeadership,
@@ -144,11 +144,10 @@ export default function AdminLeadershipPage() {
         const isCurrent = row.getValue("is_current") as boolean;
         return (
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              isCurrent
+            className={`px-2 py-1 rounded-full text-xs font-medium ${isCurrent
                 ? "bg-green-100 text-green-800"
                 : "bg-slate-100 text-slate-700"
-            }`}
+              }`}
           >
             {isCurrent ? "Active" : "Inactive"}
           </span>
