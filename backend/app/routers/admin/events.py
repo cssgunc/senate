@@ -17,6 +17,7 @@ from app.schemas.calendar_event import (
     CreateAdminCalendarEventDTO,
     UpdateCalendarEventDTO,
 )
+from app.utils.sanitization import sanitize_html
 
 router = APIRouter(
     prefix="/api/admin/events",
@@ -31,7 +32,11 @@ def create_admin_event(
     db: Session = Depends(get_db),
 ):
     """Create a calendar event. created_by is set from the authenticated user."""
-    event = CalendarEvent(**body.model_dump(), created_by=current_user.id)
+    payload = body.model_dump()
+    if payload.get("description") is not None:
+        payload["description"] = sanitize_html(payload["description"])
+
+    event = CalendarEvent(**payload, created_by=current_user.id)
     db.add(event)
     db.commit()
     db.refresh(event)
@@ -55,6 +60,9 @@ def update_admin_event(
         raise HTTPException(status_code=404, detail="Event not found")
 
     update_data = body.model_dump(exclude_unset=True)
+    if update_data.get("description") is not None:
+        update_data["description"] = sanitize_html(update_data["description"])
+
     for field, value in update_data.items():
         setattr(event, field, value)
 

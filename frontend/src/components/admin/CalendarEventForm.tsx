@@ -3,6 +3,7 @@
 import type { CalendarEvent } from "@/types";
 import type { CreateCalendarEvent } from "@/types/admin";
 import { useState } from "react";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface CalendarEventFormProps {
   initialData?: CalendarEvent;
@@ -84,13 +85,11 @@ export function CalendarEventForm({
             <label className="block text-sm font-medium text-gray-700">
               Description
             </label>
-            <textarea
-              name="description"
+            <RichTextEditor
               value={formData.description || ""}
-              onChange={handleChange}
-              rows={4}
-              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Event details..."
+              onChange={(value) =>
+                setFormData((prev) => ({ ...prev, description: value }))
+              }
             />
           </div>
 
@@ -183,7 +182,11 @@ export function CalendarEventForm({
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {isLoading ? "Saving..." : initialData ? "Update Event" : "Create Event"}
+            {isLoading
+              ? "Saving..."
+              : initialData
+                ? "Update Event"
+                : "Create Event"}
           </button>
         </div>
       </form>

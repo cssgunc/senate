@@ -21,7 +21,9 @@ _SQLITE_URL = "sqlite:///:memory:"
 
 
 def _make_engine():
-    engine = create_engine(_SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        _SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
 
     @event.listens_for(engine, "connect")
     def _fk_on(dbapi_conn, _record):
@@ -43,7 +45,9 @@ def _make_engine():
 def _seed(engine):
     Session = sessionmaker(bind=engine)
     db = Session()
-    admin_user = Admin(email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin")
+    admin_user = Admin(
+        email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"
+    )
     db.add(admin_user)
     db.flush()
     config = FinanceHearingConfig(
@@ -54,13 +58,15 @@ def _seed(engine):
     )
     db.add(config)
     db.flush()
-    db.add(FinanceHearingDate(
-        hearing_date=date(2026, 2, 10),
-        hearing_time=time(9, 0),
-        location="The Pit",
-        description="Morning slot",
-        is_full=False,
-    ))
+    db.add(
+        FinanceHearingDate(
+            hearing_date=date(2026, 2, 10),
+            hearing_time=time(9, 0),
+            location="The Pit",
+            description="Morning slot",
+            is_full=False,
+        )
+    )
     db.commit()
     db.close()
 
@@ -111,7 +117,12 @@ class TestUpdateFinanceConfig:
     _payload = {"is_active": False, "season_start": "2026-03-01", "season_end": "2026-06-30"}
 
     def test_returns_200(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/finance-hearings/config", json=self._payload).status_code == 200
+        assert (
+            write_admin_client.put(
+                "/api/admin/finance-hearings/config", json=self._payload
+            ).status_code
+            == 200
+        )
 
     def test_config_updated(self, write_admin_client):
         resp = write_admin_client.put("/api/admin/finance-hearings/config", json=self._payload)
@@ -119,22 +130,31 @@ class TestUpdateFinanceConfig:
         assert resp.json()["season_start"] == "2026-03-01"
 
     def test_inactive_config_returns_empty_dates(self, write_admin_client):
-        resp = write_admin_client.put("/api/admin/finance-hearings/config", json={**self._payload, "is_active": False})
+        resp = write_admin_client.put(
+            "/api/admin/finance-hearings/config", json={**self._payload, "is_active": False}
+        )
         assert resp.json()["dates"] == []
 
     def test_active_config_returns_dates(self, write_admin_client):
-        resp = write_admin_client.put("/api/admin/finance-hearings/config", json={**self._payload, "is_active": True})
+        resp = write_admin_client.put(
+            "/api/admin/finance-hearings/config", json={**self._payload, "is_active": True}
+        )
         assert isinstance(resp.json()["dates"], list)
 
     def test_missing_required_field_returns_422(self, write_admin_client):
         bad = {"season_start": "2026-03-01", "season_end": "2026-06-30"}
-        assert write_admin_client.put("/api/admin/finance-hearings/config", json=bad).status_code == 422
+        assert (
+            write_admin_client.put("/api/admin/finance-hearings/config", json=bad).status_code
+            == 422
+        )
 
     def test_unauthenticated_rejected(self):
         saved = app.dependency_overrides.pop(get_current_user, None)
         try:
             with TestClient(app) as c:
-                assert c.put("/api/admin/finance-hearings/config", json=self._payload).status_code in {401, 403, 501}
+                assert c.put(
+                    "/api/admin/finance-hearings/config", json=self._payload
+                ).status_code in {401, 403, 501}
         finally:
             if saved:
                 app.dependency_overrides[get_current_user] = saved
@@ -154,16 +174,26 @@ _DATE_PAYLOAD = {
 
 class TestCreateFinanceDate:
     def test_returns_201(self, write_admin_client):
-        assert write_admin_client.post("/api/admin/finance-hearings/dates", json=_DATE_PAYLOAD).status_code == 201
+        assert (
+            write_admin_client.post(
+                "/api/admin/finance-hearings/dates", json=_DATE_PAYLOAD
+            ).status_code
+            == 201
+        )
 
     def test_response_shape(self, write_admin_client):
-        resp = write_admin_client.post("/api/admin/finance-hearings/dates", json=_DATE_PAYLOAD).json()
+        resp = write_admin_client.post(
+            "/api/admin/finance-hearings/dates", json=_DATE_PAYLOAD
+        ).json()
         for key in ("id", "hearing_date", "hearing_time", "is_full"):
             assert key in resp
 
     def test_missing_required_field_returns_422(self, write_admin_client):
         bad = {k: v for k, v in _DATE_PAYLOAD.items() if k != "hearing_date"}
-        assert write_admin_client.post("/api/admin/finance-hearings/dates", json=bad).status_code == 422
+        assert (
+            write_admin_client.post("/api/admin/finance-hearings/dates", json=bad).status_code
+            == 422
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -177,16 +207,29 @@ class TestUpdateFinanceDate:
 
     def test_returns_200(self, write_admin_client):
         date_id = self._create_date(write_admin_client)
-        assert write_admin_client.put(f"/api/admin/finance-hearings/dates/{date_id}", json={"is_full": True}).status_code == 200
+        assert (
+            write_admin_client.put(
+                f"/api/admin/finance-hearings/dates/{date_id}", json={"is_full": True}
+            ).status_code
+            == 200
+        )
 
     def test_fields_updated(self, write_admin_client):
         date_id = self._create_date(write_admin_client)
-        resp = write_admin_client.put(f"/api/admin/finance-hearings/dates/{date_id}", json={"is_full": True, "location": "Changed"})
+        resp = write_admin_client.put(
+            f"/api/admin/finance-hearings/dates/{date_id}",
+            json={"is_full": True, "location": "Changed"},
+        )
         assert resp.json()["is_full"] is True
         assert resp.json()["location"] == "Changed"
 
     def test_returns_404_for_missing(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/finance-hearings/dates/999999", json={"is_full": True}).status_code == 404
+        assert (
+            write_admin_client.put(
+                "/api/admin/finance-hearings/dates/999999", json={"is_full": True}
+            ).status_code
+            == 404
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -200,16 +243,25 @@ class TestDeleteFinanceDate:
 
     def test_returns_204(self, write_admin_client):
         date_id = self._create_date(write_admin_client)
-        assert write_admin_client.delete(f"/api/admin/finance-hearings/dates/{date_id}").status_code == 204
+        assert (
+            write_admin_client.delete(f"/api/admin/finance-hearings/dates/{date_id}").status_code
+            == 204
+        )
 
     def test_returns_404_for_missing(self, write_admin_client):
-        assert write_admin_client.delete("/api/admin/finance-hearings/dates/999999").status_code == 404
+        assert (
+            write_admin_client.delete("/api/admin/finance-hearings/dates/999999").status_code == 404
+        )
 
     def test_unauthenticated_rejected(self):
         saved = app.dependency_overrides.pop(get_current_user, None)
         try:
             with TestClient(app) as c:
-                assert c.delete("/api/admin/finance-hearings/dates/1").status_code in {401, 403, 501}
+                assert c.delete("/api/admin/finance-hearings/dates/1").status_code in {
+                    401,
+                    403,
+                    501,
+                }
         finally:
             if saved:
                 app.dependency_overrides[get_current_user] = saved

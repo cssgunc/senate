@@ -1,7 +1,14 @@
 "use client";
 
+import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { StaffForm } from "@/components/admin/StaffForm";
+import { Button } from "@/components/ui/button";
 import {
   createStaff,
   deleteStaff,
@@ -107,7 +114,7 @@ export default function AdminStaffPage() {
         const isActive = row.getValue("is_active") as boolean;
         return (
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}
+            className={`px-2 py-1 rounded-full text-xs font-medium ${isActive ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-700"}`}
           >
             {isActive ? "Active" : "Inactive"}
           </span>
@@ -120,16 +127,16 @@ export default function AdminStaffPage() {
       cell: ({ row }) => {
         const staff = row.original;
         return (
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               onClick={() => handleEdit(staff)}
-              className="text-blue-600 hover:text-blue-900 font-medium"
+              className="text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Edit
             </button>
             <button
               onClick={() => handleDelete(staff.id)}
-              className="text-red-600 hover:text-red-900 font-medium"
+              className="text-sm font-medium text-rose-700 hover:text-rose-800"
             >
               Delete
             </button>
@@ -141,16 +148,14 @@ export default function AdminStaffPage() {
 
   if (isFormOpen) {
     return (
-      <div className="max-w-2xl mx-auto space-y-4">
-        <button
+      <AdminPageShell className="max-w-3xl">
+        <AdminBackButton
           onClick={() => {
             setIsFormOpen(false);
             setEditingStaff(undefined);
           }}
-          className="text-blue-600 hover:underline mb-4 inline-block font-medium"
-        >
-          &larr; Back to Staff Table
-        </button>
+          label="Back to Staff Table"
+        />
         <StaffForm
           initialData={editingStaff}
           onSubmit={handleFormSubmit}
@@ -160,34 +165,36 @@ export default function AdminStaffPage() {
           }}
           isLoading={isSaving}
         />
-      </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Staff Management</h1>
-        <button
-          onClick={() => {
-            setEditingStaff(undefined);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-        >
-          Add Staff Member
-        </button>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Staff Management"
+        action={
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingStaff(undefined);
+              setIsFormOpen(true);
+            }}
+          >
+            Add Staff Member
+          </Button>
+        }
+      />
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <AdminCard>
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">
-            Loading staff...
+          <div className="py-20 text-center text-slate-500">
+            Loading data...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />
         )}
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }

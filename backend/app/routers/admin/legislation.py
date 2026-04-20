@@ -14,6 +14,7 @@ from app.schemas.legislation import (
     UpdateLegislationActionDTO,
     UpdateLegislationDTO,
 )
+from app.utils.sanitization import sanitize_html
 
 router = APIRouter(
     prefix="/api/admin/legislation",
@@ -38,15 +39,20 @@ def _sync_last_action(db: Session, legislation: Legislation) -> None:
     )
     legislation.date_last_action = latest_action_date or legislation.date_introduced
 
+
 @router.post("", response_model=LegislationDTO)
 def create_legislation(
     payload: CreateLegislationDTO,
     db: Session = Depends(get_db),
     _current_user: Admin = Depends(get_current_user),
 ):
+    payload = payload.model_dump()
+    for field in ("summary", "full_text"):
+        payload[field] = sanitize_html(payload[field])
+
     legislation = Legislation(
-        **payload.model_dump(),
-        date_last_action=payload.date_introduced # could change to be None
+        **payload,
+        date_last_action=payload["date_introduced"],  # could change to be None
     )
 
     db.add(legislation)
@@ -56,6 +62,7 @@ def create_legislation(
     legislation.actions = []
 
     return legislation
+
 
 @router.put("/{id}", response_model=LegislationDTO)
 def update_legislation(
@@ -69,7 +76,12 @@ def update_legislation(
     if not legislation:
         raise HTTPException(404, "Legislation not found")
 
-    for key, value in payload.model_dump(exclude_unset=True).items():
+    update_data = payload.model_dump(exclude_unset=True)
+    for field in ("summary", "full_text"):
+        if field in update_data and update_data[field] is not None:
+            update_data[field] = sanitize_html(update_data[field])
+
+    for key, value in update_data.items():
         if hasattr(legislation, key):
             setattr(legislation, key, value)
 
@@ -82,6 +94,7 @@ def update_legislation(
 
     return legislation
 
+
 @router.delete("/{id}", status_code=204)
 def delete_legislation(
     id: int,
@@ -93,10 +106,13 @@ def delete_legislation(
     if not legislation:
         raise HTTPException(404, "Legislation not found")
 
-    db.query(LegislationAction).filter(LegislationAction.legislation_id == id).delete(synchronize_session=False)
+    db.query(LegislationAction).filter(LegislationAction.legislation_id == id).delete(
+        synchronize_session=False
+    )
 
     db.delete(legislation)
     db.commit()
+
 
 @router.post("/{id}/actions", response_model=LegislationActionDTO)
 def add_action(
@@ -105,19 +121,12 @@ def add_action(
     db: Session = Depends(get_db),
     _current_user: Admin = Depends(get_current_user),
 ):
-    legislation = (
-        db.query(Legislation)
-        .filter(Legislation.id == id)
-        .first()
-    )
+    legislation = db.query(Legislation).filter(Legislation.id == id).first()
 
     if not legislation:
         raise HTTPException(404, "Legislation not found")
 
-    display_order = (
-        db.query(LegislationAction)
-        .filter(LegislationAction.legislation_id == id).all()
-    )
+    display_order = db.query(LegislationAction).filter(LegislationAction.legislation_id == id).all()
 
     newDisplayOrder = -1
     for action in display_order:
@@ -127,7 +136,7 @@ def add_action(
     action = LegislationAction(
         legislation_id=id,
         action_date=payload.action_date,
-        description=payload.description,
+        description=sanitize_html(payload.description),
         action_type=payload.action_type,
         display_order=newDisplayOrder,
     )
@@ -140,6 +149,7 @@ def add_action(
     db.refresh(action)
 
     return action
+
 
 @router.put("/{id}/actions/{action_id}", response_model=LegislationActionDTO)
 def update_action(
@@ -161,7 +171,11 @@ def update_action(
     if not action:
         raise HTTPException(404, "Action not found")
 
-    for key, value in payload.model_dump(exclude_unset=True).items():
+    update_data = payload.model_dump(exclude_unset=True)
+    if "description" in update_data and update_data["description"] is not None:
+        update_data["description"] = sanitize_html(update_data["description"])
+
+    for key, value in update_data.items():
         if hasattr(action, key):
             setattr(action, key, value)
 
@@ -176,6 +190,7 @@ def update_action(
     db.refresh(action)
 
     return action
+
 
 @router.delete("/{id}/actions/{action_id}", status_code=204)
 def delete_action(

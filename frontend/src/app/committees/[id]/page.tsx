@@ -1,4 +1,5 @@
 // src/app/committees/[id]/page.tsx
+import { HtmlContent } from "@/components/content/HtmlContent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -35,9 +36,10 @@ export default async function CommitteeDetailPage({
     <div className="container mx-auto py-8 space-y-8">
       <div>
         <h1 className="text-4xl font-bold">{committee.name}</h1>
-        <p className="mt-4 text-lg text-muted-foreground">
-          {committee.description}
-        </p>
+        <HtmlContent
+          html={committee.description}
+          className="prose mt-4 max-w-none text-muted-foreground"
+        />
       </div>
 
       {/* Chair distinct visual highlighted card */}

@@ -46,20 +46,26 @@ def _make_engine():
 def _seed(engine):
     Session = sessionmaker(bind=engine)
     db = Session()
-    admin_user = Admin(email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin")
-    staff_user = Admin(email="staff@unc.edu", first_name="Staff", last_name="User", pid="200000002", role="staff")
+    admin_user = Admin(
+        email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"
+    )
+    staff_user = Admin(
+        email="staff@unc.edu", first_name="Staff", last_name="User", pid="200000002", role="staff"
+    )
     db.add_all([admin_user, staff_user])
     db.flush()
-    db.add(CalendarEvent(
-        title="Existing Event",
-        start_datetime=datetime(2026, 4, 1, 18, 0),
-        end_datetime=datetime(2026, 4, 1, 19, 0),
-        event_type="meeting",
-        is_published=True,
-        created_by=admin_user.id,
-        description=None,
-        location=None,
-    ))
+    db.add(
+        CalendarEvent(
+            title="Existing Event",
+            start_datetime=datetime(2026, 4, 1, 18, 0),
+            end_datetime=datetime(2026, 4, 1, 19, 0),
+            event_type="meeting",
+            is_published=True,
+            created_by=admin_user.id,
+            description=None,
+            location=None,
+        )
+    )
     db.commit()
     db.close()
 
@@ -72,6 +78,7 @@ def _clear():
 # ---------------------------------------------------------------------------
 # Function-scoped fixtures (write tests)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture()
 def write_engine():
@@ -154,7 +161,9 @@ class TestCreateAdminEvent:
         assert "is_published" in resp
 
     def test_is_published_true(self, write_admin_client):
-        resp = write_admin_client.post("/api/admin/events", json={**_CREATE_PAYLOAD, "is_published": True})
+        resp = write_admin_client.post(
+            "/api/admin/events", json={**_CREATE_PAYLOAD, "is_published": True}
+        )
         assert resp.json()["is_published"] is True
 
     def test_end_before_start_returns_422(self, write_admin_client):
@@ -172,7 +181,11 @@ class TestCreateAdminEvent:
         saved = app.dependency_overrides.pop(get_current_user, None)
         try:
             with TestClient(app) as c:
-                assert c.post("/api/admin/events", json=_CREATE_PAYLOAD).status_code in {401, 403, 501}
+                assert c.post("/api/admin/events", json=_CREATE_PAYLOAD).status_code in {
+                    401,
+                    403,
+                    501,
+                }
         finally:
             if saved:
                 app.dependency_overrides[get_current_user] = saved
@@ -189,7 +202,12 @@ class TestUpdateAdminEvent:
 
     def test_returns_200(self, write_admin_client):
         event_id = self._create_event(write_admin_client)
-        assert write_admin_client.put(f"/api/admin/events/{event_id}", json={"title": "Updated"}).status_code == 200
+        assert (
+            write_admin_client.put(
+                f"/api/admin/events/{event_id}", json={"title": "Updated"}
+            ).status_code
+            == 200
+        )
 
     def test_fields_updated(self, write_admin_client):
         event_id = self._create_event(write_admin_client)
@@ -201,17 +219,29 @@ class TestUpdateAdminEvent:
         assert resp.json()["is_published"] is True
 
     def test_returns_404_for_missing(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/events/999999", json={"title": "X"}).status_code == 404
+        assert (
+            write_admin_client.put("/api/admin/events/999999", json={"title": "X"}).status_code
+            == 404
+        )
 
     def test_staff_can_update(self, write_staff_client):
         event_id = self._create_event(write_staff_client)
-        assert write_staff_client.put(f"/api/admin/events/{event_id}", json={"title": "Staff"}).status_code == 200
+        assert (
+            write_staff_client.put(
+                f"/api/admin/events/{event_id}", json={"title": "Staff"}
+            ).status_code
+            == 200
+        )
 
     def test_unauthenticated_rejected(self):
         saved = app.dependency_overrides.pop(get_current_user, None)
         try:
             with TestClient(app) as c:
-                assert c.put("/api/admin/events/1", json={"title": "X"}).status_code in {401, 403, 501}
+                assert c.put("/api/admin/events/1", json={"title": "X"}).status_code in {
+                    401,
+                    403,
+                    501,
+                }
         finally:
             if saved:
                 app.dependency_overrides[get_current_user] = saved

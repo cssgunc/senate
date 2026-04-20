@@ -1,13 +1,20 @@
 "use client";
 
+import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { DistrictForm } from "@/components/admin/DistrictForm";
+import { Button } from "@/components/ui/button";
 import {
   createDistrict,
   deleteDistrict,
   listAdminDistricts,
   updateDistrict,
-} from "@/lib/mock/admin-api";
+} from "@/lib/admin-api";
 import type {
   AdminDistrict,
   CreateDistrict,
@@ -113,16 +120,16 @@ export default function AdminDistrictsPage() {
       cell: ({ row }) => {
         const district = row.original;
         return (
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               onClick={() => handleEdit(district)}
-              className="text-blue-600 hover:text-blue-900 font-medium"
+              className="text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Edit
             </button>
             <button
               onClick={() => handleDelete(district.id)}
-              className="text-red-600 hover:text-red-900 font-medium"
+              className="text-sm font-medium text-rose-700 hover:text-rose-800"
             >
               Delete
             </button>
@@ -134,16 +141,14 @@ export default function AdminDistrictsPage() {
 
   if (isFormOpen) {
     return (
-      <div className="max-w-2xl mx-auto space-y-4">
-        <button
+      <AdminPageShell className="max-w-3xl">
+        <AdminBackButton
           onClick={() => {
             setIsFormOpen(false);
             setEditingDistrict(undefined);
           }}
-          className="text-blue-600 hover:underline mb-4 inline-block font-medium"
-        >
-          &larr; Back to Districts Table
-        </button>
+          label="Back to Districts Table"
+        />
         <DistrictForm
           initialData={editingDistrict}
           onSubmit={handleFormSubmit}
@@ -153,34 +158,36 @@ export default function AdminDistrictsPage() {
           }}
           isLoading={isSaving}
         />
-      </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Districts Management</h1>
-        <button
-          onClick={() => {
-            setEditingDistrict(undefined);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-        >
-          Add District
-        </button>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Districts Management"
+        action={
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingDistrict(undefined);
+              setIsFormOpen(true);
+            }}
+          >
+            Add District
+          </Button>
+        }
+      />
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <AdminCard>
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">
-            Loading districts...
+          <div className="py-20 text-center text-slate-500">
+            Loading data...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />
         )}
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }

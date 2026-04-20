@@ -1,6 +1,11 @@
 "use client";
 
+<<<<<<< HEAD
 import { uploadAdminImage } from "@/lib/mock/admin-api";
+=======
+import { uploadAdminImage } from "@/lib/admin-api";
+import Image from "next/image";
+>>>>>>> main
 import { useEffect, useId, useRef, useState } from "react";
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -185,10 +190,13 @@ export function ImageUpload({
         <div className="mt-3">
           <p className="text-sm text-gray-600 mb-2">Preview</p>
           <div className="relative h-48 w-full rounded border bg-gray-100 overflow-hidden">
-            <img
+            <Image
               src={previewUrl}
               alt="Uploaded preview"
-              className="w-full h-full object-cover"
+              className="object-cover"
+              fill
+              unoptimized
+              sizes="(max-width: 768px) 100vw, 600px"
             />
           </div>
           {value ? (

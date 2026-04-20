@@ -15,7 +15,9 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      <main className="flex-grow">{children}</main>
+      <main id="main" className="flex-grow">
+        {children}
+      </main>
       <Footer />
     </>
   );

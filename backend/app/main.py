@@ -9,6 +9,7 @@ from app.routers import (
     budget,
     carousel,
     committees,
+    contact,
     districts,
     events,
     finance,
@@ -71,6 +72,8 @@ app.include_router(events.router)
 app.include_router(legislation.router)
 app.include_router(uploads.router)
 app.include_router(admin_news.router)
+app.include_router(contact.router)
+
 
 # Include Admin routers
 app.include_router(admin_committees.router)

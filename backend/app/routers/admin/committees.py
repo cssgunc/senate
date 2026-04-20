@@ -13,6 +13,7 @@ from app.schemas.committee_admin import (
     CommitteeCreateDTO,
     CommitteeUpdateDTO,
 )
+from app.utils.sanitization import sanitize_html
 
 router = APIRouter(
     prefix="/api/admin/committees",
@@ -64,7 +65,7 @@ def serialize_committee(committee: Committee) -> dict:
     return {
         "id": committee.id,
         "name": committee.name,
-        "description": committee.description,
+        "description": sanitize_html(committee.description),
         "chair_name": committee.chair_name,
         "chair_email": committee.chair_email,
         "members": members,
@@ -78,7 +79,9 @@ def create_committee(
     db: Session = Depends(get_db),
     _current_user: Admin = Depends(get_current_user),
 ):
-    new_committee = Committee(**data.model_dump())
+    payload = data.model_dump()
+    payload["description"] = sanitize_html(payload["description"])
+    new_committee = Committee(**payload)
     db.add(new_committee)
     db.commit()
     db.refresh(new_committee)
@@ -104,6 +107,8 @@ def update_committee(
         raise HTTPException(status_code=404, detail="Committee not found")
 
     update_data = data.model_dump(exclude_unset=True)
+    if "description" in update_data and update_data["description"] is not None:
+        update_data["description"] = sanitize_html(update_data["description"])
     for key, value in update_data.items():
         setattr(committee, key, value)
 

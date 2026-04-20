@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { StaticPageForm } from "@/components/admin/StaticPageForm";
 import { listStaticPages, updateStaticPage } from "@/lib/mock/admin-api";
@@ -82,7 +88,7 @@ export default function AdminStaticPagesPage() {
         return (
           <button
             onClick={() => setEditingPage(page)}
-            className="text-blue-600 hover:text-blue-900 font-medium"
+            className="text-sm font-medium text-blue-700 hover:text-blue-800"
           >
             Edit
           </button>
@@ -93,44 +99,37 @@ export default function AdminStaticPagesPage() {
 
   if (editingPage) {
     return (
-      <div className="max-w-4xl mx-auto space-y-4">
-        <button
+      <AdminPageShell className="max-w-4xl">
+        <AdminBackButton
           onClick={() => setEditingPage(undefined)}
-          className="text-blue-600 hover:underline mb-4 inline-block font-medium"
-        >
-          &larr; Back to Pages Table
-        </button>
+          label="Back to Pages Table"
+        />
         <StaticPageForm
           initialData={editingPage}
           onSubmit={handleFormSubmit}
           onCancel={() => setEditingPage(undefined)}
           isLoading={isSaving}
         />
-      </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Static Pages</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            These pages are pre-configured. You can edit their content but not
-            add or remove them.
-          </p>
-        </div>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Static Pages"
+        description="These pages are pre-configured. You can edit content but cannot add or remove pages."
+      />
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <AdminCard>
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">
-            Loading pages...
+          <div className="py-20 text-center text-slate-500">
+            Loading data...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />
         )}
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }

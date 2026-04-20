@@ -41,6 +41,27 @@ from app.models import (
 
 CURRENT_SESSION = 111
 
+NEWS_IMAGE_PATHS = [
+    "/image-temp/apply_image.jpeg",
+    "/image-temp/undergrad_senate.jpeg",
+    "/image-temp/governer_image.jpeg",
+]
+
+PROFILE_IMAGE_PATHS = [
+    "/image-temp/profile_3.jpg",
+    "/image-temp/profile_4.jpg",
+    "/image-temp/all_profiles.jpg",
+    "/image-temp/profile_1.jpeg",
+    "/image-temp/profile_2.jpg",
+]
+
+CAROUSEL_IMAGE_PATHS = [
+    "/image-temp/governer_image.jpeg",
+    "/image-temp/meetings_area.jpg",
+    "/image-temp/undergrad_senate_2.jpeg",
+    "/image-temp/apply_image.jpeg",
+]
+
 
 def clear_existing_data(db: Session) -> None:
     """Delete all seeded entities in foreign-key safe order."""
@@ -192,11 +213,12 @@ def seed_senators(db: Session, districts: list[District]) -> list[Senator]:
     senators: list[Senator] = []
     for idx, (first_name, last_name) in enumerate(senator_rows, start=1):
         district = districts[(idx - 1) % len(districts)]
+        profile_image = PROFILE_IMAGE_PATHS[(idx - 1) % len(PROFILE_IMAGE_PATHS)]
         senator = Senator(
             first_name=first_name,
             last_name=last_name,
             email=f"{first_name.lower()}.{last_name.lower()}@unc.edu",
-            headshot_url=f"https://images.unc.edu/senators/{first_name.lower()}-{last_name.lower()}.jpg",
+            headshot_url=profile_image,
             district=district.id,
             is_active=True,
             session_number=CURRENT_SESSION,
@@ -301,6 +323,7 @@ def seed_news(db: Session, admins: list[Admin]) -> None:
     for idx in range(10):
         author = admins[idx % len(admins)]
         published = idx < 7
+        image_path = NEWS_IMAGE_PATHS[idx % len(NEWS_IMAGE_PATHS)]
         rows.append(
             News(
                 title=f"Senate Weekly Update #{idx + 1}",
@@ -310,7 +333,7 @@ def seed_news(db: Session, admins: list[Admin]) -> None:
                     "academic support, transportation, and organization funding. "
                     "This update summarizes key motions and next steps."
                 ),
-                image_url=f"https://images.unc.edu/news/update-{idx + 1}.jpg",
+                image_url=image_path,
                 author_id=author.id,
                 date_published=now - timedelta(days=idx * 3),
                 is_published=published,
@@ -447,28 +470,28 @@ def seed_calendar_events(db: Session, admins: list[Admin]) -> None:
 def seed_carousel_slides(db: Session) -> None:
     slides = [
         CarouselSlide(
-            image_url="https://images.unc.edu/carousel/senate-session.jpg",
+            image_url=CAROUSEL_IMAGE_PATHS[0],
             overlay_text="Your Voice in Student Government",
             link_url="/about/powers",
             display_order=1,
             is_active=True,
         ),
         CarouselSlide(
-            image_url="https://images.unc.edu/carousel/funding.jpg",
+            image_url=CAROUSEL_IMAGE_PATHS[1],
             overlay_text="Funding Opportunities for Student Organizations",
             link_url="/funding",
             display_order=2,
             is_active=True,
         ),
         CarouselSlide(
-            image_url="https://images.unc.edu/carousel/legislation.jpg",
+            image_url=CAROUSEL_IMAGE_PATHS[2],
             overlay_text="Track Legislation in Real Time",
             link_url="/legislation/recent",
             display_order=3,
             is_active=True,
         ),
         CarouselSlide(
-            image_url="https://images.unc.edu/carousel/committees.jpg",
+            image_url=CAROUSEL_IMAGE_PATHS[3],
             overlay_text="Explore Committee Work",
             link_url="/committees",
             display_order=4,
@@ -533,7 +556,7 @@ def seed_staff(db: Session) -> None:
             last_name=last_name,
             title=title,
             email=email,
-            photo_url=f"https://images.unc.edu/staff/{first_name.lower()}-{last_name.lower()}.jpg",
+            photo_url=PROFILE_IMAGE_PATHS[(idx - 1) % len(PROFILE_IMAGE_PATHS)],
             display_order=idx,
             is_active=True,
         )

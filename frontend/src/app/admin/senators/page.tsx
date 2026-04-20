@@ -1,14 +1,21 @@
 "use client";
 
+import {
+  AdminBackButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { SenatorForm } from "@/components/admin/SenatorForm";
-import { getDistricts } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   createSenator,
   deleteSenator,
   getAdminSenators,
   updateSenator,
-} from "@/lib/mock/admin-api";
+} from "@/lib/admin-api";
 import type { District, Senator } from "@/types";
 import type { CreateSenator, UpdateSenator } from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -198,7 +205,7 @@ export default function AdminSenatorsPage() {
         const isActive = row.getValue("is_active") as boolean;
         return (
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}
+            className={`px-2 py-1 rounded-full text-xs font-medium ${isActive ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-700"}`}
           >
             {isActive ? "Active" : "Inactive"}
           </span>
@@ -211,16 +218,16 @@ export default function AdminSenatorsPage() {
       cell: ({ row }) => {
         const senator = row.original;
         return (
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               onClick={() => handleEdit(senator)}
-              className="text-blue-600 hover:text-blue-900 font-medium"
+              className="text-sm font-medium text-blue-700 hover:text-blue-800"
             >
               Edit
             </button>
             <button
               onClick={() => handleDelete(senator.id)}
-              className="text-red-600 hover:text-red-900 font-medium"
+              className="text-sm font-medium text-rose-700 hover:text-rose-800"
             >
               Delete
             </button>
@@ -232,16 +239,14 @@ export default function AdminSenatorsPage() {
 
   if (isFormOpen) {
     return (
-      <div className="max-w-2xl mx-auto space-y-4">
-        <button
+      <AdminPageShell className="max-w-3xl">
+        <AdminBackButton
           onClick={() => {
             setIsFormOpen(false);
             setEditingSenator(undefined);
           }}
-          className="text-blue-600 hover:underline mb-4 inline-block font-medium"
-        >
-          &larr; Back to Senators Table
-        </button>
+          label="Back to Senators Table"
+        />
         <SenatorForm
           initialData={editingSenator}
           onSubmit={handleFormSubmit}
@@ -251,38 +256,36 @@ export default function AdminSenatorsPage() {
           }}
           isLoading={isSaving}
         />
-      </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Senators Management</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage the active roster, session assignments, and contact details.
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            setEditingSenator(undefined);
-            setIsFormOpen(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-        >
-          Add Senator
-        </button>
-      </div>
+    <AdminPageShell>
+      <AdminPageHeader
+        title="Senators Management"
+        description="Manage the active roster, session assignments, and contact details."
+        action={
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingSenator(undefined);
+              setIsFormOpen(true);
+            }}
+          >
+            Add Senator
+          </Button>
+        }
+      />
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
+      <AdminCard className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">
               Status
             </label>
             <select
-              className="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
               value={activeFilter}
               onChange={(event) =>
                 setActiveFilter(event.target.value as ActiveFilter)
@@ -295,13 +298,12 @@ export default function AdminSenatorsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium text-slate-700">
               Session Number
             </label>
-            <input
+            <Input
               type="number"
               min="1"
-              className="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={sessionFilter}
               onChange={(event) => setSessionFilter(event.target.value)}
               placeholder="All sessions"
@@ -309,27 +311,27 @@ export default function AdminSenatorsPage() {
           </div>
 
           <div className="flex items-end">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => {
                 setActiveFilter("all");
                 setSessionFilter("");
               }}
-              className="w-full md:w-auto border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50"
             >
               Reset Filters
-            </button>
+            </Button>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="text-center py-20 text-gray-500">
-            Loading senators...
+          <div className="py-20 text-center text-slate-500">
+            Loading data...
           </div>
         ) : (
           <DataTable columns={columns} data={data} />
         )}
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }

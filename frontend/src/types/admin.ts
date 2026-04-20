@@ -82,6 +82,12 @@ export interface CreateLegislationAction {
   action_type: string;
 }
 
+export interface UpdateLegislationAction {
+  action_date?: string;
+  description?: string;
+  action_type?: string;
+}
+
 export interface CreateCalendarEvent {
   title: string;
   description: string | null;
