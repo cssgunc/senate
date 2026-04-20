@@ -86,7 +86,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
                 : "border border-slate-200 text-slate-700"
             }`}
             onMouseDown={keepFocus}
-            onClick={() => editor.chain().setParagraph().run()}
+            onClick={() => editor.chain().focus().setParagraph().run()}
             aria-label="Paragraph"
             title="Paragraph"
           >
@@ -99,7 +99,9 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
               type="button"
               className={headingButtonClass(level)}
               onMouseDown={keepFocus}
-              onClick={() => editor.chain().toggleHeading({ level }).run()}
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level }).run()
+              }
               aria-label={`Heading ${level}`}
               title={`Heading ${level}`}
             >
@@ -115,7 +117,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
                 : "border border-slate-200 text-slate-700"
             }`}
             onMouseDown={keepFocus}
-            onClick={() => editor.chain().toggleBlockquote().run()}
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
             aria-label="Blockquote"
             title="Blockquote"
           >
@@ -132,7 +134,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
                 : "border border-slate-200 text-slate-700"
             }`}
             onMouseDown={keepFocus}
-            onClick={() => editor.chain().toggleBold().run()}
+            onClick={() => editor.chain().focus().toggleBold().run()}
             aria-label="Bold"
             title="Bold"
           >
@@ -147,7 +149,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
                 : "border border-slate-200 text-slate-700"
             }`}
             onMouseDown={keepFocus}
-            onClick={() => editor.chain().toggleItalic().run()}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
             aria-label="Italic"
             title="Italic"
           >
@@ -164,7 +166,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
                 : "border border-slate-200 text-slate-700"
             }`}
             onMouseDown={keepFocus}
-            onClick={() => editor.chain().toggleBulletList().run()}
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
             aria-label="Bullet list"
             title="Bullet list"
           >
@@ -179,7 +181,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
                 : "border border-slate-200 text-slate-700"
             }`}
             onMouseDown={keepFocus}
-            onClick={() => editor.chain().toggleOrderedList().run()}
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
             aria-label="Numbered list"
             title="Numbered list"
           >
@@ -192,7 +194,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
             type="button"
             className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
             onMouseDown={keepFocus}
-            onClick={() => editor.chain().undo().run()}
+            onClick={() => editor.chain().focus().undo().run()}
             aria-label="Undo"
             title="Undo"
           >
@@ -203,7 +205,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
             type="button"
             className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
             onMouseDown={keepFocus}
-            onClick={() => editor.chain().redo().run()}
+            onClick={() => editor.chain().focus().redo().run()}
             aria-label="Redo"
             title="Redo"
           >
