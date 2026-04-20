@@ -1,5 +1,8 @@
 "use client";
 
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorMessage from "@/components/ui/ErrorMessage";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -41,11 +44,13 @@ export default function PreviousLeadershipPage() {
   const [leadership, setLeadership] = useState<GroupedBySession>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         const data = await fetchAllLeadership();
 
         // Group by session number, maintaining order by descending session
@@ -58,11 +63,8 @@ export default function PreviousLeadershipPage() {
         });
 
         setLeadership(grouped);
-        setError(null);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load leadership data",
-        );
+      } catch {
+        setError("Unable to load leadership records. Please try again.");
         setLeadership({});
       } finally {
         setIsLoading(false);
@@ -70,26 +72,26 @@ export default function PreviousLeadershipPage() {
     };
 
     loadData();
-  }, []);
+  }, [retryCount]);
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-12">
       <h1 className="text-3xl font-bold mb-4">Previous Senate Leadership</h1>
 
-      {isLoading && (
-        <p className="text-gray-700 mb-6">Loading leadership records...</p>
-      )}
+      {isLoading && <LoadingSpinner message="Loading leadership records..." />}
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-4 mb-6">
-          <p className="text-red-700">Error: {error}</p>
-        </div>
+        <ErrorMessage
+          message="Unable to load leadership records. Please try again."
+          onRetry={() => setRetryCount((c) => c + 1)}
+        />
       )}
 
       {!isLoading && Object.keys(leadership).length === 0 && !error && (
-        <p className="text-gray-700 mb-6">
-          No historical leadership records available yet.
-        </p>
+        <EmptyState
+          message="No historical leadership records available yet."
+          description="Past senate leadership will appear here once recorded."
+        />
       )}
 
       {!isLoading && Object.keys(leadership).length > 0 && (

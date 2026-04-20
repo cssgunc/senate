@@ -1,3 +1,5 @@
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 import { getRecentLegislation } from "@/lib/api";
 import type { Legislation } from "@/types";
 import { format, parseISO } from "date-fns";
@@ -24,17 +26,28 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default async function RecentNominationsPage() {
-  const nominations: Legislation[] = await getRecentLegislation(
-    20,
-    "Nomination",
-  );
+  let nominations: Legislation[];
+
+  try {
+    nominations = await getRecentLegislation(20, "Nomination");
+  } catch {
+    return (
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-6">Recent Nominations</h1>
+        <ErrorMessage message="Unable to load recent nominations. Please try again." />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Recent Nominations</h1>
 
       {nominations.length === 0 ? (
-        <p className="text-gray-500">No recent nominations found.</p>
+        <EmptyState
+          message="No recent nominations found."
+          description="Check back soon for newly introduced nominations."
+        />
       ) : (
         <ul className="divide-y divide-gray-200">
           {nominations.map((item) => (

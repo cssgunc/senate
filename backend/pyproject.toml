@@ -38,6 +38,7 @@ pythonpath = ["."]
 addopts = [
   "--tb=short",
   "--strict-markers",
+  "--basetemp=/dev/shm/pytest",
   "-v",
   "--junitxml=test-results.xml",
 ]
