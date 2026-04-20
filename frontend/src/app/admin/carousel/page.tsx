@@ -182,14 +182,14 @@ export default function AdminCarouselPage() {
             {slides.map((slide, index) => (
               <div
                 key={slide.id}
-                className="flex items-center border border-gray-200 rounded-lg p-4 bg-gray-50 flex-col sm:flex-row gap-4"
+                className="flex items-center border border-slate-200 rounded-lg p-4 bg-slate-50 flex-col sm:flex-row gap-4"
               >
                 {/* Reorder Buttons */}
                 <div className="flex flex-col gap-1 items-center justify-center -ml-2 p-2">
                   <button
                     disabled={index === 0}
                     onClick={() => moveSlide(index, "up")}
-                    className={`p-1 rounded bg-white border ${index === 0 ? "text-gray-300 border-gray-100" : "text-gray-700 border-gray-300 hover:bg-gray-100"}`}
+                    className={`p-1 rounded bg-white border ${index === 0 ? "text-slate-300 border-slate-100" : "text-slate-700 border-slate-300 hover:bg-slate-100"}`}
                     title="Move Up"
                   >
                     ↑
@@ -197,7 +197,7 @@ export default function AdminCarouselPage() {
                   <button
                     disabled={index === slides.length - 1}
                     onClick={() => moveSlide(index, "down")}
-                    className={`p-1 rounded bg-white border ${index === slides.length - 1 ? "text-gray-300 border-gray-100" : "text-gray-700 border-gray-300 hover:bg-gray-100"}`}
+                    className={`p-1 rounded bg-white border ${index === slides.length - 1 ? "text-slate-300 border-slate-100" : "text-slate-700 border-slate-300 hover:bg-slate-100"}`}
                     title="Move Down"
                   >
                     ↓
@@ -205,7 +205,7 @@ export default function AdminCarouselPage() {
                 </div>
 
                 {/* Preview Image */}
-                <div className="w-48 h-28 relative bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                <div className="w-48 h-28 relative bg-slate-200 rounded overflow-hidden flex-shrink-0">
                   <Image
                     src={
                       failedImageIds[slide.id]
@@ -230,12 +230,12 @@ export default function AdminCarouselPage() {
                 <div className="flex-grow">
                   <h3 className="font-bold text-lg mb-1">
                     {slide.overlay_text || (
-                      <span className="text-gray-400 italic">
+                      <span className="text-slate-400 italic">
                         No overlay text
                       </span>
                     )}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2 truncate max-w-md">
+                  <p className="text-sm text-slate-600 mb-2 truncate max-w-md">
                     <span className="font-semibold">Link:</span>{" "}
                     {slide.link_url || "None"}
                   </p>
