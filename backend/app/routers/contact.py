@@ -73,7 +73,7 @@ def submit_contact_form(payload: ContactRequest, request: Request, db: Session =
 
     # 2. Determine target email
     target_email = "speaker@unc.edu"
-    if payload.senator_id:
+    if payload.senator_id is not None:
         senator = db.query(Senator).filter(Senator.id == payload.senator_id).first()
         if not senator:
             raise HTTPException(status_code=404, detail="Senator not found")

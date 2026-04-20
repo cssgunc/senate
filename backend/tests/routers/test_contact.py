@@ -66,6 +66,22 @@ def test_contact_specific_senator(mock_send_email, mock_db_session):
     assert args["to_email"] == "jonny.senator@unc.edu"
 
 
+def test_contact_with_zero_senator_id_returns_404(mock_send_email, mock_db_session):
+    mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+    payload = {
+        "name": "Zero Case",
+        "email": "zero@unc.edu",
+        "message": "Attempting senator lookup with id 0",
+        "senator_id": 0,
+    }
+
+    response = client.post("/api/contact", json=payload)
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Senator not found"
+    mock_send_email.assert_not_called()
+
+
 def test_rate_limiting():
     from app.routers.contact import ip_logs
 
