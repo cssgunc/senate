@@ -29,6 +29,7 @@ export default async function RecentNews() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {newsData.items.map((article: News) => (
+<<<<<<< HEAD
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {newsData.items.map((article: News, index) => {
           const fallbackImage =
@@ -37,11 +38,17 @@ export default async function RecentNews() {
             ] || IMAGE_PATHS.newsFallback;
 
           return (
+=======
+>>>>>>> 451b048 (Add loading, error, and empty states across all pages (#119))
             <Link href={`/news/${article.id}`} key={article.id}>
               <Card className="p-4 h-full transition-shadow hover:shadow-lg flex flex-col">
                 <div className="relative w-full h-48 mb-4">
                   <Image
+<<<<<<< HEAD
                     src={article.image_url || fallbackImage}
+=======
+                    src={article.image_url || "/UNClogo.png"}
+>>>>>>> 451b048 (Add loading, error, and empty states across all pages (#119))
                     alt={article.title}
                     fill
                     className="object-cover rounded-md"
@@ -56,9 +63,15 @@ export default async function RecentNews() {
                 </p>
               </Card>
             </Link>
+<<<<<<< HEAD
           );
         })}
       </div>
+=======
+          ))}
+        </div>
+      )}
+>>>>>>> 451b048 (Add loading, error, and empty states across all pages (#119))
       <div className="mt-8 text-center">
         <Link
           href="/news"

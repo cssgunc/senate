@@ -43,7 +43,7 @@ export default async function CommitteesPage() {
               <CardHeader>
                 <CardTitle>{committee.name}</CardTitle>
                 <CardDescription className="line-clamp-2">
-                  {committee.description}
+                  {stripHtmlTags(committee.description)}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -60,28 +60,6 @@ export default async function CommitteesPage() {
           ))}
         </div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {committees.map((committee) => (
-          <Card key={committee.id}>
-            <CardHeader>
-              <CardTitle>{committee.name}</CardTitle>
-              <CardDescription className="line-clamp-2">
-                {stripHtmlTags(committee.description)}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm font-medium text-muted-foreground">
-                Chair: {committee.chair_name}
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild>
-                <Link href={`/committees/${committee.id}`}>Learn More</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
     </div>
   );
 }
