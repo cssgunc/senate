@@ -8,6 +8,7 @@ from app.config import ACCESS_TOKEN_EXPIRE_HOURS, JWT_ALGORITHM, JWT_SECRET
 # Tests
 # -----------------------------
 
+
 def test_valid_login(client, seeded_admins):
     response = client.post("/api/auth/login", json={"email": "admin@test.com", "pid": "123456789"})
     assert response.status_code == 200
@@ -20,7 +21,9 @@ def test_invalid_credentials(client, seeded_admins):
     response = client.post("/api/auth/login", json={"email": "admin@test.com", "pid": "000000000"})
     assert response.status_code == 401
 
-    response2 = client.post("/api/auth/login", json={"email": "notexist@test.com", "pid": "123456789"})
+    response2 = client.post(
+        "/api/auth/login", json={"email": "notexist@test.com", "pid": "123456789"}
+    )
     assert response2.status_code == 401
 
 
@@ -58,7 +61,9 @@ def test_role_check(client, seeded_admins):
     assert response.status_code == 403
 
     # access with admin token
-    login_admin = client.post("/api/auth/login", json={"email": "admin@test.com", "pid": "123456789"})
+    login_admin = client.post(
+        "/api/auth/login", json={"email": "admin@test.com", "pid": "123456789"}
+    )
     admin_token = login_admin.json()["access_token"]
     response2 = client.get(
         "/api/auth/admin-only", headers={"Authorization": f"Bearer {admin_token}"}

@@ -18,7 +18,9 @@ _SQLITE_URL = "sqlite:///:memory:"
 
 
 def _make_engine():
-    engine = create_engine(_SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        _SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
 
     @event.listens_for(engine, "connect")
     def _fk_on(dbapi_conn, _record):
@@ -40,13 +42,27 @@ def _make_engine():
 def _seed(engine):
     Session = sessionmaker(bind=engine)
     db = Session()
-    admin_user = Admin(email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin")
+    admin_user = Admin(
+        email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"
+    )
     db.add(admin_user)
     db.flush()
-    db.add_all([
-        StaticPageContent(page_slug="powers-of-senate", title="Powers of the Senate", body="The senate has...", last_edited_by=admin_user.id),
-        StaticPageContent(page_slug="how-a-bill-becomes-law", title="How a Bill Becomes Law", body="A bill starts as...", last_edited_by=admin_user.id),
-    ])
+    db.add_all(
+        [
+            StaticPageContent(
+                page_slug="powers-of-senate",
+                title="Powers of the Senate",
+                body="The senate has...",
+                last_edited_by=admin_user.id,
+            ),
+            StaticPageContent(
+                page_slug="how-a-bill-becomes-law",
+                title="How a Bill Becomes Law",
+                body="A bill starts as...",
+                last_edited_by=admin_user.id,
+            ),
+        ]
+    )
     db.commit()
     db.close()
 
@@ -163,7 +179,12 @@ class TestUpdateAdminPage:
     _payload = {"title": "Updated Title", "body": "Updated body content."}
 
     def test_returns_200(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/pages/powers-of-senate", json=self._payload).status_code == 200
+        assert (
+            write_admin_client.put(
+                "/api/admin/pages/powers-of-senate", json=self._payload
+            ).status_code
+            == 200
+        )
 
     def test_fields_updated(self, write_admin_client):
         resp = write_admin_client.put("/api/admin/pages/powers-of-senate", json=self._payload)
@@ -175,16 +196,28 @@ class TestUpdateAdminPage:
         assert resp.json()["page_slug"] == "powers-of-senate"
 
     def test_returns_404_for_unknown_slug(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/pages/nonexistent-page", json=self._payload).status_code == 404
+        assert (
+            write_admin_client.put(
+                "/api/admin/pages/nonexistent-page", json=self._payload
+            ).status_code
+            == 404
+        )
 
     def test_missing_required_field_returns_422(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/pages/powers-of-senate", json={"title": "Only Title"}).status_code == 422
+        assert (
+            write_admin_client.put(
+                "/api/admin/pages/powers-of-senate", json={"title": "Only Title"}
+            ).status_code
+            == 422
+        )
 
     def test_unauthenticated_rejected(self):
         saved = app.dependency_overrides.pop(get_current_user, None)
         try:
             with TestClient(app) as c:
-                assert c.put("/api/admin/pages/powers-of-senate", json=self._payload).status_code in {401, 403, 501}
+                assert c.put(
+                    "/api/admin/pages/powers-of-senate", json=self._payload
+                ).status_code in {401, 403, 501}
         finally:
             if saved:
                 app.dependency_overrides[get_current_user] = saved

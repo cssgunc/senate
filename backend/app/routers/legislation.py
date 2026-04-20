@@ -19,6 +19,7 @@ from app.models.LegislationAction import LegislationAction
 from app.schemas.legislation import LegislationActionDTO, LegislationDetailDTO, LegislationListDTO
 from app.schemas.pagination import PaginatedResponse
 from app.utils.pagination import paginate
+from app.utils.sanitization import sanitize_html
 
 router = APIRouter(prefix="/api/legislation", tags=["legislation"])
 
@@ -35,8 +36,8 @@ def _legislation_base_dict(leg: Legislation) -> dict:
         "bill_number": leg.bill_number,
         "session_number": leg.session_number,
         "sponsor_name": leg.sponsor_name,
-        "summary": leg.summary,
-        "full_text": leg.full_text,
+        "summary": sanitize_html(leg.summary),
+        "full_text": sanitize_html(leg.full_text),
         "status": leg.status,
         "type": leg.type,
         "date_introduced": leg.date_introduced,
@@ -53,7 +54,10 @@ def _legislation_detail_dict(leg: Legislation, db: Session) -> dict:
     )
     data = _legislation_base_dict(leg)
     data["actions"] = [
-        LegislationActionDTO.model_validate(a, from_attributes=True) for a in actions
+        LegislationActionDTO.model_validate(
+            {**a.__dict__, "description": sanitize_html(a.description)}
+        )
+        for a in actions
     ]
     return data
 

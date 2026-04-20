@@ -1,6 +1,22 @@
 "use client";
 
+import {
+  AdminCard,
+  AdminPageHeader,
+  AdminPageShell,
+} from "@/components/admin/AdminPageShell";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   assignCommitteeMember,
   createCommittee,
@@ -81,39 +97,49 @@ export default function CommitteesPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <h1 className="text-4xl font-bold">Admin Committees</h1>
+    <AdminPageShell>
+      <AdminPageHeader title="Committees Management" />
 
-      <CommitteeForm
-        senators={senators}
-        onCreate={async (data) => {
-          const created = await createCommittee(data);
-          setCommittees((prev) => [...prev, created]);
-        }}
-      />
+      <AdminCard>
+        <CommitteeForm
+          senators={senators}
+          onCreate={async (data) => {
+            const created = await createCommittee(data);
+            setCommittees((prev) => [...prev, created]);
+          }}
+        />
+      </AdminCard>
 
-      <div className="overflow-x-auto border rounded-md">
+      <AdminCard className="overflow-x-auto p-0">
         {isLoading && (
-          <p className="text-sm text-muted-foreground p-3">
-            Loading committees...
-          </p>
+          <p className="p-4 text-sm text-slate-500">Loading data...</p>
         )}
 
         <table className="w-full text-sm">
-          <thead className="bg-muted/50">
+          <thead className="bg-slate-50">
             <tr>
-              <th className="text-left p-3 font-medium">Name</th>
-              <th className="text-left p-3 font-medium">Chair</th>
-              <th className="text-left p-3 font-medium">Active</th>
-              <th className="text-left p-3 font-medium">Member Count</th>
-              <th className="text-left p-3 font-medium">Actions</th>
+              <th className="p-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Name
+              </th>
+              <th className="p-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Chair
+              </th>
+              <th className="p-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Active
+              </th>
+              <th className="p-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Member Count
+              </th>
+              <th className="p-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Actions
+              </th>
             </tr>
           </thead>
 
           <tbody>
             {committees.map((committee) => (
               <Fragment key={committee.id}>
-                <tr className="border-t align-top">
+                <tr className="border-t border-slate-100 align-top">
                   <td className="p-3">{committee.name}</td>
                   <td className="p-3">{committee.chair_name}</td>
                   <td className="p-3">{committee.is_active ? "Yes" : "No"}</td>
@@ -152,7 +178,7 @@ export default function CommitteesPage() {
                 </tr>
 
                 {expanded === committee.id && (
-                  <tr className="border-t bg-muted/20">
+                  <tr className="border-t border-slate-100 bg-slate-50/50">
                     <td className="p-3" colSpan={5}>
                       <CommitteeDetail
                         committee={committee}
@@ -166,8 +192,8 @@ export default function CommitteesPage() {
             ))}
           </tbody>
         </table>
-      </div>
-    </div>
+      </AdminCard>
+    </AdminPageShell>
   );
 }
 
@@ -204,58 +230,82 @@ function CommitteeForm({
   }
 
   return (
-    <div className="border rounded p-4 space-y-3">
-      <h2 className="font-semibold">Create Committee</h2>
+    <div className="space-y-4">
+      <h2 className="font-semibold text-slate-900">Create Committee</h2>
 
-      <input
-        className="border px-3 py-1"
-        placeholder="Name"
-        value={form.name}
-        onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-        disabled={isSubmitting}
-      />
-
-      <textarea
-        className="border px-3 py-1"
-        placeholder="Description"
-        value={form.description}
-        onChange={(e) =>
-          setForm((prev) => ({ ...prev, description: e.target.value }))
-        }
-        disabled={isSubmitting}
-      />
-
-      <select
-        className="border px-3 py-1"
-        value={form.chair_senator_id}
-        onChange={(e) => handleChairChange(e.target.value)}
-        disabled={isSubmitting}
-      >
-        <option value="">Select Chair</option>
-        {senators.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.first_name} {s.last_name}
-          </option>
-        ))}
-      </select>
-
-      <input className="border px-3 py-1" value={form.chair_name} disabled />
-      <input className="border px-3 py-1" value={form.chair_email} disabled />
-
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={form.is_active}
+      <div className="space-y-2">
+        <Label htmlFor="committee-name">Name</Label>
+        <Input
+          id="committee-name"
+          placeholder="Committee name"
+          value={form.name}
           onChange={(e) =>
-            setForm((prev) => ({ ...prev, is_active: e.target.checked }))
+            setForm((prev) => ({ ...prev, name: e.target.value }))
           }
           disabled={isSubmitting}
         />
-        Active
-      </label>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="committee-description">Description</Label>
+        <RichTextEditor
+          value={form.description}
+          onChange={(value) =>
+            setForm((prev) => ({ ...prev, description: value }))
+          }
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="committee-chair">Chair</Label>
+        <Select
+          value={form.chair_senator_id}
+          onValueChange={handleChairChange}
+          disabled={isSubmitting}
+        >
+          <SelectTrigger id="committee-chair">
+            <SelectValue placeholder="Select a chair" />
+          </SelectTrigger>
+          <SelectContent>
+            {senators.map((s) => (
+              <SelectItem key={s.id} value={String(s.id)}>
+                {s.first_name} {s.last_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {form.chair_name && (
+        <div className="space-y-2 rounded-md bg-slate-50 p-3">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase text-slate-500">
+              Chair Name
+            </p>
+            <p className="text-sm text-slate-900">{form.chair_name}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase text-slate-500">
+              Chair Email
+            </p>
+            <p className="text-sm text-slate-900">{form.chair_email}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="committee-active"
+          checked={form.is_active}
+          onCheckedChange={(checked) =>
+            setForm((prev) => ({ ...prev, is_active: Boolean(checked) }))
+          }
+          disabled={isSubmitting}
+        />
+        <Label htmlFor="committee-active">Active</Label>
+      </div>
 
       <Button
-        className="border px-3 py-1"
         disabled={isSubmitting}
         onClick={async () => {
           setIsSubmitting(true);
@@ -347,62 +397,78 @@ function CommitteeDetail({
   }
 
   return (
-    <div className="border rounded p-4 space-y-4">
-      <h3 className="font-semibold">Committee Details</h3>
+    <div className="space-y-4">
+      <h3 className="font-semibold text-slate-900">Committee Details</h3>
 
-      <div className="grid gap-2">
-        <input
-          className="border px-3 py-1"
-          placeholder="Name"
-          value={editForm.name}
-          onChange={(e) =>
-            setEditForm((prev) => ({ ...prev, name: e.target.value }))
-          }
-        />
-
-        <textarea
-          className="border px-3 py-1"
-          placeholder="Description"
-          value={editForm.description}
-          onChange={(e) =>
-            setEditForm((prev) => ({ ...prev, description: e.target.value }))
-          }
-        />
-
-        <select
-          className="border px-3 py-1"
-          value={editForm.chair_senator_id}
-          onChange={(e) => handleChairChange(e.target.value)}
-        >
-          <option value="">Select Chair</option>
-          {senators.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.first_name} {s.last_name}
-            </option>
-          ))}
-        </select>
-
-        <input
-          className="border px-3 py-1"
-          value={editForm.chair_name}
-          disabled
-        />
-        <input
-          className="border px-3 py-1"
-          value={editForm.chair_email}
-          disabled
-        />
-
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={editForm.is_active}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="edit-committee-name">Name</Label>
+          <Input
+            id="edit-committee-name"
+            placeholder="Committee name"
+            value={editForm.name}
             onChange={(e) =>
-              setEditForm((prev) => ({ ...prev, is_active: e.target.checked }))
+              setEditForm((prev) => ({ ...prev, name: e.target.value }))
             }
           />
-          Active
-        </label>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-committee-description">Description</Label>
+          <RichTextEditor
+            value={editForm.description}
+            onChange={(value) =>
+              setEditForm((prev) => ({ ...prev, description: value }))
+            }
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-committee-chair">Chair</Label>
+          <Select
+            value={editForm.chair_senator_id}
+            onValueChange={handleChairChange}
+          >
+            <SelectTrigger id="edit-committee-chair">
+              <SelectValue placeholder="Select a chair" />
+            </SelectTrigger>
+            <SelectContent>
+              {senators.map((s) => (
+                <SelectItem key={s.id} value={String(s.id)}>
+                  {s.first_name} {s.last_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {editForm.chair_name && (
+          <div className="space-y-2 rounded-md bg-slate-50 p-3">
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase text-slate-500">
+                Chair Name
+              </p>
+              <p className="text-sm text-slate-900">{editForm.chair_name}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase text-slate-500">
+                Chair Email
+              </p>
+              <p className="text-sm text-slate-900">{editForm.chair_email}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="edit-committee-active"
+            checked={editForm.is_active}
+            onCheckedChange={(checked) =>
+              setEditForm((prev) => ({ ...prev, is_active: Boolean(checked) }))
+            }
+          />
+          <Label htmlFor="edit-committee-active">Active</Label>
+        </div>
 
         <Button
           variant="outline"
@@ -427,17 +493,20 @@ function CommitteeDetail({
         </Button>
       </div>
 
-      <h3 className="font-semibold">Members</h3>
+      <h3 className="font-semibold text-slate-900">Members</h3>
 
       <div className="space-y-2">
         {committee.members.map((member) => (
-          <div key={member.id} className="flex justify-between">
-            <span>
+          <div
+            key={member.id}
+            className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2"
+          >
+            <span className="text-sm">
               {member.first_name} {member.last_name} - {getRole(member)}
             </span>
 
             <button
-              className="text-red-500"
+              className="text-sm font-medium text-rose-600 hover:text-rose-700"
               onClick={async () => {
                 try {
                   await removeCommitteeMember(committee.id, member.id);
@@ -459,73 +528,84 @@ function CommitteeDetail({
         ))}
       </div>
 
-      <div className="flex gap-2 pt-2 border-t">
-        <select
-          className="border px-3 py-1"
-          value={senatorId}
-          onChange={(e) => setSenatorId(e.target.value)}
-        >
-          <option value="">Select senator</option>
-          {availableSenators.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.first_name} {s.last_name}
-            </option>
-          ))}
-        </select>
+      <div className="space-y-3 border-t border-slate-100 pt-3">
+        <h4 className="text-sm font-semibold text-slate-700">Add Member</h4>
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="add-senator">Senator</Label>
+            <Select value={senatorId} onValueChange={setSenatorId}>
+              <SelectTrigger id="add-senator">
+                <SelectValue placeholder="Select a senator" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableSenators.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {s.first_name} {s.last_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <input
-          className="border px-3 py-1"
-          placeholder="Role"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-        />
+          <div className="space-y-2">
+            <Label htmlFor="add-role">Role</Label>
+            <Input
+              id="add-role"
+              placeholder="e.g., Vice Chair, Member"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            />
+          </div>
 
-        <Button
-          variant="outline"
-          onClick={async () => {
-            if (!senatorId) {
-              alert("Please select a senator to add.");
-              return;
-            }
+          <Button
+            variant="outline"
+            onClick={async () => {
+              if (!senatorId) {
+                alert("Please select a senator to add.");
+                return;
+              }
 
-            const selectedRole = role.trim() || "Member";
+              const selectedRole = role.trim() || "Member";
 
-            try {
-              await assignCommitteeMember(committee.id, {
-                senator_id: Number(senatorId),
-                role: selectedRole,
-              });
+              try {
+                await assignCommitteeMember(committee.id, {
+                  senator_id: Number(senatorId),
+                  role: selectedRole,
+                });
 
-              const senator = senators.find((s) => s.id === Number(senatorId));
-              if (!senator) return;
+                const senator = senators.find(
+                  (s) => s.id === Number(senatorId),
+                );
+                if (!senator) return;
 
-              const updatedMember: Senator = {
-                ...senator,
-                committees: [
-                  ...(senator.committees ?? []),
-                  {
-                    committee_id: committee.id,
-                    committee_name: committee.name,
-                    role: selectedRole,
-                  },
-                ],
-              };
+                const updatedMember: Senator = {
+                  ...senator,
+                  committees: [
+                    ...(senator.committees ?? []),
+                    {
+                      committee_id: committee.id,
+                      committee_name: committee.name,
+                      role: selectedRole,
+                    },
+                  ],
+                };
 
-              onUpdate({
-                ...committee,
-                members: [...committee.members, updatedMember],
-              });
+                onUpdate({
+                  ...committee,
+                  members: [...committee.members, updatedMember],
+                });
 
-              setSenatorId("");
-              setRole("");
-            } catch (error) {
-              console.error("Failed to add committee member:", error);
-              alert("Failed to add committee member.");
-            }
-          }}
-        >
-          Add Member
-        </Button>
+                setSenatorId("");
+                setRole("");
+              } catch (error) {
+                console.error("Failed to add committee member:", error);
+                alert("Failed to add committee member.");
+              }
+            }}
+          >
+            Add Member
+          </Button>
+        </div>
       </div>
     </div>
   );

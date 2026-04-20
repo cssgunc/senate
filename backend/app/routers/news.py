@@ -18,6 +18,7 @@ from app.database import get_db
 from app.models.cms import News
 from app.schemas.pagination import PaginatedResponse
 from app.utils.pagination import paginate
+from app.utils.sanitization import sanitize_html
 
 try:
     from app.schemas.news import NewsDTO as _NewsDTO
@@ -40,7 +41,7 @@ def _news_to_dict(news: News) -> dict[str, Any]:
         "id": news.id,
         "title": news.title,
         "summary": news.summary,
-        "body": news.body,
+        "body": sanitize_html(news.body),
         "image_url": news.image_url,
         "date_published": news.date_published,
         "date_last_edited": news.date_last_edited,

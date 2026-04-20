@@ -20,7 +20,9 @@ _SQLITE_URL = "sqlite:///:memory:"
 
 
 def _make_engine():
-    engine = create_engine(_SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_engine(
+        _SQLITE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
 
     @event.listens_for(engine, "connect")
     def _fk_on(dbapi_conn, _record):
@@ -42,8 +44,12 @@ def _make_engine():
 def _seed(engine):
     Session = sessionmaker(bind=engine)
     db = Session()
-    admin_user = Admin(email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin")
-    staff_user = Admin(email="staff@unc.edu", first_name="Staff", last_name="User", pid="200000002", role="staff")
+    admin_user = Admin(
+        email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"
+    )
+    staff_user = Admin(
+        email="staff@unc.edu", first_name="Staff", last_name="User", pid="200000002", role="staff"
+    )
     db.add_all([admin_user, staff_user])
     db.commit()
     db.close()
@@ -215,7 +221,9 @@ class TestListAdminAccounts:
 
 class TestCreateAdminAccount:
     def test_returns_201(self, write_admin_client):
-        assert write_admin_client.post("/api/admin/accounts", json=_CREATE_PAYLOAD).status_code == 201
+        assert (
+            write_admin_client.post("/api/admin/accounts", json=_CREATE_PAYLOAD).status_code == 201
+        )
 
     def test_response_shape(self, write_admin_client):
         resp = write_admin_client.post("/api/admin/accounts", json=_CREATE_PAYLOAD).json()
@@ -236,7 +244,9 @@ class TestCreateAdminAccount:
         assert write_admin_client.post("/api/admin/accounts", json=bad).status_code == 422
 
     def test_staff_cannot_create(self, write_staff_client):
-        assert write_staff_client.post("/api/admin/accounts", json=_CREATE_PAYLOAD).status_code == 403
+        assert (
+            write_staff_client.post("/api/admin/accounts", json=_CREATE_PAYLOAD).status_code == 403
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -250,19 +260,34 @@ class TestUpdateAdminAccount:
 
     def test_returns_200(self, write_admin_client):
         account_id = self._create_account(write_admin_client)
-        assert write_admin_client.put(f"/api/admin/accounts/{account_id}", json={"first_name": "Updated"}).status_code == 200
+        assert (
+            write_admin_client.put(
+                f"/api/admin/accounts/{account_id}", json={"first_name": "Updated"}
+            ).status_code
+            == 200
+        )
 
     def test_fields_updated(self, write_admin_client):
         account_id = self._create_account(write_admin_client)
-        resp = write_admin_client.put(f"/api/admin/accounts/{account_id}", json={"first_name": "Changed", "role": "admin"})
+        resp = write_admin_client.put(
+            f"/api/admin/accounts/{account_id}", json={"first_name": "Changed", "role": "admin"}
+        )
         assert resp.json()["first_name"] == "Changed"
         assert resp.json()["role"] == "admin"
 
     def test_returns_404_for_missing(self, write_admin_client):
-        assert write_admin_client.put("/api/admin/accounts/999999", json={"first_name": "X"}).status_code == 404
+        assert (
+            write_admin_client.put(
+                "/api/admin/accounts/999999", json={"first_name": "X"}
+            ).status_code
+            == 404
+        )
 
     def test_staff_cannot_update(self, write_staff_client):
-        assert write_staff_client.put("/api/admin/accounts/1", json={"first_name": "X"}).status_code == 403
+        assert (
+            write_staff_client.put("/api/admin/accounts/1", json={"first_name": "X"}).status_code
+            == 403
+        )
 
 
 # ---------------------------------------------------------------------------
