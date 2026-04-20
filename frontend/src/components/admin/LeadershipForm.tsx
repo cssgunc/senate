@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getSenators } from "@/lib/api";
 import { Senator } from "@/types";
 import {
@@ -142,21 +149,25 @@ export function LeadershipForm({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Link to Senator (Optional)
           </label>
-          <select
-            className="w-full p-2 border rounded border-gray-300"
-            value={senatorId || ""}
-            onChange={(e) =>
-              setSenatorId(e.target.value ? parseInt(e.target.value) : null)
+          <Select
+            value={senatorId?.toString() || "none"}
+            onValueChange={(val) =>
+              setSenatorId(val === "none" ? null : parseInt(val))
             }
             disabled={senatorsLoading}
           >
-            <option value="">-- No Senator --</option>
-            {senators.map((senator) => (
-              <option key={senator.id} value={senator.id}>
-                {senator.first_name} {senator.last_name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="No Senator" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— No Senator —</SelectItem>
+              {senators.map((senator) => (
+                <SelectItem key={senator.id} value={String(senator.id)}>
+                  {senator.first_name} {senator.last_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <p className="text-xs text-gray-500 mt-1">
             Optional. Link this leadership entry to a senator record.
           </p>

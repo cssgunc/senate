@@ -61,7 +61,7 @@ export default async function RecentNews() {
       <div className="mt-8 text-center">
         <Link
           href="/news"
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          className="inline-flex items-center rounded-md bg-slate-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
         >
           View All News
         </Link>

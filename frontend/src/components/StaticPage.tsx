@@ -17,40 +17,24 @@ const placeholderBody =
 export default function StaticPage({ slug }: StaticPageProps) {
   const [page, setPage] = useState<StaticPageContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadPage = async () => {
       setIsLoading(true);
-      setErrorMessage(null);
 
       try {
         const data = await getStaticPage(slug);
-        if (!isMounted) {
-          return;
-        }
-        setPage(data);
+        if (isMounted) setPage(data);
       } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        if (error instanceof ApiError && error.status === 404) {
-          setErrorMessage(
-            "This page does not have published content yet. Showing placeholder text for now.",
-          );
-        } else {
-          setErrorMessage(
-            "Unable to load page content right now. Showing placeholder text until the backend is ready.",
-          );
+        if (!isMounted) return;
+        if (!(error instanceof ApiError && error.status === 404)) {
+          console.error("Failed to load static page:", slug, error);
         }
         setPage(null);
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       }
     };
 
@@ -62,12 +46,7 @@ export default function StaticPage({ slug }: StaticPageProps) {
   }, [slug]);
 
   if (isLoading) {
-    return (
-      <section>
-        <h1>Loading...</h1>
-        <p>Fetching page content.</p>
-      </section>
-    );
+    return <section aria-busy="true" />;
   }
 
   const title = page?.title || placeholderTitle;
@@ -76,7 +55,6 @@ export default function StaticPage({ slug }: StaticPageProps) {
   return (
     <section>
       <h1>{title}</h1>
-      {errorMessage ? <p>{errorMessage}</p> : null}
       <HtmlContent html={body} />
     </section>
   );

@@ -11,6 +11,13 @@ import { SenatorForm } from "@/components/admin/SenatorForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   createSenator,
   deleteSenator,
   getAdminSenators,
@@ -285,17 +292,19 @@ export default function AdminSenatorsPage() {
             <label className="mb-1 block text-sm font-medium text-slate-700">
               Status
             </label>
-            <select
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+            <Select
               value={activeFilter}
-              onChange={(event) =>
-                setActiveFilter(event.target.value as ActiveFilter)
-              }
+              onValueChange={(val) => setActiveFilter(val as ActiveFilter)}
             >
-              <option value="all">All</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

@@ -19,7 +19,9 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import * as React from "react";
 
 const senatorsItems = [
@@ -55,6 +57,10 @@ const fundingItems = [
 
 export function Header() {
   const [isOpen, setIsOpen] = React.useState(false);
+  const pathname = usePathname();
+
+  const isActive = (href: string) => pathname === href;
+  const isActivePrefix = (prefix: string) => pathname.startsWith(prefix);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
@@ -63,8 +69,8 @@ export function Header() {
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3.5 lg:px-6">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-slate-100 text-base font-semibold uppercase text-slate-700 shadow-sm">
-              S
+            <div className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-slate-100 shadow-sm overflow-hidden">
+              <Image src="/USG logo.png" alt="USG Logo" width={44} height={44} className="object-contain" />
             </div>
             <span className="flex flex-col leading-tight">
               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-950 sm:text-sm sm:tracking-[0.22em]">
@@ -80,35 +86,39 @@ export function Header() {
             <NavigationMenu>
               <NavigationMenuList className="space-x-0 rounded-full border border-slate-200 bg-slate-50 p-1.5 shadow-sm">
                 <NavigationMenuItem>
-                  <Link
-                    href="/"
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
-                    )}
-                  >
-                    Home
-                  </Link>
+                  <NavigationMenuLink asChild active={isActive("/")}>
+                    <Link
+                      href="/"
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
+                      )}
+                    >
+                      Home
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <Link
-                    href="/news"
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
-                    )}
-                  >
-                    News
-                  </Link>
+                  <NavigationMenuLink asChild active={isActivePrefix("/news")}>
+                    <Link
+                      href="/news"
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
+                      )}
+                    >
+                      News
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white">
+                  <NavigationMenuTrigger className={cn("rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white", isActivePrefix("/senators") && "bg-white text-slate-950")}>
                     Senators
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <ul className="grid w-[380px] gap-3 border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
+                    <ul className="grid w-[380px] gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
                       {senatorsItems.map((item) => (
                         <ListItem
                           key={item.title}
@@ -121,23 +131,25 @@ export function Header() {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <Link
-                    href="/committees"
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
-                    )}
-                  >
-                    Committees
-                  </Link>
+                  <NavigationMenuLink asChild active={isActivePrefix("/committees")}>
+                    <Link
+                      href="/committees"
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
+                      )}
+                    >
+                      Committees
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white">
+                  <NavigationMenuTrigger className={cn("rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white", isActivePrefix("/legislation") && "bg-white text-slate-950")}>
                     Legislation
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <ul className="grid w-[380px] gap-3 border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
+                    <ul className="grid w-[380px] gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
                       {legislationItems.map((item) => (
                         <ListItem
                           key={item.title}
@@ -151,7 +163,7 @@ export function Header() {
                             href="https://drive.google.com/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block select-none space-y-1 rounded-md border border-transparent p-3 leading-none no-underline outline-none transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950 focus:border-slate-200 focus:bg-slate-50"
+                            className="block select-none space-y-1 rounded-lg border border-transparent p-3 leading-none no-underline outline-none transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950 focus:border-slate-200 focus:bg-slate-50"
                             aria-label="Senate Archives (opens in a new tab)"
                           >
                             <div className="text-sm font-medium leading-none text-slate-900">
@@ -165,11 +177,11 @@ export function Header() {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white">
+                  <NavigationMenuTrigger className={cn("rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white", (isActivePrefix("/about") || isActive("/elections")) && "bg-white text-slate-950")}>
                     About
                   </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[380px] gap-3 border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
+                  <NavigationMenuContent className="left-auto right-0">
+                    <ul className="grid w-[380px] gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
                       {aboutItems.map((item) => (
                         <ListItem
                           key={item.title}
@@ -182,11 +194,11 @@ export function Header() {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white">
+                  <NavigationMenuTrigger className={cn("rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white", isActivePrefix("/funding") && "bg-white text-slate-950")}>
                     Funding
                   </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[380px] gap-3 border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
+                  <NavigationMenuContent className="left-auto right-0">
+                    <ul className="grid w-[380px] gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-xl md:grid-cols-2 lg:w-[540px]">
                       {fundingItems.map((item) => (
                         <ListItem
                           key={item.title}
@@ -199,27 +211,31 @@ export function Header() {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <Link
-                    href="/meetings"
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
-                    )}
-                  >
-                    Meetings
-                  </Link>
+                  <NavigationMenuLink asChild active={isActivePrefix("/meetings")}>
+                    <Link
+                      href="/meetings"
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
+                      )}
+                    >
+                      Meetings
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <Link
-                    href="/admin/login"
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
-                    )}
-                  >
-                    Internal Login
-                  </Link>
+                  <NavigationMenuLink asChild active={isActivePrefix("/admin")}>
+                    <Link
+                      href="/admin/login"
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        "rounded-full bg-transparent px-4 text-slate-700 hover:bg-white hover:text-slate-950 focus:bg-white focus:text-slate-950 data-[active]:bg-white data-[state=open]:bg-white",
+                      )}
+                    >
+                      Internal Login
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
@@ -407,7 +423,7 @@ const ListItem = React.forwardRef<
         <Link
           href={href}
           className={cn(
-            "block select-none space-y-1 rounded-md border border-transparent p-3.5 leading-none no-underline outline-none transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950 focus:border-slate-200 focus:bg-slate-50",
+            "block select-none space-y-1 rounded-lg border border-transparent p-3.5 leading-none no-underline outline-none transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950 focus:border-slate-200 focus:bg-slate-50",
             className,
           )}
           {...props}

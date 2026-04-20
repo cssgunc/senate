@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { CalendarEvent } from "@/types";
 import type { CreateCalendarEvent } from "@/types/admin";
 import { useState } from "react";
@@ -139,17 +146,22 @@ export function CalendarEventForm({
             <label className="block text-sm font-medium text-gray-700">
               Event Type
             </label>
-            <select
-              name="event_type"
+            <Select
               value={formData.event_type}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onValueChange={(val) =>
+                setFormData((prev) => ({ ...prev, event_type: val }))
+              }
             >
-              <option value="Senate Meeting">Senate Meeting</option>
-              <option value="Committee Hearing">Committee Hearing</option>
-              <option value="Finance Hearing">Finance Hearing</option>
-              <option value="Other">Other</option>
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Senate Meeting">Senate Meeting</SelectItem>
+                <SelectItem value="Committee Hearing">Committee Hearing</SelectItem>
+                <SelectItem value="Finance Hearing">Finance Hearing</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2 md:col-span-2">

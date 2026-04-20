@@ -10,6 +10,13 @@ import { DataTable } from "@/components/admin/DataTable";
 import { NewsForm } from "@/components/admin/NewsForm";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   createNews,
   deleteNews,
   getAdminNews,
@@ -222,15 +229,19 @@ export default function AdminNewsPage() {
           <label className="text-sm font-medium text-slate-700">
             Filter by Status:
           </label>
-          <select
-            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+          <Select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+            onValueChange={(val) => setStatusFilter(val as StatusFilter)}
           >
-            <option value="All">All</option>
-            <option value="Published">Published</option>
-            <option value="Draft">Draft</option>
-          </select>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All</SelectItem>
+              <SelectItem value="Published">Published</SelectItem>
+              <SelectItem value="Draft">Draft</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {isLoading ? (

@@ -1,3 +1,4 @@
+import NewsSearchBar from "@/components/news/NewsSearchBar";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { Card } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import type { News } from "@/types";
 import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +26,16 @@ export default async function NewsPage({
   const safePage = Number.isFinite(page) && page > 0 ? page : 1;
   const pageSize = 10;
 
+  const searchParam = resolvedSearchParams.search;
+  const search = Array.isArray(searchParam) ? searchParam[0] : searchParam;
+
+  const yearParam = resolvedSearchParams.year;
+  const yearStr = Array.isArray(yearParam) ? yearParam[0] : yearParam;
+  const year = yearStr ? parseInt(yearStr, 10) : undefined;
+
   let newsData;
   try {
-    newsData = await getNews(safePage, pageSize);
+    newsData = await getNews(safePage, pageSize, search, year);
   } catch {
     return (
       <div className="container mx-auto p-4">
@@ -39,6 +48,9 @@ export default async function NewsPage({
 
   return (
     <div className="container mx-auto p-4">
+      <Suspense>
+        <NewsSearchBar initialSearch={search ?? ""} initialYear={yearStr ?? ""} />
+      </Suspense>
       {newsData.items.length === 0 ? (
         <EmptyState
           message="No news articles found."
@@ -80,7 +92,7 @@ export default async function NewsPage({
           <div className="flex justify-between items-center mt-8">
             {safePage > 1 ? (
               <Link
-                href={`/news?page=${safePage - 1}`}
+                href={`/news?page=${safePage - 1}${search ? `&search=${encodeURIComponent(search)}` : ""}${yearStr ? `&year=${yearStr}` : ""}`}
                 className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200"
               >
                 Previous
@@ -95,7 +107,7 @@ export default async function NewsPage({
 
             {hasNextPage ? (
               <Link
-                href={`/news?page=${safePage + 1}`}
+                href={`/news?page=${safePage + 1}${search ? `&search=${encodeURIComponent(search)}` : ""}${yearStr ? `&year=${yearStr}` : ""}`}
                 className="px-4 py-2 bg-gray-100 rounded-md hover:bg-gray-200"
               >
                 Next

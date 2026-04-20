@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useState } from "react";
 import type { Account, CreateAccount } from "@/types/admin";
 
@@ -113,14 +120,18 @@ export function AccountForm({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Role
           </label>
-          <select
-            className="w-full p-2 border rounded border-gray-300"
+          <Select
             value={role}
-            onChange={(e) => setRole(e.target.value as "admin" | "staff")}
+            onValueChange={(val) => setRole(val as "admin" | "staff")}
           >
-            <option value="staff">Staff</option>
-            <option value="admin">Admin</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="staff">Staff</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+            </SelectContent>
+          </Select>
           <p className="text-xs text-gray-500 mt-1">
             Admin accounts can manage all content and other accounts. Staff
             accounts can manage content but not accounts.

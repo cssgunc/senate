@@ -46,16 +46,12 @@ export default async function Home() {
         <Carousel slides={slides} />
       )}
       <div className="container mx-auto px-4 py-12">
-        {financeError ? (
-          <div className="mb-10">
+        <div className={`mb-10 grid gap-4 ${(financeError || financeHearings?.is_active) ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
+          {financeError ? (
             <ErrorMessage message="Unable to load finance hearing information. Please try again." />
-          </div>
-        ) : financeHearings?.is_active ? (
-          <div className="mb-10">
+          ) : financeHearings?.is_active ? (
             <FinanceHearingButton />
-          </div>
-        ) : null}
-        <div className="mb-10">
+          ) : null}
           <ContactCTA />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">

@@ -53,10 +53,18 @@ def _news_to_dict(news: News) -> dict[str, Any]:
 def list_news(
     page: int = Query(default=1, ge=1, description="1-based page number"),
     limit: int = Query(default=20, ge=1, le=100, description="Items per page"),
+    search: str | None = Query(default=None, description="Filter by title substring"),
+    year: int | None = Query(default=None, description="Filter by publication year"),
     db: Session = Depends(get_db),
 ):
     """Return a paginated list of published news articles, most recent first."""
-    query = db.query(News).filter(News.is_published == true()).order_by(News.date_published.desc())
+    from sqlalchemy import extract
+    query = db.query(News).filter(News.is_published == true())
+    if search:
+        query = query.filter(News.title.ilike(f"%{search}%"))
+    if year:
+        query = query.filter(extract("year", News.date_published) == year)
+    query = query.order_by(News.date_published.desc())
     items, total = paginate(query, page=page, limit=limit)
     news_dicts = [_news_to_dict(n) for n in items]
 

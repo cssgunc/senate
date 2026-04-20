@@ -33,7 +33,7 @@ function ActionTimeline({ actions }: { actions: LegislationAction[] }) {
       <ol className="relative border-l border-gray-200 space-y-6 pl-6">
         {actions.map((action) => (
           <li key={action.id} className="relative">
-            <span className="absolute -left-[1.4rem] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 ring-2 ring-white">
+            <span className="absolute -left-8 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-100 ring-2 ring-white">
               <span className="h-2 w-2 rounded-full bg-blue-500" />
             </span>
             <p className="text-xs text-gray-500 mb-0.5">

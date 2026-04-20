@@ -145,8 +145,10 @@ export async function fetchAPI<T>(
 export async function getNews(
   page: number = 1,
   limit: number = 10,
+  search?: string,
+  year?: number,
 ): Promise<PaginatedResponse<News>> {
-  const query = createQueryString({ page, limit });
+  const query = createQueryString({ page, limit, search, year });
   return fetchAPI<PaginatedResponse<News>>(`/api/news${query}`);
 }
 
