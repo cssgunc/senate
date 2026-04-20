@@ -18,6 +18,22 @@ class TestListBudget:
         assert len(data) >= 1
         assert all(item["fiscal_year"] == "FY2026" for item in data)
 
+
+class TestListBudgetYears:
+    def test_returns_200(self, client):
+        assert client.get("/api/budget/years").status_code == 200
+
+    def test_returns_sorted_distinct_years(self, client):
+        data = client.get("/api/budget/years").json()
+        assert data == ["FY2026", "FY2025"]
+
+    def test_year_values_are_strings(self, client):
+        data = client.get("/api/budget/years").json()
+        assert all(isinstance(item, str) for item in data)
+
+
+class TestListBudgetScenarios:
+
     def test_top_level_only_at_root(self, client):
         """Only parent-level items (parent_category_id=NULL) appear at the root."""
         data = client.get("/api/budget").json()
