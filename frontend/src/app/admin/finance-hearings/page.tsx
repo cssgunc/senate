@@ -5,6 +5,7 @@ import {
   AdminPageHeader,
   AdminPageShell,
 } from "@/components/admin/AdminPageShell";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -305,14 +306,12 @@ export default function AdminFinanceHearingsPage() {
 
           <div className="space-y-2">
             <Label htmlFor="hearing-description">Description</Label>
-            <Input
-              id="hearing-description"
-              type="text"
+            <RichTextEditor
               value={dateForm.description}
-              onChange={(event) =>
+              onChange={(value) =>
                 setDateForm((current) => ({
                   ...current,
-                  description: event.target.value,
+                  description: value,
                 }))
               }
             />

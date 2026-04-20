@@ -14,6 +14,7 @@ from app.schemas.legislation import (
     UpdateLegislationActionDTO,
     UpdateLegislationDTO,
 )
+from app.utils.sanitization import sanitize_html
 
 router = APIRouter(
     prefix="/api/admin/legislation",
@@ -44,9 +45,13 @@ def create_legislation(
     db: Session = Depends(get_db),
     _current_user: Admin = Depends(get_current_user),
 ):
+    payload = payload.model_dump()
+    for field in ("summary", "full_text"):
+        payload[field] = sanitize_html(payload[field])
+
     legislation = Legislation(
-        **payload.model_dump(),
-        date_last_action=payload.date_introduced # could change to be None
+        **payload,
+        date_last_action=payload["date_introduced"] # could change to be None
     )
 
     db.add(legislation)
@@ -69,7 +74,12 @@ def update_legislation(
     if not legislation:
         raise HTTPException(404, "Legislation not found")
 
-    for key, value in payload.model_dump(exclude_unset=True).items():
+    update_data = payload.model_dump(exclude_unset=True)
+    for field in ("summary", "full_text"):
+        if field in update_data and update_data[field] is not None:
+            update_data[field] = sanitize_html(update_data[field])
+
+    for key, value in update_data.items():
         if hasattr(legislation, key):
             setattr(legislation, key, value)
 
@@ -127,7 +137,7 @@ def add_action(
     action = LegislationAction(
         legislation_id=id,
         action_date=payload.action_date,
-        description=payload.description,
+        description=sanitize_html(payload.description),
         action_type=payload.action_type,
         display_order=newDisplayOrder,
     )
@@ -161,7 +171,11 @@ def update_action(
     if not action:
         raise HTTPException(404, "Action not found")
 
-    for key, value in payload.model_dump(exclude_unset=True).items():
+    update_data = payload.model_dump(exclude_unset=True)
+    if "description" in update_data and update_data["description"] is not None:
+        update_data["description"] = sanitize_html(update_data["description"])
+
+    for key, value in update_data.items():
         if hasattr(action, key):
             setattr(action, key, value)
 

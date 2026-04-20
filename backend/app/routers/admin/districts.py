@@ -15,6 +15,7 @@ from app.dependencies.auth import get_current_user
 from app.models.Admin import Admin
 from app.models.District import District
 from app.schemas.district import AdminDistrictDTO, CreateDistrictDTO, UpdateDistrictDTO
+from app.utils.sanitization import sanitize_html
 
 router = APIRouter(
     prefix="/api/admin/districts",
@@ -39,7 +40,11 @@ def create_admin_district(
     db: Session = Depends(get_db),
 ):
     """Create a district."""
-    district = District(**body.model_dump())
+    payload = body.model_dump()
+    if payload.get("description") is not None:
+        payload["description"] = sanitize_html(payload["description"])
+
+    district = District(**payload)
     db.add(district)
     try:
         db.commit()
@@ -66,7 +71,11 @@ def update_admin_district(
     if district is None:
         raise HTTPException(status_code=404, detail="District not found")
 
-    for field, value in body.model_dump(exclude_unset=True).items():
+    update_data = body.model_dump(exclude_unset=True)
+    if update_data.get("description") is not None:
+        update_data["description"] = sanitize_html(update_data["description"])
+
+    for field, value in update_data.items():
         setattr(district, field, value)
 
     db.commit()

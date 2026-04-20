@@ -5,6 +5,7 @@ import {
   AdminPageHeader,
   AdminPageShell,
 } from "@/components/admin/AdminPageShell";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   assignCommitteeMember,
   createCommittee,
@@ -248,14 +248,11 @@ function CommitteeForm({
 
       <div className="space-y-2">
         <Label htmlFor="committee-description">Description</Label>
-        <Textarea
-          id="committee-description"
-          placeholder="Committee description"
+        <RichTextEditor
           value={form.description}
-          onChange={(e) =>
-            setForm((prev) => ({ ...prev, description: e.target.value }))
+          onChange={(value) =>
+            setForm((prev) => ({ ...prev, description: value }))
           }
-          disabled={isSubmitting}
         />
       </div>
 
@@ -418,12 +415,10 @@ function CommitteeDetail({
 
         <div className="space-y-2">
           <Label htmlFor="edit-committee-description">Description</Label>
-          <Textarea
-            id="edit-committee-description"
-            placeholder="Committee description"
+          <RichTextEditor
             value={editForm.description}
-            onChange={(e) =>
-              setEditForm((prev) => ({ ...prev, description: e.target.value }))
+            onChange={(value) =>
+              setEditForm((prev) => ({ ...prev, description: value }))
             }
           />
         </div>

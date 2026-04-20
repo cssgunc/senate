@@ -34,7 +34,7 @@ ALLOWED_TAGS = [
 
 # Allowed attributes for HTML tags
 ALLOWED_ATTRIBUTES = {
-    "a": ["href", "title", "target"],
+    "a": ["href", "title"],
     "img": ["src", "alt", "title", "width", "height"],
     "table": ["border", "cellpadding", "cellspacing"],
 }
