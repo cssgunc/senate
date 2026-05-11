@@ -41,6 +41,7 @@ const legislationItems = [
 
 const aboutItems = [
   { title: "Staff", href: "/about/staff" },
+  { title: "Apply to be a Staffer", href: "/about/staff/apply" },
   { title: "Powers of the Senate", href: "/about/powers" },
   {
     title: "Bill Process",
@@ -52,7 +53,7 @@ const aboutItems = [
 const fundingItems = [
   { title: "How to Apply", href: "/funding/apply" },
   { title: "Budget", href: "/funding/budget" },
-  { title: "Where Does My Money Go?", href: "/funding/where-does-money-go" },
+  { title: "Budget Process", href: "/funding/budget-process" },
 ];
 
 export function Header() {

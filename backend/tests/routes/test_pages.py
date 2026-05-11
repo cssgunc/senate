@@ -19,6 +19,11 @@ class TestGetPage:
         data = client.get("/api/pages/powers-of-senate").json()
         assert len(data["body"]) > 0
 
+    def test_missing_default_page_is_backfilled(self, client):
+        data = client.get("/api/pages/staffer-application").json()
+        assert data["page_slug"] == "staffer-application"
+        assert data["title"] == "Applying to be a Senate Staffer"
+
     def test_404_for_nonexistent_slug(self, client):
         assert client.get("/api/pages/this-page-does-not-exist").status_code == 404
 

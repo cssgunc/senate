@@ -38,6 +38,7 @@ from app.models import (
     Staff,
     StaticPageContent,
 )
+from app.static_pages import STATIC_PAGE_DEFAULTS
 
 CURRENT_SESSION = 111
 
@@ -567,47 +568,14 @@ def seed_staff(db: Session) -> None:
 
 
 def seed_static_pages(db: Session, editor: Admin) -> None:
-    pages = [
-        (
-            "powers",
-            "Powers of the Senate",
-            "The Undergraduate Senate approves budgets, oversees legislation, and advocates for student needs across UNC.",
-        ),
-        (
-            "bill-process",
-            "How a Bill Moves Through Senate",
-            "Bills are filed with the Clerk, assigned to committee, and brought to the floor for debate and vote.",
-        ),
-        (
-            "disclosure",
-            "Legislation Public Disclosure",
-            "Public records for active legislation, sponsor information, and action history are available here.",
-        ),
-        (
-            "elections",
-            "Undergraduate Senate Elections",
-            "Election timelines, candidate requirements, and district details are published each semester.",
-        ),
-        (
-            "how-to-apply",
-            "How to Apply for Funding",
-            "Student organizations can submit applications, supporting documents, and appeals through the funding portal.",
-        ),
-        (
-            "budget-process",
-            "Budget Process Overview",
-            "The budget process includes request intake, finance hearings, committee recommendations, and senate approval.",
-        ),
-    ]
-
     rows = [
         StaticPageContent(
-            page_slug=slug,
-            title=title,
-            body=body,
+            page_slug=page.slug,
+            title=page.title,
+            body=page.body,
             last_edited_by=editor.id,
         )
-        for slug, title, body in pages
+        for page in STATIC_PAGE_DEFAULTS
     ]
     db.add_all(rows)
 
