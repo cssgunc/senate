@@ -13,6 +13,7 @@ from app.main import app
 from app.models import Admin
 from app.models.base import Base
 from app.models.cms import StaticPageContent
+from app.static_pages import STATIC_PAGE_DEFAULTS
 
 _SQLITE_URL = "sqlite:///:memory:"
 
@@ -148,7 +149,7 @@ class TestListAdminPages:
     def test_returns_list_of_pages(self, admin_read_client):
         data = admin_read_client.get("/api/admin/pages").json()
         assert isinstance(data, list)
-        assert len(data) == 2
+        assert len(data) >= len(STATIC_PAGE_DEFAULTS)
 
     def test_response_shape(self, admin_read_client):
         item = admin_read_client.get("/api/admin/pages").json()[0]

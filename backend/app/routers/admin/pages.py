@@ -12,6 +12,7 @@ from app.dependencies.auth import get_current_user
 from app.models.Admin import Admin
 from app.models.cms import StaticPageContent
 from app.schemas.static_page import StaticPageDTO, UpdateStaticPageDTO
+from app.static_pages import ensure_default_static_pages
 from app.utils.sanitization import sanitize_html
 
 router = APIRouter(
@@ -22,10 +23,11 @@ router = APIRouter(
 
 @router.get("", response_model=list[StaticPageDTO])
 def list_admin_pages(
-    _current_user: Admin = Depends(get_current_user),
+    current_user: Admin = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Return all static pages."""
+    ensure_default_static_pages(db, editor=current_user, commit=True)
     pages = db.query(StaticPageContent).order_by(StaticPageContent.page_slug).all()
     return [StaticPageDTO.model_validate(p) for p in pages]
 
