@@ -49,6 +49,9 @@ RUN mkdir -p /etc/apt/keyrings \
     && npm install -g npm@latest \
     && rm -rf /var/lib/apt/lists/*
 
+# Install OpenShift CLI
+RUN curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xz -C /usr/local/bin
+
 # Use a non-root user per https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
 ARG USERNAME=vscode
 ARG USER_UID=1000

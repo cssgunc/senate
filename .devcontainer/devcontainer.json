@@ -29,6 +29,8 @@
         // AI Assistants
         "github.copilot",
         "github.copilot-chat",
+        "anthropic.claude-code",
+        "openai.chatgpt",
 
         // Developer Experience
         "usernamehw.errorlens",
