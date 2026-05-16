@@ -1,0 +1,9 @@
+.coverage
+.env
+.pytest_cache
+.ruff_cache
+__pycache__
+*.py[cod]
+*.egg-info
+test-results.xml
+tests

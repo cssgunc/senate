@@ -1,0 +1,76 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+        default: dev
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'push' && 'dev' || inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install OpenShift CLI
+        uses: redhat-actions/oc-installer@v1
+
+      - name: Determine environment
+        id: env
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "environment=dev" >> "$GITHUB_OUTPUT"
+            echo "param_file=deploy/cloudapps/params/dev.env" >> "$GITHUB_OUTPUT"
+          else
+            echo "environment=${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
+            echo "param_file=deploy/cloudapps/params/${{ inputs.environment }}.env" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Load deployment parameters
+        shell: bash
+        run: |
+          set -a
+          # shellcheck disable=SC1090
+          source "${{ steps.env.outputs.param_file }}"
+          set +a
+          {
+            echo "APP_NAME=$APP_NAME"
+            echo "OPENSHIFT_PROJECT=$OPENSHIFT_PROJECT"
+            echo "FRONTEND_HOST=$FRONTEND_HOST"
+            echo "BACKEND_HOST=$BACKEND_HOST"
+            echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL"
+            echo "CORS_ORIGINS=$CORS_ORIGINS"
+            echo "PARAM_FILE=${{ steps.env.outputs.param_file }}"
+          } >> "$GITHUB_ENV"
+
+      - name: Log in to OpenShift
+        shell: bash
+        env:
+          OC_SERVER: ${{ secrets.OC_SERVER }}
+          OC_TOKEN: ${{ secrets.OC_TOKEN }}
+        run: |
+          oc login "$OC_SERVER" --token="$OC_TOKEN"
+          oc project "$OPENSHIFT_PROJECT"
+
+      - name: Apply environment
+        shell: bash
+        env:
+          GIT_SOURCE_SECRET: ${{ secrets.GIT_SOURCE_SECRET }}
+          SKIP_BUILD: "0"
+        run: |
+          deploy/cloudapps/scripts/apply-environment.sh "${{ steps.env.outputs.environment }}"

@@ -4,6 +4,25 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_csv(name: str, default: list[str] | None = None) -> list[str]:
+    value = os.getenv(name)
+    if not value:
+        return default or []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+ENVIRONMENT = os.getenv("ENVIRONMENT", os.getenv("MODE", "development")).lower()
+DEBUG = _env_bool("DEBUG", default=ENVIRONMENT != "production")
+CORS_ORIGINS = _env_csv("CORS_ORIGINS", ["http://localhost:3000"])
+
 JWT_SECRET = os.getenv("JWT_SECRET")
 if not JWT_SECRET:
     raise RuntimeError("JWT_SECRET environment variable is required")
