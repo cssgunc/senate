@@ -1,0 +1,395 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: senate-cloudapps
+  annotations:
+    description: CloudApps/OKD deployment template for the UNC Undergraduate Senate app.
+parameters:
+  - name: APP_NAME
+    value: senate
+  - name: OPENSHIFT_PROJECT
+    required: true
+    description: Your CloudApps/OKD project name.
+  - name: GIT_REPO
+    required: true
+    description: Git repository URL used by the BuildConfigs.
+  - name: GIT_REF
+    value: main
+  - name: RUNTIME_ENVIRONMENT
+    value: production
+  - name: FRONTEND_HOST
+    required: true
+    description: Public frontend hostname, without https://.
+  - name: BACKEND_HOST
+    required: true
+    description: Public backend hostname, without https://.
+  - name: NEXT_PUBLIC_API_URL
+    required: true
+    description: Public backend origin used by the frontend build, including https://.
+  - name: CORS_ORIGINS
+    required: true
+    description: Comma-separated allowed browser origins for the backend.
+  - name: DB_NAME
+    value: senate
+  - name: DB_STORAGE_SIZE
+    value: 8Gi
+  - name: UPLOAD_STORAGE_SIZE
+    value: 2Gi
+  - name: MSSQL_MEMORY_REQUEST
+    value: 1Gi
+  - name: MSSQL_MEMORY_LIMIT
+    value: 2Gi
+  - name: BACKEND_MEMORY_REQUEST
+    value: 256Mi
+  - name: BACKEND_MEMORY_LIMIT
+    value: 512Mi
+  - name: FRONTEND_MEMORY_REQUEST
+    value: 256Mi
+  - name: FRONTEND_MEMORY_LIMIT
+    value: 512Mi
+objects:
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: ${APP_NAME}-backend
+
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: ${APP_NAME}-frontend
+
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      name: ${APP_NAME}-backend
+    spec:
+      source:
+        type: Git
+        git:
+          uri: ${GIT_REPO}
+          ref: ${GIT_REF}
+        contextDir: backend
+      strategy:
+        type: Docker
+        dockerStrategy:
+          dockerfilePath: Dockerfile
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${APP_NAME}-backend:latest
+
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      name: ${APP_NAME}-frontend
+    spec:
+      source:
+        type: Git
+        git:
+          uri: ${GIT_REPO}
+          ref: ${GIT_REF}
+        contextDir: frontend
+      strategy:
+        type: Docker
+        dockerStrategy:
+          dockerfilePath: Dockerfile
+          buildArgs:
+            - name: NEXT_PUBLIC_API_URL
+              value: ${NEXT_PUBLIC_API_URL}
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${APP_NAME}-frontend:latest
+
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${APP_NAME}-mssql-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: ${DB_STORAGE_SIZE}
+
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${APP_NAME}-uploads
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: ${UPLOAD_STORAGE_SIZE}
+
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ${APP_NAME}-mssql
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: ${APP_NAME}-mssql
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            app: ${APP_NAME}-mssql
+        spec:
+          containers:
+            - name: mssql
+              image: mcr.microsoft.com/mssql/server:2022-latest
+              ports:
+                - containerPort: 1433
+                  name: sql
+              env:
+                - name: ACCEPT_EULA
+                  value: "Y"
+                - name: MSSQL_PID
+                  value: Express
+                - name: MSSQL_SA_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: MSSQL_SA_PASSWORD
+              resources:
+                requests:
+                  memory: ${MSSQL_MEMORY_REQUEST}
+                limits:
+                  memory: ${MSSQL_MEMORY_LIMIT}
+              volumeMounts:
+                - name: mssql-data
+                  mountPath: /var/opt/mssql
+              readinessProbe:
+                tcpSocket:
+                  port: 1433
+                initialDelaySeconds: 45
+                periodSeconds: 10
+              livenessProbe:
+                tcpSocket:
+                  port: 1433
+                initialDelaySeconds: 90
+                periodSeconds: 20
+          volumes:
+            - name: mssql-data
+              persistentVolumeClaim:
+                claimName: ${APP_NAME}-mssql-data
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APP_NAME}-mssql
+    spec:
+      selector:
+        app: ${APP_NAME}-mssql
+      ports:
+        - name: sql
+          port: 1433
+          targetPort: 1433
+
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ${APP_NAME}-backend
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: ${APP_NAME}-backend
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          labels:
+            app: ${APP_NAME}-backend
+        spec:
+          containers:
+            - name: backend
+              image: image-registry.openshift-image-registry.svc:5000/${OPENSHIFT_PROJECT}/${APP_NAME}-backend:latest
+              imagePullPolicy: Always
+              ports:
+                - containerPort: 8000
+                  name: http
+              env:
+                - name: ENVIRONMENT
+                  value: ${RUNTIME_ENVIRONMENT}
+                - name: PORT
+                  value: "8000"
+                - name: CORS_ORIGINS
+                  value: ${CORS_ORIGINS}
+                - name: DB_HOST
+                  value: ${APP_NAME}-mssql
+                - name: DB_PORT
+                  value: "1433"
+                - name: DB_NAME
+                  value: ${DB_NAME}
+                - name: DB_USER
+                  value: sa
+                - name: MSSQL_SA_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: MSSQL_SA_PASSWORD
+                - name: JWT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: JWT_SECRET
+                - name: SQLALCHEMY_ECHO
+                  value: "false"
+                - name: UPLOAD_DIR
+                  value: /app/uploads
+                - name: UPLOAD_BASE_URL
+                  value: /api/uploads
+                - name: SMTP_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: SMTP_HOST
+                - name: SMTP_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: SMTP_PORT
+                - name: SMTP_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: SMTP_USER
+                - name: SMTP_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: SMTP_PASSWORD
+                - name: SMTP_FROM
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: SMTP_FROM
+              resources:
+                requests:
+                  memory: ${BACKEND_MEMORY_REQUEST}
+                limits:
+                  memory: ${BACKEND_MEMORY_LIMIT}
+              volumeMounts:
+                - name: uploads
+                  mountPath: /app/uploads
+              readinessProbe:
+                httpGet:
+                  path: /health/db
+                  port: 8000
+                initialDelaySeconds: 20
+                periodSeconds: 10
+              livenessProbe:
+                httpGet:
+                  path: /health
+                  port: 8000
+                initialDelaySeconds: 20
+                periodSeconds: 20
+          volumes:
+            - name: uploads
+              persistentVolumeClaim:
+                claimName: ${APP_NAME}-uploads
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APP_NAME}-backend
+    spec:
+      selector:
+        app: ${APP_NAME}-backend
+      ports:
+        - name: http
+          port: 80
+          targetPort: 8000
+
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${APP_NAME}-backend
+    spec:
+      host: ${BACKEND_HOST}
+      to:
+        kind: Service
+        name: ${APP_NAME}-backend
+      port:
+        targetPort: http
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
+
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ${APP_NAME}-frontend
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: ${APP_NAME}-frontend
+      template:
+        metadata:
+          labels:
+            app: ${APP_NAME}-frontend
+        spec:
+          containers:
+            - name: frontend
+              image: image-registry.openshift-image-registry.svc:5000/${OPENSHIFT_PROJECT}/${APP_NAME}-frontend:latest
+              imagePullPolicy: Always
+              ports:
+                - containerPort: 3000
+                  name: http
+              env:
+                - name: NODE_ENV
+                  value: production
+                - name: PORT
+                  value: "3000"
+                - name: NEXT_PUBLIC_API_URL
+                  value: ${NEXT_PUBLIC_API_URL}
+              resources:
+                requests:
+                  memory: ${FRONTEND_MEMORY_REQUEST}
+                limits:
+                  memory: ${FRONTEND_MEMORY_LIMIT}
+              readinessProbe:
+                httpGet:
+                  path: /
+                  port: 3000
+                initialDelaySeconds: 20
+                periodSeconds: 10
+              livenessProbe:
+                httpGet:
+                  path: /
+                  port: 3000
+                initialDelaySeconds: 20
+                periodSeconds: 20
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APP_NAME}-frontend
+    spec:
+      selector:
+        app: ${APP_NAME}-frontend
+      ports:
+        - name: http
+          port: 80
+          targetPort: 3000
+
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${APP_NAME}-frontend
+    spec:
+      host: ${FRONTEND_HOST}
+      to:
+        kind: Service
+        name: ${APP_NAME}-frontend
+      port:
+        targetPort: http
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect

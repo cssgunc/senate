@@ -18,17 +18,7 @@ interface ImageUploadProps {
 function resolveImageSrc(url: string): string {
   if (!url) return "";
   if (/^https?:\/\//i.test(url) || url.startsWith("data:")) return url;
-  if (!url.startsWith("/")) return url;
-
-  const apiBase = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiBase) return url;
-
-  try {
-    const origin = new URL(apiBase).origin;
-    return `${origin}${url}`;
-  } catch {
-    return url;
-  }
+  return url;
 }
 
 function toFriendlyError(message: string): string {

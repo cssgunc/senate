@@ -187,3 +187,21 @@ After running `python -m script.seed_data`, you can log into the admin dashboard
 - **alex.thompson@unc.edu** / **720114563** (admin)
 - **morgan.lee@unc.edu** / **681905244** (admin)
 - **jordan.rivera@unc.edu** / **538227190** (staff)
+
+## Deploying To CloudApps
+
+CloudApps/OKD deployment files live in [deploy/cloudapps](deploy/cloudapps).
+The configured project is `calebhan`, with separate `senate-dev` and
+`senate-prod` environments. Each environment creates separate workloads for SQL
+Server, FastAPI, and Next.js, with persistent volume claims for SQL Server data
+and admin-uploaded images.
+
+GitHub Actions now handles the deployment entrypoint in [/.github/workflows/deploy.yml](.github/workflows/deploy.yml): pushes to `main` deploy `dev`, and manual runs can target `dev` or `prod`.
+
+Important production notes:
+
+- Do not run `python -m script.reset_dev` or `python -m script.seed_data` against production.
+- Run `python -m script.init_db` for non-destructive first-time database setup.
+- Set `CORS_ORIGINS` to the public frontend URL.
+- Set `NEXT_PUBLIC_API_URL` to the public backend URL before building the frontend image.
+- Keep `JWT_SECRET`, `MSSQL_SA_PASSWORD`, SMTP credentials, and any deploy keys in OKD secrets.

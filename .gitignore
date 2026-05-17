@@ -137,6 +137,11 @@ celerybeat.pid
 .env
 .envrc
 .venv
+deploy_key*
+deploy/cloudapps/secrets/
+deploy/cloudapps/*.local.env
+deploy/cloudapps/params/*.local.env
+*.key
 env/
 venv/
 ENV/
