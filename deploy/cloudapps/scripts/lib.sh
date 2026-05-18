@@ -6,7 +6,7 @@ CLOUDAPPS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$CLOUDAPPS_DIR/../.." && pwd)"
 
 usage_env() {
-  echo "Usage: $1 <dev|prod>" >&2
+  echo "Usage: $1 [senate]" >&2
   exit 2
 }
 
@@ -19,12 +19,12 @@ require_oc() {
 }
 
 load_environment() {
-  local env_name="${1:-}"
-  if [[ "$env_name" != "dev" && "$env_name" != "prod" ]]; then
+  local env_name="${1:-senate}"
+  if [[ "$env_name" != "senate" ]]; then
     usage_env "${2:-$0}"
   fi
 
-  PARAM_FILE="$CLOUDAPPS_DIR/params/${env_name}.env"
+  PARAM_FILE="$CLOUDAPPS_DIR/params/senate.env"
   if [[ ! -f "$PARAM_FILE" ]]; then
     echo "Missing parameter file: $PARAM_FILE" >&2
     exit 1
@@ -56,6 +56,13 @@ generate_jwt_secret() {
   python3 - <<'PY'
 import secrets
 print(secrets.token_hex(32))
+PY
+}
+
+generate_webhook_secret() {
+  python3 - <<'PY'
+import secrets
+print(secrets.token_urlsafe(32))
 PY
 }
 

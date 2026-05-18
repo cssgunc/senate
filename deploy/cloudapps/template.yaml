@@ -69,6 +69,11 @@ objects:
           uri: ${GIT_REPO}
           ref: ${GIT_REF}
         contextDir: backend
+      triggers:
+        - type: Generic
+          generic:
+            secretReference:
+              name: ${APP_NAME}-generic-webhook
       strategy:
         type: Docker
         dockerStrategy:
@@ -89,6 +94,11 @@ objects:
           uri: ${GIT_REPO}
           ref: ${GIT_REF}
         contextDir: frontend
+      triggers:
+        - type: Generic
+          generic:
+            secretReference:
+              name: ${APP_NAME}-generic-webhook
       strategy:
         type: Docker
         dockerStrategy:

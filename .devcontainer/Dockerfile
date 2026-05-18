@@ -19,6 +19,7 @@ RUN apt-get update \
         debian-archive-keyring \
         git \
         gnupg \
+        openssh-client \
         locales \
         sudo \
         tzdata \
@@ -49,8 +50,14 @@ RUN mkdir -p /etc/apt/keyrings \
     && npm install -g npm@latest \
     && rm -rf /var/lib/apt/lists/*
 
-# Install OpenShift CLI
-RUN curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xz -C /usr/local/bin
+# Install OpenShift CLI for the current container architecture
+RUN set -eux; \
+        case "$(dpkg --print-architecture)" in \
+            amd64) oc_archive="openshift-client-linux.tar.gz" ;; \
+            arm64) oc_archive="openshift-client-linux-arm64.tar.gz" ;; \
+            *) echo "Unsupported architecture for oc install: $(dpkg --print-architecture)" >&2; exit 1 ;; \
+        esac; \
+        curl -fsSL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/${oc_archive}" | tar xz -C /usr/local/bin oc kubectl
 
 # Use a non-root user per https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
 ARG USERNAME=vscode

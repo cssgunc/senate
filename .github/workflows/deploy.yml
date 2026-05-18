@@ -1,18 +1,11 @@
 name: Deploy
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
     branches: [main]
+    types: [completed]
   workflow_dispatch:
-    inputs:
-      environment:
-        description: Target environment
-        required: true
-        type: choice
-        options:
-          - dev
-          - prod
-        default: dev
 
 permissions:
   contents: read
@@ -21,56 +14,50 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'push' && 'dev' || inputs.environment }}
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    environment: senate
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install OpenShift CLI
-        uses: redhat-actions/oc-installer@v1
-
       - name: Determine environment
         id: env
         shell: bash
         run: |
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "environment=dev" >> "$GITHUB_OUTPUT"
-            echo "param_file=deploy/cloudapps/params/dev.env" >> "$GITHUB_OUTPUT"
-          else
-            echo "environment=${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
-            echo "param_file=deploy/cloudapps/params/${{ inputs.environment }}.env" >> "$GITHUB_OUTPUT"
+          echo "head_branch=${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref_name }}" >> "$GITHUB_OUTPUT"
+          echo "head_sha=${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Select webhook URLs
+        shell: bash
+        env:
+          OKD_BACKEND_WEBHOOK_URL: ${{ secrets.OKD_BACKEND_WEBHOOK_URL }}
+          OKD_FRONTEND_WEBHOOK_URL: ${{ secrets.OKD_FRONTEND_WEBHOOK_URL }}
+        run: |
+          backend_url="$OKD_BACKEND_WEBHOOK_URL"
+          frontend_url="$OKD_FRONTEND_WEBHOOK_URL"
+
+          if [[ -z "$backend_url" || -z "$frontend_url" ]]; then
+            echo "Missing OKD webhook URLs" >&2
+            exit 1
           fi
 
-      - name: Load deployment parameters
-        shell: bash
-        run: |
-          set -a
-          # shellcheck disable=SC1090
-          source "${{ steps.env.outputs.param_file }}"
-          set +a
           {
-            echo "APP_NAME=$APP_NAME"
-            echo "OPENSHIFT_PROJECT=$OPENSHIFT_PROJECT"
-            echo "FRONTEND_HOST=$FRONTEND_HOST"
-            echo "BACKEND_HOST=$BACKEND_HOST"
-            echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL"
-            echo "CORS_ORIGINS=$CORS_ORIGINS"
-            echo "PARAM_FILE=${{ steps.env.outputs.param_file }}"
+            echo "BACKEND_WEBHOOK_URL=$backend_url"
+            echo "FRONTEND_WEBHOOK_URL=$frontend_url"
           } >> "$GITHUB_ENV"
 
-      - name: Log in to OpenShift
+      - name: Trigger OKD webhooks
         shell: bash
         env:
-          OC_SERVER: ${{ secrets.OC_SERVER }}
-          OC_TOKEN: ${{ secrets.OC_TOKEN }}
+          HEAD_BRANCH: ${{ steps.env.outputs.head_branch }}
+          HEAD_SHA: ${{ steps.env.outputs.head_sha }}
         run: |
-          oc login "$OC_SERVER" --token="$OC_TOKEN"
-          oc project "$OPENSHIFT_PROJECT"
+          payload_file="$(mktemp)"
+          trap 'rm -f "$payload_file"' EXIT
+          printf '{"git":{"ref":"refs/heads/%s","commit":"%s"}}\n' "$HEAD_BRANCH" "$HEAD_SHA" > "$payload_file"
 
-      - name: Apply environment
-        shell: bash
-        env:
-          GIT_SOURCE_SECRET: ${{ secrets.GIT_SOURCE_SECRET }}
-          SKIP_BUILD: "0"
-        run: |
-          deploy/cloudapps/scripts/apply-environment.sh "${{ steps.env.outputs.environment }}"
+          for webhook_url in "$BACKEND_WEBHOOK_URL" "$FRONTEND_WEBHOOK_URL"; do
+            curl --fail --silent --show-error \
+              -X POST \
+              -H "Content-Type: application/json" \
+              --data-binary "@$payload_file" \
+              "$webhook_url"
+          done

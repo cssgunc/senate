@@ -191,12 +191,13 @@ After running `python -m script.seed_data`, you can log into the admin dashboard
 ## Deploying To CloudApps
 
 CloudApps/OKD deployment files live in [deploy/cloudapps](deploy/cloudapps).
-The configured project is `calebhan`, with separate `senate-dev` and
-`senate-prod` environments. Each environment creates separate workloads for SQL
-Server, FastAPI, and Next.js, with persistent volume claims for SQL Server data
-and admin-uploaded images.
+The configured project is `calebhan`, with a single `senate` environment. It
+creates workloads for SQL Server, FastAPI, and Next.js, with persistent volume
+claims for SQL Server data and admin-uploaded images.
 
-GitHub Actions now handles the deployment entrypoint in [/.github/workflows/deploy.yml](.github/workflows/deploy.yml): pushes to `main` deploy `dev`, and manual runs can target `dev` or `prod`.
+GitHub Actions now deploys through OKD webhooks in [/.github/workflows/deploy.yml](.github/workflows/deploy.yml): CI runs in GitHub, then the deploy workflow posts to OpenShift webhook URLs stored as GitHub Secrets. The one-time bootstrap lives in [deploy/cloudapps/scripts/bootstrap-webhook.sh](deploy/cloudapps/scripts/bootstrap-webhook.sh).
+
+This setup uses a single `senate` environment and webhook-driven deploys.
 
 Important production notes:
 
