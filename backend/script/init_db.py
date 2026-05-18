@@ -3,10 +3,9 @@
 Usage:
     python -m script.init_db
 
-This script is intended for first deploys and safe redeploys. It creates the
-target SQL Server database if it is missing, creates any missing tables, and can
-optionally bootstrap the first admin account from environment variables.
-It never drops tables and never clears application data.
+This script is intended for first deploys and safe redeploys. It creates any
+missing tables and can optionally bootstrap the first admin account from
+environment variables. It never drops tables and never clears application data.
 """
 
 from __future__ import annotations
@@ -15,54 +14,15 @@ import os
 import re
 import sys
 
-import pyodbc
 from sqlalchemy.exc import IntegrityError
 
 from app.database import (
-    DB_HOST,
-    DB_NAME,
-    DB_PASSWORD,
-    DB_PORT,
-    DB_USER,
     Base,
     SessionLocal,
     engine,
 )
 from app.models import Admin  # noqa: F401 - importing app.models registers all tables
 from app.static_pages import ensure_default_static_pages
-
-
-def _quote_sql_server_identifier(identifier: str) -> str:
-    return f"[{identifier.replace(']', ']]')}]"
-
-
-def create_database_if_missing() -> None:
-    master_conn_str = (
-        "DRIVER={ODBC Driver 18 for SQL Server};"
-        f"SERVER={DB_HOST},{DB_PORT};"
-        "DATABASE=master;"
-        f"UID={DB_USER};"
-        f"PWD={DB_PASSWORD};"
-        "TrustServerCertificate=yes"
-    )
-
-    try:
-        conn = pyodbc.connect(master_conn_str)
-        conn.autocommit = True
-        cursor = conn.cursor()
-        cursor.execute("SELECT database_id FROM sys.databases WHERE name = ?", DB_NAME)
-
-        if cursor.fetchone():
-            print(f"Database '{DB_NAME}' already exists")
-        else:
-            cursor.execute(f"CREATE DATABASE {_quote_sql_server_identifier(DB_NAME)}")
-            print(f"Database '{DB_NAME}' created")
-
-        cursor.close()
-        conn.close()
-    except pyodbc.Error as exc:
-        print(f"Could not initialize database '{DB_NAME}': {exc}")
-        sys.exit(1)
 
 
 def create_missing_tables() -> None:
@@ -123,7 +83,6 @@ def bootstrap_initial_admin() -> None:
 
 if __name__ == "__main__":
     print("Initializing deployed database")
-    create_database_if_missing()
     create_missing_tables()
     bootstrap_initial_admin()
     print("Database initialization complete")
