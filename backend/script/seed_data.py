@@ -39,6 +39,7 @@ from app.models import (
     StaticPageContent,
 )
 from app.static_pages import STATIC_PAGE_DEFAULTS
+from app.utils.passwords import hash_password
 
 CURRENT_SESSION = 111
 
@@ -101,23 +102,26 @@ def seed_admins(db: Session) -> list[Admin]:
     admins = [
         Admin(
             email="alex.thompson@unc.edu",
+            onyen="athompson",
+            password_hash=hash_password("SenateDev2026!"),
             first_name="Alex",
             last_name="Thompson",
-            pid="720114563",
             role="admin",
         ),
         Admin(
             email="morgan.lee@unc.edu",
+            onyen="mlee",
+            password_hash=hash_password("SenateDev2026!"),
             first_name="Morgan",
             last_name="Lee",
-            pid="681905244",
             role="admin",
         ),
         Admin(
             email="jordan.rivera@unc.edu",
+            onyen="jrivera",
+            password_hash=hash_password("SenateDev2026!"),
             first_name="Jordan",
             last_name="Rivera",
-            pid="538227190",
             role="staff",
         ),
     ]

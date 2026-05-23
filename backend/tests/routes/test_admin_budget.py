@@ -13,6 +13,7 @@ from app.main import app
 from app.models import Admin
 from app.models.base import Base
 from app.models.BudgetData import BudgetData
+from app.utils.passwords import hash_password
 
 _SQLITE_URL = "sqlite:///:memory:"
 
@@ -44,7 +45,12 @@ def _seed(engine) -> tuple[int, int]:
     Session = sessionmaker(bind=engine)
     db = Session()
     admin_user = Admin(
-        email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"
+        email="admin@unc.edu",
+        first_name="Admin",
+        last_name="User",
+        onyen="user100000001",
+        password_hash=hash_password("TestPassword123!"),
+        role="admin",
     )
     db.add(admin_user)
     db.flush()

@@ -25,6 +25,7 @@ from app.models.cms import Committee, CommitteeMembership, News, Staff, StaticPa
 from app.models.District import District, DistrictMapping
 from app.models.FinanceHearingConfig import FinanceHearingConfig
 from app.models.FinanceHearingDate import FinanceHearingDate
+from app.utils.passwords import hash_password
 
 # ---------------------------------------------------------------------------
 # Shared in-memory SQLite engine (module-scoped — created once per test module)
@@ -77,7 +78,8 @@ def seeded_engine(test_engine):
         email="author@unc.edu",
         first_name="Test",
         last_name="Author",
-        pid="111111111",
+        onyen="user111111111",
+        password_hash=hash_password("TestPassword123!"),
         role="admin",
     )
     db.add(admin)

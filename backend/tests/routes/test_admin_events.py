@@ -15,6 +15,7 @@ from app.main import app
 from app.models import Admin
 from app.models.base import Base
 from app.models.CalendarEvent import CalendarEvent
+from app.utils.passwords import hash_password
 
 _SQLITE_URL = "sqlite:///:memory:"
 
@@ -47,10 +48,20 @@ def _seed(engine):
     Session = sessionmaker(bind=engine)
     db = Session()
     admin_user = Admin(
-        email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"
+        email="admin@unc.edu",
+        first_name="Admin",
+        last_name="User",
+        onyen="user100000001",
+        password_hash=hash_password("TestPassword123!"),
+        role="admin",
     )
     staff_user = Admin(
-        email="staff@unc.edu", first_name="Staff", last_name="User", pid="200000002", role="staff"
+        email="staff@unc.edu",
+        first_name="Staff",
+        last_name="User",
+        onyen="user200000002",
+        password_hash=hash_password("TestPassword123!"),
+        role="staff",
     )
     db.add_all([admin_user, staff_user])
     db.flush()

@@ -8,14 +8,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
-import type { Account, CreateAccount } from "@/types/admin";
+import type { Account, CreateAccount, UpdateAccount } from "@/types/admin";
 
 interface AccountFormProps {
   initialData?: Account;
-  onSubmit: (data: CreateAccount) => void;
+  onSubmit: (data: CreateAccount | UpdateAccount) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
+
+const MIN_PASSWORD_LENGTH = 12;
+const ONYEN_PATTERN = /^[A-Za-z0-9._-]{2,64}$/;
 
 export function AccountForm({
   initialData,
@@ -26,28 +29,62 @@ export function AccountForm({
   const [firstName, setFirstName] = useState(initialData?.first_name ?? "");
   const [lastName, setLastName] = useState(initialData?.last_name ?? "");
   const [email, setEmail] = useState(initialData?.email ?? "");
-  const [pid, setPid] = useState(initialData?.pid ?? "");
+  const [onyen, setOnyen] = useState(initialData?.onyen ?? "");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState<"admin" | "staff">(
     initialData?.role ?? "staff",
   );
-  const [pidError, setPidError] = useState("");
+  const [onyenError, setOnyenError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
-  const handlePidChange = (value: string) => {
-    setPid(value);
-    if (value && !/^\d{9}$/.test(value)) {
-      setPidError("PID must be exactly 9 digits");
+  const isEditing = Boolean(initialData);
+
+  const handleOnyenChange = (value: string) => {
+    setOnyen(value);
+    if (value && !ONYEN_PATTERN.test(value.trim())) {
+      setOnyenError("Use 2-64 letters, numbers, dots, underscores, or hyphens.");
     } else {
-      setPidError("");
+      setOnyenError("");
     }
+  };
+
+  const validatePassword = (value: string) => {
+    if ((!isEditing || value) && value.length < MIN_PASSWORD_LENGTH) {
+      return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+    }
+    return "";
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    setPasswordError(validatePassword(value));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^\d{9}$/.test(pid)) {
-      setPidError("PID must be exactly 9 digits");
+
+    const trimmedOnyen = onyen.trim().toLowerCase();
+    if (!ONYEN_PATTERN.test(trimmedOnyen)) {
+      setOnyenError("Use 2-64 letters, numbers, dots, underscores, or hyphens.");
       return;
     }
-    onSubmit({ first_name: firstName, last_name: lastName, email, pid, role });
+
+    const nextPasswordError = validatePassword(password);
+    if (nextPasswordError) {
+      setPasswordError(nextPasswordError);
+      return;
+    }
+
+    const payload = {
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      onyen: trimmedOnyen,
+      role,
+      ...(password ? { password } : {}),
+    };
+
+    onSubmit(payload as CreateAccount | UpdateAccount);
   };
 
   return (
@@ -99,20 +136,37 @@ export function AccountForm({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            PID
+            Onyen
           </label>
-          <p className="text-xs text-gray-500 mb-1">9-digit UNC PID number.</p>
           <input
             required
             type="text"
-            maxLength={9}
-            className={`w-full p-2 border rounded ${pidError ? "border-red-500" : "border-gray-300"}`}
-            value={pid}
-            onChange={(e) => handlePidChange(e.target.value)}
-            placeholder="123456789"
+            autoComplete="username"
+            className={`w-full p-2 border rounded ${onyenError ? "border-red-500" : "border-gray-300"}`}
+            value={onyen}
+            onChange={(e) => handleOnyenChange(e.target.value)}
+            placeholder="onyen"
           />
-          {pidError && (
-            <p className="text-xs text-red-600 mt-1">{pidError}</p>
+          {onyenError && (
+            <p className="text-xs text-red-600 mt-1">{onyenError}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Password
+          </label>
+          <input
+            required={!isEditing}
+            type="password"
+            autoComplete={isEditing ? "new-password" : "new-password"}
+            className={`w-full p-2 border rounded ${passwordError ? "border-red-500" : "border-gray-300"}`}
+            value={password}
+            onChange={(e) => handlePasswordChange(e.target.value)}
+            placeholder={isEditing ? "Leave blank to keep current password" : "12+ characters"}
+          />
+          {passwordError && (
+            <p className="text-xs text-red-600 mt-1">{passwordError}</p>
           )}
         </div>
 

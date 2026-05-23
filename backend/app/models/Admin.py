@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import CHAR, CheckConstraint, DateTime, Integer, String
+from sqlalchemy import CheckConstraint, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -14,9 +14,10 @@ class Admin(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    onyen: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    pid: Mapped[str] = mapped_column(CHAR(9), nullable=False, unique=True)
     role: Mapped[str] = mapped_column(String(20), nullable=False)  # "admin" or "staff"
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
@@ -25,18 +26,7 @@ class Admin(Base):
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
-    # # Constraints needed for SQLite stuff
-    # __table_args__ = (
-    #         CheckConstraint("pid REGEXP '^[0-9]{9}$'", name="ck_admin_pid_format"),
-    #         CheckConstraint("role IN ('admin', 'staff')", name="ck_admin_role"),
-    #     )
-
-    # Constraints needed for SQL Server stuff
     __table_args__ = (
-        CheckConstraint(
-            "pid LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'",
-            name="ck_admin_pid_format",
-        ),
         CheckConstraint(
             "role IN ('admin', 'staff')",
             name="ck_admin_role",
@@ -49,4 +39,4 @@ class Admin(Base):
     config_updates: Mapped[list] = relationship("AppConfig", back_populates="updater")
 
     def __repr__(self) -> str:
-        return f"<Admin id={self.id} email={self.email!r} role={self.role!r}>"
+        return f"<Admin id={self.id} onyen={self.onyen!r} role={self.role!r}>"

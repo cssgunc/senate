@@ -11,7 +11,17 @@ import sys
 
 import pyodbc
 
-from app.database import DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, Base, engine
+from app.database import (
+    DB_HOST,
+    DB_NAME,
+    DB_PASSWORD,
+    DB_PORT,
+    DB_TRUST_SERVER_CERTIFICATE,
+    DB_USER,
+    ODBC_DRIVER,
+    Base,
+    engine,
+)
 
 
 def create_database():
@@ -20,12 +30,12 @@ def create_database():
 
     # Connect to master database to create our database
     master_conn_str = (
-        f"DRIVER={{ODBC Driver 18 for SQL Server}};"
+        f"DRIVER={{{ODBC_DRIVER}}};"
         f"SERVER={DB_HOST},{DB_PORT};"
         f"DATABASE=master;"
         f"UID={DB_USER};"
         f"PWD={DB_PASSWORD};"
-        f"TrustServerCertificate=yes"
+        f"TrustServerCertificate={DB_TRUST_SERVER_CERTIFICATE}"
     )
 
     try:

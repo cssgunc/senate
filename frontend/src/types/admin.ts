@@ -1,6 +1,6 @@
 export interface LoginCredentials {
-  email: string;
-  pid: string;
+  onyen: string;
+  password: string;
 }
 
 export interface LoginResponse {
@@ -10,7 +10,7 @@ export interface LoginResponse {
 export interface Account {
   id: number;
   email: string;
-  pid: string;
+  onyen: string;
   first_name: string;
   last_name: string;
   role: "admin" | "staff";
@@ -213,7 +213,17 @@ export interface UpdateStaticPage {
 
 export interface CreateAccount {
   email: string;
-  pid: string;
+  onyen: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  role: "admin" | "staff";
+}
+
+export interface UpdateAccount {
+  email: string;
+  onyen: string;
+  password?: string;
   first_name: string;
   last_name: string;
   role: "admin" | "staff";

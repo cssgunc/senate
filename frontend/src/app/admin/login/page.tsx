@@ -23,15 +23,14 @@ function resolveNextPath(rawNext: string | null): string {
 function AdminLoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
-  const [pid, setPid] = useState("");
+  const [onyen, setOnyen] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const redirectTarget = resolveNextPath(searchParams.get("next"));
 
-  const isPidValid = pid.length === 9 && /^\d+$/.test(pid);
-  const isFormValid = email.trim() !== "" && isPidValid;
+  const isFormValid = onyen.trim() !== "" && password !== "";
 
   useEffect(() => {
     let isMounted = true;
@@ -56,30 +55,22 @@ function AdminLoginContent() {
     };
   }, [redirectTarget, router]);
 
-  const handlePidChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    // Only allow digits and max 9 characters
-    const sanitized = value.replace(/\D/g, "").slice(0, 9);
-    setPid(sanitized);
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
 
-    // Final validation before submission
     if (!isFormValid) {
-      setError("Please enter a valid UNC email and 9-digit PID.");
+      setError("Please enter your Onyen and password.");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await login(email.trim(), pid.trim());
+      await login(onyen.trim(), password);
       router.replace(redirectTarget);
     } catch {
-      setError("Invalid credentials. Please check your UNC email and PID.");
+      setError("Invalid credentials. Please check your Onyen and password.");
     } finally {
       setIsSubmitting(false);
     }
@@ -99,50 +90,45 @@ function AdminLoginContent() {
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">UNC</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-900">Admin Login</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Sign in with your UNC credentials to access the admin dashboard.
+          Sign in with your Onyen credentials to access the admin dashboard.
         </p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1">
             <label
               className="text-sm font-medium text-slate-700"
-              htmlFor="email"
+              htmlFor="onyen"
             >
-              Email
+              Onyen
             </label>
             <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="onyen@unc.edu"
+              id="onyen"
+              name="onyen"
+              type="text"
+              autoComplete="username"
+              value={onyen}
+              onChange={(event) => setOnyen(event.target.value)}
+              placeholder="onyen"
               required
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium text-slate-700" htmlFor="pid">
-              PID (9 digits)
+            <label
+              className="text-sm font-medium text-slate-700"
+              htmlFor="password"
+            >
+              Password
             </label>
             <Input
-              id="pid"
-              name="pid"
+              id="password"
+              name="password"
               type="password"
-              inputMode="numeric"
               autoComplete="current-password"
-              value={pid}
-              onChange={handlePidChange}
-              placeholder="000000000"
-              maxLength={9}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
               required
             />
-            {pid && pid.length < 9 && (
-              <p className="text-xs text-slate-500">
-                {9 - pid.length} digit{9 - pid.length > 1 ? "s" : ""} remaining
-              </p>
-            )}
           </div>
 
           {error ? (

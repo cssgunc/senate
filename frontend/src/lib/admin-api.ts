@@ -36,6 +36,7 @@ import type {
   DistrictMapping,
   LoginCredentials,
   LoginResponse,
+  UpdateAccount,
   UpdateDistrict,
   UpdateFinanceHearingConfig,
   UpdateFinanceHearingDate,
@@ -162,10 +163,10 @@ export async function uploadAdminImage(
 
 // Auth
 export async function login(
-  email: string,
-  pid: string,
+  onyen: string,
+  password: string,
 ): Promise<LoginResponse> {
-  const body: LoginCredentials = { email, pid };
+  const body: LoginCredentials = { onyen, password };
   const data = await request<LoginResponse>("/auth/login", {
     method: "POST",
     body: JSON.stringify(body),
@@ -631,7 +632,7 @@ export async function createAccount(data: CreateAccount): Promise<Account> {
 
 export async function updateAccount(
   id: number,
-  data: CreateAccount,
+  data: UpdateAccount,
 ): Promise<Account> {
   return request(`/admin/accounts/${id}`, {
     method: "PUT",
