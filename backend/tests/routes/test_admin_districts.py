@@ -13,6 +13,7 @@ from app.main import app
 from app.models import Admin, Senator
 from app.models.base import Base
 from app.models.District import District
+from app.utils.passwords import hash_password
 
 _SQLITE_URL = "sqlite:///:memory:"
 
@@ -48,7 +49,8 @@ def _seed(engine) -> int:
             email="admin@unc.edu",
             first_name="Admin",
             last_name="User",
-            pid="100000001",
+            onyen="user100000001",
+            password_hash=hash_password("TestPassword123!"),
             role="admin",
         )
     )
@@ -70,7 +72,8 @@ def _seed_with_senator(engine) -> tuple[int, int]:
             email="admin@unc.edu",
             first_name="Admin",
             last_name="User",
-            pid="100000001",
+            onyen="user100000001",
+            password_hash=hash_password("TestPassword123!"),
             role="admin",
         )
     )

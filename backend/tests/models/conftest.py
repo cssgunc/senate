@@ -14,6 +14,7 @@ from app.models import Admin, Senator
 from app.models.base import Base
 from app.models.cms import Committee
 from app.models.District import District
+from app.utils.passwords import hash_password
 
 # ---------------------------------------------------------------------------
 # Shared in-memory SQLite engine (session-scoped — created once per test run)
@@ -87,7 +88,8 @@ def admin(session):
         email="test.admin@unc.edu",
         first_name="Test",
         last_name="Admin",
-        pid="123456789",
+        onyen="user123456789",
+        password_hash=hash_password("TestPassword123!"),
         role="admin",
     )
     session.add(a)

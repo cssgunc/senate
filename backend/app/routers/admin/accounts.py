@@ -16,6 +16,7 @@ from app.models.Admin import Admin
 from app.schemas.account import AccountDTO, CreateAccountDTO, UpdateAccountDTO
 from app.schemas.pagination import PaginatedResponse
 from app.utils.pagination import paginate
+from app.utils.passwords import hash_password
 
 router = APIRouter(
     prefix="/api/admin/accounts",
@@ -48,7 +49,9 @@ def create_admin_account(
     db: Session = Depends(get_db),
 ):
     """Create an admin or staff account. Admin role required."""
-    account = Admin(**body.model_dump())
+    account_data = body.model_dump()
+    password = account_data.pop("password")
+    account = Admin(**account_data, password_hash=hash_password(password))
     db.add(account)
     try:
         db.commit()
@@ -56,7 +59,7 @@ def create_admin_account(
         db.rollback()
         raise HTTPException(
             status_code=400,
-            detail="Account with that email or PID already exists",
+            detail="Account with that email or Onyen already exists",
         )
     db.refresh(account)
     return AccountDTO.model_validate(account)
@@ -79,7 +82,11 @@ def update_admin_account(
         raise HTTPException(status_code=404, detail="Account not found")
 
     for field, value in body.model_dump(exclude_unset=True).items():
-        setattr(account, field, value)
+        if field == "password":
+            if value is not None:
+                account.password_hash = hash_password(value)
+        else:
+            setattr(account, field, value)
 
     try:
         db.commit()
@@ -87,7 +94,7 @@ def update_admin_account(
         db.rollback()
         raise HTTPException(
             status_code=400,
-            detail="Update would conflict with an existing account (duplicate email or PID)",
+            detail="Update would conflict with an existing account (duplicate email or Onyen)",
         )
     db.refresh(account)
     return AccountDTO.model_validate(account)

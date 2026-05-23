@@ -16,7 +16,7 @@ import {
   listAdminAccounts,
   updateAccount,
 } from "@/lib/admin-api";
-import type { Account, CreateAccount } from "@/types/admin";
+import type { Account, CreateAccount, UpdateAccount } from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -82,20 +82,20 @@ export default function AdminAccountsPage() {
     }
   };
 
-  const handleFormSubmit = async (formData: CreateAccount) => {
+  const handleFormSubmit = async (formData: CreateAccount | UpdateAccount) => {
     setIsSaving(true);
     try {
       if (editingAccount) {
-        await updateAccount(editingAccount.id, formData);
+        await updateAccount(editingAccount.id, formData as UpdateAccount);
       } else {
-        await createAccount(formData);
+        await createAccount(formData as CreateAccount);
       }
       setIsFormOpen(false);
       setEditingAccount(undefined);
       fetchAccounts();
     } catch (error) {
       console.error("Failed to save account:", error);
-      alert("Failed to save account. The email or PID may already be in use.");
+      alert("Failed to save account. The email or Onyen may already be in use.");
     } finally {
       setIsSaving(false);
     }
@@ -112,10 +112,10 @@ export default function AdminAccountsPage() {
       header: "Email",
     },
     {
-      accessorKey: "pid",
-      header: "PID",
+      accessorKey: "onyen",
+      header: "Onyen",
       cell: ({ row }) => (
-        <span className="font-mono text-sm">{row.getValue("pid")}</span>
+        <span className="font-mono text-sm">{row.getValue("onyen")}</span>
       ),
     },
     {

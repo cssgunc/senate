@@ -1,7 +1,7 @@
 export interface Account {
   id: number;
   email: string;
-  pid: string;
+  onyen: string;
   first_name: string;
   last_name: string;
   role: "admin" | "staff";

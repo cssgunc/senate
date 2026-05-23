@@ -44,24 +44,21 @@ class TestAdminModel:
             "email",
             "first_name",
             "last_name",
-            "pid",
+            "onyen",
+            "password_hash",
             "role",
             "created_at",
             "updated_at",
         }
         assert expected == set(cols.keys())
 
-    def test_pid_is_char_9(self):
+    def test_onyen_is_string_64(self):
         cols = get_columns(Admin)
-        assert cols["pid"].type.length == 9
+        assert cols["onyen"].type.length == 64
 
-    def test_pid_check_constraint(self):
-        # Verify via __table_args__ (table.constraints may be modified by test conftest for SQLite)
-        from sqlalchemy import CheckConstraint
-
-        check_constraints = [c for c in Admin.__table_args__ if isinstance(c, CheckConstraint)]
-        names = {c.name for c in check_constraints}
-        assert "ck_admin_pid_format" in names
+    def test_password_hash_is_string_255(self):
+        cols = get_columns(Admin)
+        assert cols["password_hash"].type.length == 255
 
     def test_role_check_constraint(self):
         from sqlalchemy import CheckConstraint
@@ -74,9 +71,9 @@ class TestAdminModel:
         cols = get_columns(Admin)
         assert cols["email"].unique is True
 
-    def test_pid_is_unique(self):
+    def test_onyen_is_unique(self):
         cols = get_columns(Admin)
-        assert cols["pid"].unique is True
+        assert cols["onyen"].unique is True
 
     def test_updated_at_has_onupdate(self):
         cols = get_columns(Admin)

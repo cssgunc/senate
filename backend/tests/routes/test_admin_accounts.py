@@ -15,6 +15,7 @@ from app.dependencies.auth import get_current_user
 from app.main import app
 from app.models import Admin
 from app.models.base import Base
+from app.utils.passwords import hash_password
 
 _SQLITE_URL = "sqlite:///:memory:"
 
@@ -45,10 +46,20 @@ def _seed(engine):
     Session = sessionmaker(bind=engine)
     db = Session()
     admin_user = Admin(
-        email="admin@unc.edu", first_name="Admin", last_name="User", pid="100000001", role="admin"
+        email="admin@unc.edu",
+        first_name="Admin",
+        last_name="User",
+        onyen="user100000001",
+        password_hash=hash_password("TestPassword123!"),
+        role="admin",
     )
     staff_user = Admin(
-        email="staff@unc.edu", first_name="Staff", last_name="User", pid="200000002", role="staff"
+        email="staff@unc.edu",
+        first_name="Staff",
+        last_name="User",
+        onyen="user200000002",
+        password_hash=hash_password("TestPassword123!"),
+        role="staff",
     )
     db.add_all([admin_user, staff_user])
     db.commit()
@@ -150,7 +161,8 @@ def write_staff_client(write_engine):
 
 _CREATE_PAYLOAD = {
     "email": "newuser@unc.edu",
-    "pid": "300000003",
+    "onyen": "newuser",
+    "password": "TestPassword123!",
     "first_name": "New",
     "last_name": "User",
     "role": "staff",
@@ -177,7 +189,7 @@ class TestListAdminAccounts:
 
     def test_response_shape(self, admin_read_client):
         item = admin_read_client.get("/api/admin/accounts").json()["items"][0]
-        for key in ("id", "email", "pid", "first_name", "last_name", "role"):
+        for key in ("id", "email", "onyen", "first_name", "last_name", "role"):
             assert key in item
 
     def test_staff_cannot_list(self, read_engine):
@@ -227,16 +239,16 @@ class TestCreateAdminAccount:
 
     def test_response_shape(self, write_admin_client):
         resp = write_admin_client.post("/api/admin/accounts", json=_CREATE_PAYLOAD).json()
-        for key in ("id", "email", "pid", "role"):
+        for key in ("id", "email", "onyen", "role"):
             assert key in resp
 
     def test_duplicate_email_returns_400(self, write_admin_client):
-        bad = {**_CREATE_PAYLOAD, "pid": "400000004"}
+        bad = {**_CREATE_PAYLOAD, "onyen": "anotheruser"}
         write_admin_client.post("/api/admin/accounts", json=_CREATE_PAYLOAD)
         assert write_admin_client.post("/api/admin/accounts", json=bad).status_code == 400
 
-    def test_invalid_pid_returns_422(self, write_admin_client):
-        bad = {**_CREATE_PAYLOAD, "pid": "123"}
+    def test_invalid_onyen_returns_422(self, write_admin_client):
+        bad = {**_CREATE_PAYLOAD, "onyen": "not allowed"}
         assert write_admin_client.post("/api/admin/accounts", json=bad).status_code == 422
 
     def test_invalid_role_returns_422(self, write_admin_client):

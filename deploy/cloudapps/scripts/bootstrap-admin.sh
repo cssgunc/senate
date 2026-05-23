@@ -29,7 +29,8 @@ read_prompt() {
 }
 
 read_prompt INITIAL_ADMIN_EMAIL "Initial admin email: "
-read_prompt INITIAL_ADMIN_PID "Initial admin PID (9 digits): " 1
+read_prompt INITIAL_ADMIN_ONYEN "Initial admin Onyen: "
+read_prompt INITIAL_ADMIN_PASSWORD "Initial admin password: " 1
 read_prompt INITIAL_ADMIN_FIRST_NAME "Initial admin first name: "
 read_prompt INITIAL_ADMIN_LAST_NAME "Initial admin last name: "
 INITIAL_ADMIN_ROLE="${INITIAL_ADMIN_ROLE:-admin}"
@@ -38,7 +39,8 @@ TEMP_SECRET="${APP_NAME}-initial-admin"
 
 oc create secret generic "$TEMP_SECRET" \
   --from-literal=INITIAL_ADMIN_EMAIL="$INITIAL_ADMIN_EMAIL" \
-  --from-literal=INITIAL_ADMIN_PID="$INITIAL_ADMIN_PID" \
+  --from-literal=INITIAL_ADMIN_ONYEN="$INITIAL_ADMIN_ONYEN" \
+  --from-literal=INITIAL_ADMIN_PASSWORD="$INITIAL_ADMIN_PASSWORD" \
   --from-literal=INITIAL_ADMIN_FIRST_NAME="$INITIAL_ADMIN_FIRST_NAME" \
   --from-literal=INITIAL_ADMIN_LAST_NAME="$INITIAL_ADMIN_LAST_NAME" \
   --from-literal=INITIAL_ADMIN_ROLE="$INITIAL_ADMIN_ROLE" \
@@ -48,7 +50,7 @@ oc create secret generic "$TEMP_SECRET" \
 
 cleanup() {
   oc set env "deployment/${APP_NAME}-backend" \
-    INITIAL_ADMIN_EMAIL- INITIAL_ADMIN_PID- INITIAL_ADMIN_FIRST_NAME- \
+    INITIAL_ADMIN_EMAIL- INITIAL_ADMIN_ONYEN- INITIAL_ADMIN_PASSWORD- INITIAL_ADMIN_FIRST_NAME- \
     INITIAL_ADMIN_LAST_NAME- INITIAL_ADMIN_ROLE- >/dev/null 2>&1 || true
   oc delete secret "$TEMP_SECRET" --ignore-not-found >/dev/null 2>&1 || true
 }

@@ -62,7 +62,7 @@ def test_news_dto_computed_author():
     admin = AccountDTO(
         id=1,
         email="user@example.com",
-        pid="pid123",
+        onyen="janedoe",
         first_name="Mock",
         last_name="Admin",
         role="admin",
@@ -259,7 +259,7 @@ def test_account_dto():
     account = AccountDTO(
         id=1,
         email="user@example.com",
-        pid="pid123",
+        onyen="janedoe",
         first_name="User",
         last_name="Example",
         role="admin",

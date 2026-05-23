@@ -12,6 +12,7 @@ os.environ.setdefault("JWT_SECRET", "test-only-jwt-secret")
 from app.database import Base, get_db
 from app.main import app
 from app.models import Admin, Committee, CommitteeMembership, District, Leadership, Senator
+from app.utils.passwords import hash_password
 
 # --- Setup shared in-memory database ---
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -187,7 +188,8 @@ def seeded_admins(test_db):
         email="admin@test.com",
         first_name="Admin",
         last_name="Tester",
-        pid="123456789",
+        onyen="user123456789",
+        password_hash=hash_password("TestPassword123!"),
         role="admin",
     )
     user = Admin(
@@ -195,7 +197,8 @@ def seeded_admins(test_db):
         email="user@test.com",
         first_name="Normal",
         last_name="User",
-        pid="987654321",
+        onyen="user987654321",
+        password_hash=hash_password("TestPassword123!"),
         role="staff",
     )
     test_db.add_all([admin, user])

@@ -28,7 +28,9 @@ def create_action_payload():
 
 
 def test_create_legislation(client, seeded_admins):
-    login = client.post("/api/auth/login", json={"email": "admin@test.com", "pid": "123456789"})
+    login = client.post(
+        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+    )
     token = login.json()["access_token"]
 
     payload = create_leg_payload()
@@ -43,7 +45,9 @@ def test_create_legislation(client, seeded_admins):
 
 
 def test_add_legislation_action(client, seeded_admins):
-    login = client.post("/api/auth/login", json={"email": "admin@test.com", "pid": "123456789"})
+    login = client.post(
+        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+    )
     token = login.json()["access_token"]
 
     # Create legislation first
@@ -69,7 +73,9 @@ def test_add_legislation_action(client, seeded_admins):
 
 
 def test_update_legislation(client, seeded_admins):
-    login = client.post("/api/auth/login", json={"email": "admin@test.com", "pid": "123456789"})
+    login = client.post(
+        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+    )
     token = login.json()["access_token"]
     # Create legislation
     leg_payload = create_leg_payload()
@@ -90,7 +96,9 @@ def test_update_legislation(client, seeded_admins):
 
 
 def test_update_legislation_action(client, seeded_admins):
-    login = client.post("/api/auth/login", json={"email": "admin@test.com", "pid": "123456789"})
+    login = client.post(
+        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+    )
     token = login.json()["access_token"]
     # Create legislation and action
     leg_payload = create_leg_payload()
@@ -139,7 +147,9 @@ def test_update_legislation_action(client, seeded_admins):
 
 
 def test_delete_legislation_action(client, seeded_admins):
-    login = client.post("/api/auth/login", json={"email": "admin@test.com", "pid": "123456789"})
+    login = client.post(
+        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+    )
     token = login.json()["access_token"]
     # Create legislation and action
     leg_payload = create_leg_payload()
@@ -185,7 +195,9 @@ def test_delete_legislation_action(client, seeded_admins):
 
 
 def test_delete_legislation_and_cascade_actions(client, seeded_admins):
-    login = client.post("/api/auth/login", json={"email": "admin@test.com", "pid": "123456789"})
+    login = client.post(
+        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+    )
     token = login.json()["access_token"]
     # Create legislation
     leg_payload = create_leg_payload()
