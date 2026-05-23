@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 ONYEN_PATTERN = re.compile(r"^[A-Za-z0-9._-]{2,64}$")
 MIN_PASSWORD_LENGTH = 12
+MAX_PASSWORD_LENGTH = 128
 
 
 def normalize_onyen(value: str) -> str:
@@ -36,7 +37,7 @@ class AccountDTO(BaseModel):
 class CreateAccountDTO(BaseModel):
     email: EmailStr
     onyen: str
-    password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=128)
+    password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH)
     first_name: str
     last_name: str
     role: Literal["admin", "staff"]
@@ -50,7 +51,9 @@ class CreateAccountDTO(BaseModel):
 class UpdateAccountDTO(BaseModel):
     email: EmailStr | None = None
     onyen: str | None = None
-    password: str | None = Field(default=None, min_length=MIN_PASSWORD_LENGTH, max_length=128)
+    password: str | None = Field(
+        default=None, min_length=MIN_PASSWORD_LENGTH, max_length=MAX_PASSWORD_LENGTH
+    )
     first_name: str | None = None
     last_name: str | None = None
     role: Literal["admin", "staff"] | None = None
