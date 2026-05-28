@@ -1,6 +1,6 @@
 """Fixtures for model tests.
 
-Uses an in-memory SQLite database so tests run without a SQL Server connection.
+Uses an in-memory SQLite database so tests run without a PostgreSQL connection.
 """
 
 import pytest
@@ -38,7 +38,7 @@ def engine():
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-    # Remove SQL Server-specific CHECK constraints before creating tables on SQLite
+    # Remove PostgreSQL-specific CHECK constraints before creating tables on SQLite
     for table in Base.metadata.tables.values():
         table.constraints = {c for c in table.constraints if not isinstance(c, CheckConstraint)}
 

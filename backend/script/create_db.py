@@ -1,6 +1,6 @@
 """Create database and tables
 
-This script creates the main development database according to the TDD spec (Section 4.4).
+This script creates the main development database if it doesn't exist.
 It should be run once during initial setup or when resetting the development environment.
 
 Usage:
@@ -9,54 +9,41 @@ Usage:
 
 import sys
 
-import pyodbc
+import psycopg2
+from psycopg2 import sql
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from app.database import (
-    DB_HOST,
-    DB_NAME,
-    DB_PASSWORD,
-    DB_PORT,
-    DB_TRUST_SERVER_CERTIFICATE,
-    DB_USER,
-    ODBC_DRIVER,
-    Base,
-    engine,
-)
+from app.database import DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER, Base, engine
 
 
 def create_database():
     """Create the database if it doesn't exist"""
-    print(f"Connecting to SQL Server at {DB_HOST}:{DB_PORT}...")
-
-    # Connect to master database to create our database
-    master_conn_str = (
-        f"DRIVER={{{ODBC_DRIVER}}};"
-        f"SERVER={DB_HOST},{DB_PORT};"
-        f"DATABASE=master;"
-        f"UID={DB_USER};"
-        f"PWD={DB_PASSWORD};"
-        f"TrustServerCertificate={DB_TRUST_SERVER_CERTIFICATE}"
-    )
+    print(f"Connecting to PostgreSQL at {DB_HOST}:{DB_PORT}...")
 
     try:
-        conn = pyodbc.connect(master_conn_str)
-        conn.autocommit = True
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            port=int(DB_PORT),
+            user=DB_USER,
+            password=DB_PASSWORD,
+            dbname="postgres",
+        )
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
 
-        # Check if database exists
-        cursor.execute(f"SELECT database_id FROM sys.databases WHERE name = '{DB_NAME}'")
+        cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", (DB_NAME,))
         if cursor.fetchone():
             print(f"Database '{DB_NAME}' already exists")
         else:
-            cursor.execute(f"CREATE DATABASE {DB_NAME}")
+            cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(DB_NAME)))
             print(f"Database '{DB_NAME}' created successfully")
 
         cursor.close()
         conn.close()
-    except pyodbc.Error as e:
-        print(f"Error connecting to SQL Server: {e}")
+    except psycopg2.Error as e:
+        print(f"Error connecting to PostgreSQL: {e}")
         print("\nMake sure:")
-        print("  - SQL Server is running (check docker-compose)")
+        print("  - PostgreSQL is running (check docker-compose)")
         print("  - Connection details are correct")
         print(f"  - Server: {DB_HOST}:{DB_PORT}")
         print(f"  - User: {DB_USER}")
@@ -67,33 +54,8 @@ def create_database():
 
 
 def create_tables():
-    """Create all tables defined in models
-
-    Tables are created according to the database schema in TDD Section 4.4:
-    - Admin
-    - News
-    - Senator
-    - Leadership
-    - Committee
-    - CommitteeMembership
-    - Legislation
-    - LegislationAction
-    - CalendarEvent
-    - CarouselSlide
-    - FinanceHearingConfig
-    - FinanceHearingDate
-    - Staff
-    - District
-    - DistrictMapping
-    - StaticPageContent
-    - BudgetData
-    - AppConfig
-
-    Note: Models must be implemented in app/models/__init__.py first.
-    """
+    """Create all tables defined in models"""
     try:
-        # Import all models to ensure they're registered with Base
-        # This import will fail gracefully if models aren't implemented yet
         try:
             from app.models import __all__ as model_names
 
@@ -109,9 +71,6 @@ def create_tables():
 
     except Exception as e:
         print(f"Error creating tables: {e}")
-        print(
-            "\nIf you see 'no such table' errors, make sure models are defined in app/models/__init__.py"
-        )
         sys.exit(1)
 
 

@@ -31,13 +31,9 @@ RUN apt-get update \
         libicu-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install SQL Server tools
-RUN mkdir -p /etc/apt/keyrings \
-    && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update \
-    && ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev \
-    && echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> /etc/bash.bashrc \
+# Install PostgreSQL client tools
+RUN apt-get update \
+    && apt-get install --yes postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 24 from https://github.com/nodesource
@@ -105,7 +101,7 @@ RUN echo 'parse_git_branch() {' >> ~/.bash_profile \
     && echo '' >> ~/.bash_profile \
     && echo 'export PS1="\T \[\033[32m\]\w\[\033[33m\]\$(parse_git_branch)\[\033[00m\] $ "' >> ~/.bash_profile \
     && echo '' >> ~/.bash_profile \
-    && echo 'export PATH=$PATH:$HOME/.local/bin:/workspace/frontend/node_modules/.bin:/opt/mssql-tools18/bin' >> ~/.bash_profile \
+    && echo 'export PATH=$PATH:$HOME/.local/bin:/workspace/frontend/node_modules/.bin' >> ~/.bash_profile \
     && echo '' >> ~/.bash_profile \
     && echo '[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"' >> ~/.bash_profile \
     && echo '' >> ~/.bash_profile \

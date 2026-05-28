@@ -13,58 +13,43 @@ Environment:
 
 import sys
 
-import pyodbc
+import psycopg2
+from psycopg2 import sql
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from app.database import (
-    DB_HOST,
-    DB_PASSWORD,
-    DB_PORT,
-    DB_TRUST_SERVER_CERTIFICATE,
-    DB_USER,
-    ODBC_DRIVER,
-)
+from app.database import DB_HOST, DB_PASSWORD, DB_PORT, DB_USER
 
 TEST_DB_NAME = "senate_test"
 
 
 def create_test_database():
-    """Create the test database if it doesn't exist
-
-    Creates a separate database for testing according to TDD Section 4.3.
-    Test database uses the same schema as development but is populated
-    with test fixtures rather than seed data.
-    """
-    print(f"Connecting to SQL Server at {DB_HOST}:{DB_PORT}...")
-
-    # Connect to master database to create test database
-    master_conn_str = (
-        f"DRIVER={{{ODBC_DRIVER}}};"
-        f"SERVER={DB_HOST},{DB_PORT};"
-        f"DATABASE=master;"
-        f"UID={DB_USER};"
-        f"PWD={DB_PASSWORD};"
-        f"TrustServerCertificate={DB_TRUST_SERVER_CERTIFICATE}"
-    )
+    """Create the test database if it doesn't exist"""
+    print(f"Connecting to PostgreSQL at {DB_HOST}:{DB_PORT}...")
 
     try:
-        conn = pyodbc.connect(master_conn_str)
-        conn.autocommit = True
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            port=int(DB_PORT),
+            user=DB_USER,
+            password=DB_PASSWORD,
+            dbname="postgres",
+        )
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
 
-        # Check if database exists
-        cursor.execute(f"SELECT database_id FROM sys.databases WHERE name = '{TEST_DB_NAME}'")
+        cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", (TEST_DB_NAME,))
         if cursor.fetchone():
             print(f"Test database '{TEST_DB_NAME}' already exists")
         else:
-            cursor.execute(f"CREATE DATABASE {TEST_DB_NAME}")
+            cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(TEST_DB_NAME)))
             print(f"Test database '{TEST_DB_NAME}' created successfully")
 
         cursor.close()
         conn.close()
-    except pyodbc.Error as e:
-        print(f"Error connecting to SQL Server: {e}")
+    except psycopg2.Error as e:
+        print(f"Error connecting to PostgreSQL: {e}")
         print("\nMake sure:")
-        print("  - SQL Server is running (check docker-compose)")
+        print("  - PostgreSQL is running (check docker-compose)")
         print("  - Connection details are correct")
         print(f"  - Server: {DB_HOST}:{DB_PORT}")
         print(f"  - User: {DB_USER}")

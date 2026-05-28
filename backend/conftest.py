@@ -2,7 +2,7 @@
 
 Provides shared fixtures available to all test files.
 Database-dependent fixtures are gated behind the 'integration' marker
-so unit tests can run without a SQL Server connection (e.g., in CI).
+so unit tests can run without a PostgreSQL connection (e.g., in CI).
 """
 
 import os
