@@ -1,6 +1,6 @@
 """Fixtures for route integration tests.
 
-Uses an in-memory SQLite database so tests run without a SQL Server connection.
+Uses an in-memory SQLite database so tests run without a PostgreSQL connection.
 All GET-only endpoints are tested against seeded fixture data.
 """
 
@@ -47,7 +47,7 @@ def test_engine():
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-    # Strip SQL Server-specific CHECK constraints before creating tables on SQLite
+    # Strip PostgreSQL-specific CHECK constraints before creating tables on SQLite
     for table in Base.metadata.tables.values():
         table.constraints = {c for c in table.constraints if not isinstance(c, CheckConstraint)}
 

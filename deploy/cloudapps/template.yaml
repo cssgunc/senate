@@ -31,14 +31,16 @@ parameters:
     description: Comma-separated allowed browser origins for the backend.
   - name: DB_NAME
     value: senate
+  - name: DB_USER
+    value: senate
   - name: DB_STORAGE_SIZE
     value: 8Gi
   - name: UPLOAD_STORAGE_SIZE
     value: 2Gi
-  - name: MSSQL_MEMORY_REQUEST
-    value: 1Gi
-  - name: MSSQL_MEMORY_LIMIT
-    value: 2Gi
+  - name: DB_MEMORY_REQUEST
+    value: 256Mi
+  - name: DB_MEMORY_LIMIT
+    value: 512Mi
   - name: BACKEND_MEMORY_REQUEST
     value: 256Mi
   - name: BACKEND_MEMORY_LIMIT
@@ -114,7 +116,7 @@ objects:
   - apiVersion: v1
     kind: PersistentVolumeClaim
     metadata:
-      name: ${APP_NAME}-mssql-data
+      name: ${APP_NAME}-db-data
     spec:
       accessModes:
         - ReadWriteOnce
@@ -136,69 +138,71 @@ objects:
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
-      name: ${APP_NAME}-mssql
+      name: ${APP_NAME}-db
     spec:
       replicas: 1
       selector:
         matchLabels:
-          app: ${APP_NAME}-mssql
+          app: ${APP_NAME}-db
       strategy:
         type: Recreate
       template:
         metadata:
           labels:
-            app: ${APP_NAME}-mssql
+            app: ${APP_NAME}-db
         spec:
           containers:
-            - name: mssql
-              image: mcr.microsoft.com/mssql/server:2022-latest
+            - name: postgres
+              image: postgres:16
               ports:
-                - containerPort: 1433
-                  name: sql
+                - containerPort: 5432
+                  name: postgres
               env:
-                - name: ACCEPT_EULA
-                  value: "Y"
-                - name: MSSQL_PID
-                  value: Express
-                - name: MSSQL_SA_PASSWORD
+                - name: POSTGRES_DB
+                  value: ${DB_NAME}
+                - name: POSTGRES_USER
+                  value: ${DB_USER}
+                - name: POSTGRES_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: ${APP_NAME}-secrets
-                      key: MSSQL_SA_PASSWORD
+                      key: DB_PASSWORD
+                - name: PGDATA
+                  value: /var/lib/postgresql/data/pgdata
               resources:
                 requests:
-                  memory: ${MSSQL_MEMORY_REQUEST}
+                  memory: ${DB_MEMORY_REQUEST}
                 limits:
-                  memory: ${MSSQL_MEMORY_LIMIT}
+                  memory: ${DB_MEMORY_LIMIT}
               volumeMounts:
-                - name: mssql-data
-                  mountPath: /var/opt/mssql
+                - name: db-data
+                  mountPath: /var/lib/postgresql/data
               readinessProbe:
-                tcpSocket:
-                  port: 1433
-                initialDelaySeconds: 45
+                exec:
+                  command: ["pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}"]
+                initialDelaySeconds: 10
                 periodSeconds: 10
               livenessProbe:
-                tcpSocket:
-                  port: 1433
-                initialDelaySeconds: 90
+                exec:
+                  command: ["pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}"]
+                initialDelaySeconds: 30
                 periodSeconds: 20
           volumes:
-            - name: mssql-data
+            - name: db-data
               persistentVolumeClaim:
-                claimName: ${APP_NAME}-mssql-data
+                claimName: ${APP_NAME}-db-data
 
   - apiVersion: v1
     kind: Service
     metadata:
-      name: ${APP_NAME}-mssql
+      name: ${APP_NAME}-db
     spec:
       selector:
-        app: ${APP_NAME}-mssql
+        app: ${APP_NAME}-db
       ports:
-        - name: sql
-          port: 1433
-          targetPort: 1433
+        - name: postgres
+          port: 5432
+          targetPort: 5432
 
   - apiVersion: apps/v1
     kind: Deployment
@@ -231,18 +235,18 @@ objects:
                 - name: CORS_ORIGINS
                   value: ${CORS_ORIGINS}
                 - name: DB_HOST
-                  value: ${APP_NAME}-mssql
+                  value: ${APP_NAME}-db
                 - name: DB_PORT
-                  value: "1433"
+                  value: "5432"
                 - name: DB_NAME
                   value: ${DB_NAME}
                 - name: DB_USER
-                  value: sa
-                - name: MSSQL_SA_PASSWORD
+                  value: ${DB_USER}
+                - name: DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: ${APP_NAME}-secrets
-                      key: MSSQL_SA_PASSWORD
+                      key: DB_PASSWORD
                 - name: JWT_SECRET
                   valueFrom:
                     secretKeyRef:

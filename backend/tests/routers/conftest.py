@@ -53,7 +53,7 @@ def sqlite_regexp(dbapi_connection, connection_record):
 @pytest.fixture(scope="module")
 def test_db():
     """Create all tables once per test module."""
-    # SQLite cannot evaluate SQL Server style CHECK constraints in model DDL.
+    # SQLite cannot evaluate PostgreSQL-style CHECK constraints in model DDL.
     for table in Base.metadata.tables.values():
         table.constraints = {c for c in table.constraints if not isinstance(c, CheckConstraint)}
 

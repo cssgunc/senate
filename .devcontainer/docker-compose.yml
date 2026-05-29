@@ -7,15 +7,15 @@ services:
       - ..:/workspace
 
   db:
-    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    image: "postgres:16"
     ports:
-      - "1433:1433"
+      - "5432:5432"
     environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: "SenateDev2026!"
-      MSSQL_PID: "Express"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "SenateDev2026!"
+      POSTGRES_DB: senate
     volumes:
-      - senate-mssql:/var/opt/mssql
+      - senate-postgres:/var/lib/postgresql/data
 
 volumes:
-  senate-mssql:
+  senate-postgres:

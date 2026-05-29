@@ -47,7 +47,7 @@ def _make_engine():
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-    # Strip SQL Server-specific CHECK constraints only for table creation,
+    # Strip PostgreSQL-specific CHECK constraints only for table creation,
     # then restore metadata so other test modules are unaffected.
     original_constraints = {
         table: set(table.constraints) for table in Base.metadata.tables.values()
