@@ -5,7 +5,7 @@ import FinanceHearingButton from "@/components/home/FinanceHearingButton";
 import RecentNews from "@/components/home/RecentNews";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorMessage from "@/components/ui/ErrorMessage";
-import { getCarousel, getEvents, getFinanceHearings } from "@/lib/api";
+import { ApiError, getCarousel, getEvents, getFinanceHearings } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +32,12 @@ export default async function Home() {
 
   try {
     financeHearings = await getFinanceHearings();
-  } catch {
-    financeError = true;
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      // no config row exists yet — valid empty state
+    } else {
+      financeError = true;
+    }
   }
 
   return (
