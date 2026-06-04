@@ -3,7 +3,7 @@
   "workspaceFolder": "/workspace",
   "service": "app",
   "remoteUser": "vscode",
-  "forwardPorts": [1433],
+  "forwardPorts": [5432],
   "postCreateCommand": ".devcontainer/post_create.sh",
   "customizations": {
     "vscode": {
