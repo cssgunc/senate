@@ -9,7 +9,7 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-primary">Contact Us</h3>
             <div className="text-sm text-muted-foreground space-y-2">
-              <p>UNC Student Government - Upper Chamber</p>
+              <p>UNC Undergraduate Senate</p>
               <p>Student Union, Suite 3109</p>
               <p>Chapel Hill, NC 27599</p>
               <p>
@@ -45,7 +45,7 @@ export function Footer() {
                   rel="noopener noreferrer"
                   className="hover:text-primary transition-colors"
                 >
-                  Undergraduate Student Government
+                  UNC Student Government
                 </a>
               </li>
               <li>

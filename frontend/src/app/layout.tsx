@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Senate",
-  description: "Senate application",
+  title: "UNC Undergraduate Senate",
+  description: "The official website of the UNC Undergraduate Senate.",
 };
 
 export default function RootLayout({
