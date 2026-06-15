@@ -116,6 +116,19 @@ export default function AdminLeadershipPage() {
     }
   };
 
+  // Mirrors the backend's `_current_session`: the public leadership page
+  // defaults to the highest session_number present in the table.
+  const currentSession =
+    data.length > 0
+      ? Math.max(...data.map((leader) => leader.session_number))
+      : null;
+  const hasActiveCurrentSession =
+    currentSession === null ||
+    data.some(
+      (leader) =>
+        leader.session_number === currentSession && leader.is_current,
+    );
+
   const columns: ColumnDef<AdminLeadership, any>[] = [
     {
       accessorKey: "title",
@@ -219,6 +232,19 @@ export default function AdminLeadershipPage() {
           </Button>
         }
       />
+
+      {!isLoading && !hasActiveCurrentSession ? (
+        <AdminCard className="border-amber-300 bg-amber-50 p-4">
+          <p className="text-sm font-medium text-amber-900">
+            No active leadership entries for session {currentSession}.
+          </p>
+          <p className="mt-1 text-sm text-amber-800">
+            The public Leadership page will show &quot;Leadership
+            information unavailable&quot; until at least one entry for this
+            session is marked Active.
+          </p>
+        </AdminCard>
+      ) : null}
 
       <AdminCard>
         {isLoading ? (
