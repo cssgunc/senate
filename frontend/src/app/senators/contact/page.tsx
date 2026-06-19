@@ -33,24 +33,46 @@ export default function ContactPage() {
 
   useEffect(() => {
     async function loadData() {
-      try {
-        const [senatorsData, districtsData, leadershipData] = await Promise.all(
-          [getSenators(), getDistricts(), getLeadership()],
-        );
-        setSenators(senatorsData);
-        setDistricts(districtsData);
+      const [senatorsResult, districtsResult, leadershipResult] =
+        await Promise.allSettled([
+          getSenators(),
+          getDistricts(),
+          getLeadership(),
+        ]);
 
-        const currentSpeaker = leadershipData.find(
+      if (senatorsResult.status === "fulfilled") {
+        setSenators(senatorsResult.value);
+      } else {
+        console.error("Failed to load senators", senatorsResult.reason);
+      }
+
+      if (districtsResult.status === "fulfilled") {
+        setDistricts(districtsResult.value);
+      } else {
+        console.error("Failed to load districts", districtsResult.reason);
+      }
+
+      if (leadershipResult.status === "fulfilled") {
+        const currentSpeaker = leadershipResult.value.find(
           (l) => l.is_current && l.title.toLowerCase().includes("speaker"),
         );
         if (currentSpeaker) {
           setSpeaker(currentSpeaker);
         }
-      } catch (err) {
-        console.error("Failed to load contact data", err);
-      } finally {
-        setIsLoadingSenators(false);
+      } else {
+        console.error("Failed to load leadership", leadershipResult.reason);
       }
+
+      if (
+        senatorsResult.status === "rejected" ||
+        districtsResult.status === "rejected"
+      ) {
+        setError(
+          "Some senator information could not be loaded. You can still send a message to speaker@unc.edu directly.",
+        );
+      }
+
+      setIsLoadingSenators(false);
     }
     loadData();
   }, []);
