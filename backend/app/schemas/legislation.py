@@ -17,6 +17,7 @@ class LegislationActionDTO(BaseModel):
 class LegislationListDTO(BaseModel):
     id: int
     title: str
+    short_title: str | None = None
     bill_number: str
     session_number: int
     sponsor_name: str
@@ -40,6 +41,7 @@ class LegislationDTO(LegislationDetailDTO):
 
 class CreateLegislationDTO(BaseModel):
     title: str
+    short_title: str | None = None
     bill_number: str
     session_number: int
     sponsor_id: int | None
@@ -53,6 +55,7 @@ class CreateLegislationDTO(BaseModel):
 
 class UpdateLegislationDTO(BaseModel):
     title: str | None = None
+    short_title: str | None = None
     bill_number: str | None = None
     session_number: int | None = None
     sponsor_id: int | None = None

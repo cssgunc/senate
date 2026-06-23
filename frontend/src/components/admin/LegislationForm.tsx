@@ -31,6 +31,7 @@ export function LegislationForm({
   isLoading = false,
 }: LegislationFormProps) {
   const [title, setTitle] = useState(initialData?.title || "");
+  const [shortTitle, setShortTitle] = useState(initialData?.short_title || "");
   const [billNumber, setBillNumber] = useState(initialData?.bill_number || "");
   const [sessionNumber, setSessionNumber] = useState<number>(
     initialData?.session_number || 1,
@@ -98,6 +99,7 @@ export function LegislationForm({
     e.preventDefault();
     onSubmit({
       title: title.trim(),
+      short_title: shortTitle.trim() || null,
       bill_number: billNumber.trim(),
       session_number: sessionNumber,
       sponsor_id: sponsorId,
@@ -138,6 +140,16 @@ export function LegislationForm({
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="short-title">Short Title (optional)</Label>
+          <Input
+            id="short-title"
+            type="text"
+            value={shortTitle}
+            onChange={(e) => setShortTitle(e.target.value)}
+          />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

@@ -68,6 +68,7 @@ export interface LegislationAction {
 export interface Legislation {
   id: number;
   title: string;
+  short_title?: string | null;
   bill_number: string;
   session_number: number;
   sponsor_name: string;

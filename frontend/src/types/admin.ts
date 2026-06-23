@@ -64,6 +64,7 @@ export interface UpdateNews {
 
 export interface CreateLegislation {
   title: string;
+  short_title?: string | null;
   bill_number: string;
   session_number: number;
   sponsor_id: number | null;

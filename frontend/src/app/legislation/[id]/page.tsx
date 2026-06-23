@@ -80,7 +80,13 @@ export default async function LegislationDetailPage({
         <StatusBadge status={legislation.status} />
       </div>
 
-      <h1 className="text-3xl font-bold mb-4">{legislation.title}</h1>
+      <h1 className="text-3xl font-bold mb-1">{legislation.title}</h1>
+      {legislation.short_title && (
+        <p className="text-lg text-gray-500 italic mb-4">
+          {legislation.short_title}
+        </p>
+      )}
+      {!legislation.short_title && <div className="mb-4" />}
 
       <div className="text-sm text-gray-600 mb-6 space-y-1">
         <p>
