@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getSenators } from "@/lib/api";
+import { uploadAdminPdf } from "@/lib/admin-api";
 import type { Legislation, Senator } from "@/types";
 import type { CreateLegislation } from "@/types/admin";
 import { RichTextEditor } from "./RichTextEditor";
@@ -44,8 +45,32 @@ export function LegislationForm({
   );
   const [summary, setSummary] = useState(initialData?.summary || "");
   const [fullText, setFullText] = useState(initialData?.full_text || "");
+  const [fullTextPdfUrl, setFullTextPdfUrl] = useState(
+    initialData?.full_text_pdf_url || "",
+  );
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+  const [pdfUploadError, setPdfUploadError] = useState<string | null>(null);
   const [status, setStatus] = useState(initialData?.status || "Introduced");
   const [type, setType] = useState(initialData?.type || "Bill");
+
+  const handlePdfChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setIsUploadingPdf(true);
+    setPdfUploadError(null);
+    try {
+      const { url } = await uploadAdminPdf(file);
+      setFullTextPdfUrl(url);
+    } catch (err) {
+      setPdfUploadError(
+        err instanceof Error ? err.message : "PDF upload failed.",
+      );
+    } finally {
+      setIsUploadingPdf(false);
+    }
+  };
 
   const formatInitialDate = (dateString?: string) => {
     if (!dateString) return "";
@@ -106,6 +131,7 @@ export function LegislationForm({
       sponsor_name: sponsorName.trim(),
       summary: summary.trim(),
       full_text: fullText.trim(),
+      full_text_pdf_url: fullTextPdfUrl || null,
       status,
       type,
       date_introduced: new Date(dateIntroduced).toISOString(),
@@ -244,6 +270,28 @@ export function LegislationForm({
         <div className="space-y-2">
           <Label htmlFor="full-text">Full Text</Label>
           <RichTextEditor value={fullText} onChange={setFullText} />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="full-text-pdf">Full Text PDF (optional)</Label>
+          <input
+            id="full-text-pdf"
+            type="file"
+            accept="application/pdf"
+            onChange={handlePdfChange}
+            disabled={isUploadingPdf}
+          />
+          {isUploadingPdf ? (
+            <p className="text-sm text-gray-600">Uploading...</p>
+          ) : null}
+          {pdfUploadError ? (
+            <p className="text-sm text-red-600">{pdfUploadError}</p>
+          ) : null}
+          {fullTextPdfUrl ? (
+            <p className="text-xs text-gray-500 break-all">
+              Stored URL: {fullTextPdfUrl}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex justify-end gap-3 pt-2">

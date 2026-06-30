@@ -117,6 +117,16 @@ export default async function LegislationDetailPage({
 
       <section className="mb-8">
         <h2 className="text-xl font-semibold mb-2">Full Text</h2>
+        {legislation.full_text_pdf_url && (
+          <a
+            href={legislation.full_text_pdf_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mb-3 text-blue-600 hover:underline"
+          >
+            Download Full Text (PDF)
+          </a>
+        )}
         <HtmlContent
           html={legislation.full_text}
           className="prose max-w-none text-gray-700"
