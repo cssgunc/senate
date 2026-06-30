@@ -23,6 +23,7 @@ class LegislationListDTO(BaseModel):
     sponsor_name: str
     summary: str
     full_text: str
+    full_text_pdf_url: str | None = None
     status: str
     type: str
     date_introduced: date
@@ -48,6 +49,7 @@ class CreateLegislationDTO(BaseModel):
     sponsor_name: str
     summary: str
     full_text: str
+    full_text_pdf_url: str | None = None
     status: str
     type: str
     date_introduced: date
@@ -62,6 +64,7 @@ class UpdateLegislationDTO(BaseModel):
     sponsor_name: str | None = None
     summary: str | None = None
     full_text: str | None = None
+    full_text_pdf_url: str | None = None
     status: str | None = None
     type: str | None = None
     date_introduced: date | None = None
