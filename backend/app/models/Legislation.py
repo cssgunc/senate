@@ -13,6 +13,7 @@ class Legislation(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    short_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     bill_number: Mapped[str] = mapped_column(String(50), nullable=False)
     session_number: Mapped[int] = mapped_column(Integer, nullable=False)
     sponsor_id: Mapped[int | None] = mapped_column(ForeignKey("senator.id"), nullable=True)

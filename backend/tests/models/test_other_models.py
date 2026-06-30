@@ -81,6 +81,7 @@ class TestLegislationModel:
         expected = {
             "id",
             "title",
+            "short_title",
             "bill_number",
             "session_number",
             "sponsor_id",
