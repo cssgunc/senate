@@ -1,5 +1,6 @@
 """Admin calendar event CRUD routes.
 
+GET    /api/admin/events       — list all events, including unpublished ones
 POST   /api/admin/events       — create event; created_by set from JWT
 PUT    /api/admin/events/{id}  — update event fields
 DELETE /api/admin/events/{id}  — delete event (admin role required)
@@ -23,6 +24,16 @@ router = APIRouter(
     prefix="/api/admin/events",
     tags=["admin", "events"],
 )
+
+
+@router.get("", response_model=list[AdminCalendarEventDTO])
+def list_admin_events(
+    _current_user: Admin = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """List all calendar events, including unpublished ones."""
+    events = db.query(CalendarEvent).order_by(CalendarEvent.start_datetime).all()
+    return [AdminCalendarEventDTO.model_validate(e) for e in events]
 
 
 @router.post("", response_model=AdminCalendarEventDTO, status_code=status.HTTP_201_CREATED)
