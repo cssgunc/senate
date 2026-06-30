@@ -152,6 +152,10 @@ export default function LegislationDetailsPage() {
 
       <AdminCard>
         <div className="grid gap-4 text-sm text-slate-700 sm:grid-cols-2">
+          <p className="sm:col-span-2">
+            <span className="font-semibold text-slate-900">Title:</span>{" "}
+            {legislation.bill_number}: {legislation.title}
+          </p>
           <p>
             <span className="font-semibold text-slate-900">Status:</span>{" "}
             {legislation.status}
