@@ -90,7 +90,15 @@ export default function AdminLegislationPage() {
   // Define Table Columns
   const columns: ColumnDef<Legislation>[] = [
     { accessorKey: "bill_number", header: "Bill Number" },
-    { accessorKey: "title", header: "Title" },
+    {
+      accessorKey: "title",
+      header: "Title",
+      cell: ({ getValue }) => (
+        <div className="max-w-xs truncate" title={getValue() as string}>
+          {getValue() as string}
+        </div>
+      ),
+    },
     { accessorKey: "status", header: "Status" },
     { accessorKey: "type", header: "Type" },
     { accessorKey: "session_number", header: "Session" },
