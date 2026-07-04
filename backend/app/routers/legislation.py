@@ -38,6 +38,7 @@ def _legislation_base_dict(leg: Legislation) -> dict:
         "sponsor_name": leg.sponsor_name,
         "summary": sanitize_html(leg.summary),
         "full_text": sanitize_html(leg.full_text),
+        "full_text_pdf_url": leg.full_text_pdf_url,
         "status": leg.status,
         "type": leg.type,
         "date_introduced": leg.date_introduced,

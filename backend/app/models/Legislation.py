@@ -20,6 +20,7 @@ class Legislation(Base):
     sponsor_name: Mapped[str] = mapped_column(String(255), nullable=False)
     summary: Mapped[str] = mapped_column(Text, nullable=False)
     full_text: Mapped[str] = mapped_column(Text, nullable=False)
+    full_text_pdf_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False)
     type: Mapped[str] = mapped_column(String(50), nullable=False)
     date_introduced: Mapped[date] = mapped_column(Date, nullable=False)

@@ -100,7 +100,8 @@ export interface UploadImageResponse {
   url: string;
 }
 
-export async function uploadAdminImage(
+function uploadFile(
+  path: string,
   file: File,
   onProgress?: (percent: number) => void,
 ): Promise<UploadImageResponse> {
@@ -110,7 +111,7 @@ export async function uploadAdminImage(
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${API_BASE}${buildApiPath("/admin/upload")}`);
+    xhr.open("POST", `${API_BASE}${buildApiPath(path)}`);
 
     if (token) {
       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
@@ -159,6 +160,20 @@ export async function uploadAdminImage(
 
     xhr.send(formData);
   });
+}
+
+export async function uploadAdminImage(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<UploadImageResponse> {
+  return uploadFile("/admin/upload", file, onProgress);
+}
+
+export async function uploadAdminPdf(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<UploadImageResponse> {
+  return uploadFile("/admin/upload/pdf", file, onProgress);
 }
 
 // Auth

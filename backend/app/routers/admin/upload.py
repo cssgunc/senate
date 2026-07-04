@@ -38,6 +38,21 @@ def _validate_and_load_image(content: bytes) -> tuple[Image.Image, str]:
     return image, _ALLOWED_FORMATS[fmt]
 
 
+def _validate_pdf(content: bytes) -> None:
+    if len(content) > MAX_UPLOAD_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="File too large. Max size is 5MB")
+    if not content.startswith(b"%PDF-"):
+        raise HTTPException(status_code=400, detail="Unsupported file type")
+
+
+def _save_pdf(content: bytes) -> str:
+    uploads_dir = Path(UPLOAD_DIR)
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{uuid4().hex}.pdf"
+    (uploads_dir / filename).write_bytes(content)
+    return filename
+
+
 def _save_resized_images(image: Image.Image, extension: str) -> str:
     """Save standard and thumbnail variants and return the main filename."""
     uploads_dir = Path(UPLOAD_DIR)
@@ -78,4 +93,17 @@ async def upload_image(
     content = await file.read()
     image, extension = _validate_and_load_image(content)
     filename = _save_resized_images(image, extension)
+    return {"url": f"{UPLOAD_BASE_URL}/{filename}"}
+
+
+@router.post("/upload/pdf")
+async def upload_pdf(
+    file: UploadFile = File(...),
+    current_user: Admin = Depends(get_current_user),
+):
+    """Upload a PDF and return a relative URL to the stored file."""
+    _ = current_user
+    content = await file.read()
+    _validate_pdf(content)
+    filename = _save_pdf(content)
     return {"url": f"{UPLOAD_BASE_URL}/{filename}"}

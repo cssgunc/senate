@@ -74,6 +74,7 @@ export interface Legislation {
   sponsor_name: string;
   summary: string;
   full_text: string;
+  full_text_pdf_url?: string | null;
   status: string;
   type: string;
   date_introduced: string;

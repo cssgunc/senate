@@ -88,6 +88,7 @@ class TestLegislationModel:
             "sponsor_name",
             "summary",
             "full_text",
+            "full_text_pdf_url",
             "status",
             "type",
             "date_introduced",
