@@ -1,5 +1,6 @@
 """Admin carousel slide CRUD routes.
 
+GET  /api/admin/carousel          — list all slides (including inactive)
 POST /api/admin/carousel          — create slide
 PUT  /api/admin/carousel/reorder  — batch reorder slides by ordered slide_ids list
 PUT  /api/admin/carousel/{id}     — update slide fields
@@ -24,6 +25,16 @@ router = APIRouter(
     prefix="/api/admin/carousel",
     tags=["admin", "carousel"],
 )
+
+
+@router.get("", response_model=list[CarouselSlideDTO])
+def list_admin_slides(
+    _current_user: Admin = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """List all carousel slides, including inactive ones, ordered by display_order."""
+    slides = db.query(CarouselSlide).order_by(CarouselSlide.display_order).all()
+    return [CarouselSlideDTO.model_validate(s) for s in slides]
 
 
 @router.post("", response_model=CarouselSlideDTO, status_code=status.HTTP_201_CREATED)
