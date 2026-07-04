@@ -6,6 +6,7 @@ import RecentNews from "@/components/home/RecentNews";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { ApiError, getCarousel, getEvents, getFinanceHearings } from "@/lib/api";
+import { financeHearingsToCalendarEvents } from "@/lib/calendar";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,13 @@ export default async function Home() {
     }
   }
 
+  const calendarEvents = [
+    ...events,
+    ...(financeHearings
+      ? financeHearingsToCalendarEvents(financeHearings.dates)
+      : []),
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {carouselError ? (
@@ -71,7 +79,7 @@ export default async function Home() {
                 description="Check back soon for the latest calendar updates."
               />
             ) : (
-              <CalendarWidget events={events} compact={true} />
+              <CalendarWidget events={calendarEvents} compact={true} />
             )}
           </div>
         </div>
