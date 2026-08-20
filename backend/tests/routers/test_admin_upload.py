@@ -90,6 +90,23 @@ def test_oversized_file(admin_client, tmp_path, monkeypatch):
     assert response.json()["detail"] == "File too large. Max size is 5MB"
 
 
+def test_unauthenticated_image_upload_rejected(client):
+    payload = _make_png_bytes()
+    response = client.post(
+        "/api/admin/upload",
+        files={"file": ("headshot.png", payload, "image/png")},
+    )
+    assert response.status_code in {401, 403}
+
+
+def test_unauthenticated_pdf_upload_rejected(client):
+    response = client.post(
+        "/api/admin/upload/pdf",
+        files={"file": ("doc.pdf", b"%PDF-1.4\n%fake", "application/pdf")},
+    )
+    assert response.status_code in {401, 403}
+
+
 def test_standard_resize_only_limits_width(admin_client, tmp_path, monkeypatch):
     from app.routers.admin import upload as upload_router
 
