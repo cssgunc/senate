@@ -4,6 +4,8 @@ import { IMAGE_PATHS } from "@/lib/imagePaths";
 import { loadStaffForPage } from "@/lib/staff";
 import Image from "next/image";
 
+export const dynamic = "force-dynamic";
+
 export default async function StaffPage() {
   const staff = await loadStaffForPage(() => getStaff());
 

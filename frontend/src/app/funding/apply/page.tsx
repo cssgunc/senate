@@ -1,6 +1,8 @@
 import StaticPage from "@/components/StaticPage";
 import { getFinanceHearings } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 function formatHearingDate(dateString: string): string {
   const parsed = new Date(`${dateString}T12:00:00`);
   if (Number.isNaN(parsed.getTime())) return dateString;
