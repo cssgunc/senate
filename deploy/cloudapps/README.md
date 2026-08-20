@@ -90,8 +90,26 @@ anymore, for the FetchSourceFailed race reason explained above.
 The normal path is: push to `main` on GitHub → next `senate-github-mirror`
 CronJob run (within 10 minutes) mirrors it to sc.unc.edu and triggers the
 OKD build itself → OKD clones from sc.unc.edu with its read-only deploy
-key, builds the backend and frontend images, and rolls the deployments
-when the image streams change.
+key, builds the backend and frontend images, and pushes them to the
+`${APP_NAME}-backend`/`${APP_NAME}-frontend` ImageStreams.
+
+The backend and frontend Deployments carry an
+`image.openshift.io/triggers` annotation pointing at those
+ImageStreamTags, which is what actually rolls the Deployment once a new
+image lands — a plain `apps/v1` Deployment has no built-in equivalent of
+DeploymentConfig's image trigger, and a Deployment's pod template
+referencing `...:latest` does *not* restart on its own just because the
+tag's underlying digest changed. Without this annotation, builds succeed
+but the running pods keep serving the old image indefinitely. Verify it's
+present with `oc get deployment ${APP_NAME}-backend -o jsonpath='{.metadata.annotations}'`
+if a deploy ever silently doesn't show up.
+
+The mirror CronJob's own webhook call (`curl`/`wget` from inside the pod)
+uses `wget`, not `curl` — `alpine/git` doesn't ship `curl`, and installing
+it at runtime with `apk add` fails under this project's restricted SCC
+(the container runs as an arbitrary non-root UID with no write access to
+`/etc/apk`). BusyBox's `wget` is already built into the base image and
+needs no install.
 
 ### Secret locations
 

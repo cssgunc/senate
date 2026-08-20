@@ -144,7 +144,6 @@ objects:
                     - -c
                     - |
                       set -eu
-                      apk add --no-cache curl >/dev/null
                       mkdir -p "$HOME/.ssh"
                       cp /secrets/ssh-privatekey "$HOME/.ssh/id_ed25519"
                       cp /secrets/known_hosts "$HOME/.ssh/known_hosts"
@@ -159,9 +158,9 @@ objects:
                         exit 0
                       fi
                       echo "New commits mirrored; triggering OKD build webhooks..."
-                      curl -sS -k -X POST -H "Content-Type: application/json" --data-binary "{}" \
+                      wget -S -O - --header="Content-Type: application/json" --post-data="{}" \
                         "${OKD_API_SERVER}/apis/build.openshift.io/v1/namespaces/${OPENSHIFT_PROJECT}/buildconfigs/${APP_NAME}-backend/webhooks/${WEBHOOK_TOKEN}/generic"
-                      curl -sS -k -X POST -H "Content-Type: application/json" --data-binary "{}" \
+                      wget -S -O - --header="Content-Type: application/json" --post-data="{}" \
                         "${OKD_API_SERVER}/apis/build.openshift.io/v1/namespaces/${OPENSHIFT_PROJECT}/buildconfigs/${APP_NAME}-frontend/webhooks/${WEBHOOK_TOKEN}/generic"
                   env:
                     - name: HOME
@@ -288,6 +287,9 @@ objects:
     kind: Deployment
     metadata:
       name: ${APP_NAME}-backend
+      annotations:
+        image.openshift.io/triggers: |
+          [{"from":{"kind":"ImageStreamTag","name":"${APP_NAME}-backend:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"backend\")].image"}]
     spec:
       replicas: 1
       selector:
@@ -419,6 +421,9 @@ objects:
     kind: Deployment
     metadata:
       name: ${APP_NAME}-frontend
+      annotations:
+        image.openshift.io/triggers: |
+          [{"from":{"kind":"ImageStreamTag","name":"${APP_NAME}-frontend:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"frontend\")].image"}]
     spec:
       replicas: 1
       selector:
