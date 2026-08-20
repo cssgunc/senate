@@ -1,0 +1,32 @@
+name: Mirror to sc.unc.edu
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    name: Mirror main to campus Git service
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up deploy key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SC_GIT_MIRROR_PRIVATE_KEY }}
+
+      - name: Configure known hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SC_GIT_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
+      - name: Push main to sc.unc.edu
+        run: git push git@sc.unc.edu:dept-undergraduate-senate/senate.git main:main
