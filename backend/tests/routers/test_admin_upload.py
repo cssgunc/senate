@@ -75,6 +75,24 @@ def test_invalid_file_type(admin_client, tmp_path, monkeypatch):
     assert response.json()["detail"] == "Unsupported file type"
 
 
+def test_decompression_bomb_rejected_cleanly(admin_client, tmp_path, monkeypatch):
+    from PIL import Image as PILImage
+
+    from app.routers.admin import upload as upload_router
+
+    monkeypatch.setattr(upload_router, "UPLOAD_DIR", str(tmp_path))
+    monkeypatch.setattr(PILImage, "MAX_IMAGE_PIXELS", 1000)
+
+    payload = _make_png_bytes(width=200, height=200)
+    response = admin_client.post(
+        "/api/admin/upload",
+        files={"file": ("huge.png", payload, "image/png")},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Unsupported file type"
+
+
 def test_oversized_file(admin_client, tmp_path, monkeypatch):
     from app.routers.admin import upload as upload_router
 
