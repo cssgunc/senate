@@ -1,15 +1,18 @@
 "use client";
 
+import Link from "@tiptap/extension-link";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
   Italic,
+  Link as LinkIcon,
   List,
   ListOrdered,
   Quote,
   Redo2,
   Undo2,
+  Unlink,
 } from "lucide-react";
 import { type MouseEvent, useEffect } from "react";
 
@@ -35,7 +38,15 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
     "[&_li]:mb-1 [&_hr]:my-5 [&_hr]:border-slate-200 [&_.ProseMirror-trailingBreak]:select-none";
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        linkOnPaste: true,
+        HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
+      }),
+    ],
     content: value,
     immediatelyRender: false,
     editorProps: {
@@ -154,6 +165,51 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
             title="Italic"
           >
             <Italic className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 shadow-sm">
+          <button
+            type="button"
+            className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-slate-100 ${
+              editor.isActive("link")
+                ? "bg-slate-900 text-white"
+                : "border border-slate-200 text-slate-700"
+            }`}
+            onMouseDown={keepFocus}
+            onClick={() => {
+              const previousUrl = editor.getAttributes("link").href as
+                | string
+                | undefined;
+              const url = window.prompt("Link URL", previousUrl ?? "https://");
+              if (url === null) return;
+              if (url === "") {
+                editor.chain().focus().extendMarkRange("link").unsetLink().run();
+                return;
+              }
+              editor
+                .chain()
+                .focus()
+                .extendMarkRange("link")
+                .setLink({ href: url })
+                .run();
+            }}
+            aria-label="Insert/edit link"
+            title="Insert/edit link"
+          >
+            <LinkIcon className="h-3.5 w-3.5" />
+          </button>
+
+          <button
+            type="button"
+            disabled={!editor.isActive("link")}
+            className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+            onMouseDown={keepFocus}
+            onClick={() => editor.chain().focus().unsetLink().run()}
+            aria-label="Remove link"
+            title="Remove link"
+          >
+            <Unlink className="h-3.5 w-3.5" />
           </button>
         </div>
 
