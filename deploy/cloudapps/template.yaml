@@ -15,6 +15,12 @@ parameters:
     description: Git repository URL used by the BuildConfigs.
   - name: GIT_REF
     value: main
+  - name: GITHUB_MIRROR_SOURCE
+    value: https://github.com/cssgunc/senate.git
+    description: Public GitHub repo the mirror CronJob reads from.
+  - name: MIRROR_SCHEDULE
+    value: "*/10 * * * *"
+    description: Cron schedule for syncing GITHUB_MIRROR_SOURCE's main branch to GIT_REPO.
   - name: RUNTIME_ENVIRONMENT
     value: production
   - name: FRONTEND_HOST
@@ -112,6 +118,55 @@ objects:
         to:
           kind: ImageStreamTag
           name: ${APP_NAME}-frontend:latest
+
+  - apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: ${APP_NAME}-github-mirror
+    spec:
+      schedule: ${MIRROR_SCHEDULE}
+      concurrencyPolicy: Forbid
+      jobTemplate:
+        spec:
+          backoffLimit: 2
+          activeDeadlineSeconds: 300
+          template:
+            spec:
+              restartPolicy: Never
+              containers:
+                - name: mirror
+                  image: alpine/git:latest
+                  command:
+                    - /bin/sh
+                    - -c
+                    - |
+                      set -eu
+                      mkdir -p "$HOME/.ssh"
+                      cp /secrets/ssh-privatekey "$HOME/.ssh/id_ed25519"
+                      cp /secrets/known_hosts "$HOME/.ssh/known_hosts"
+                      chmod 700 "$HOME/.ssh"
+                      chmod 600 "$HOME/.ssh/id_ed25519"
+                      git clone --bare "$GITHUB_MIRROR_SOURCE" /tmp/mirror.git
+                      cd /tmp/mirror.git
+                      git push "$GIT_REPO" "refs/heads/${GIT_REF}:refs/heads/${GIT_REF}"
+                  env:
+                    - name: HOME
+                      value: /tmp/home
+                    - name: GITHUB_MIRROR_SOURCE
+                      value: ${GITHUB_MIRROR_SOURCE}
+                    - name: GIT_REPO
+                      value: ${GIT_REPO}
+                    - name: GIT_REF
+                      value: ${GIT_REF}
+                  volumeMounts:
+                    - name: mirror-key
+                      mountPath: /secrets
+                      readOnly: true
+              volumes:
+                - name: mirror-key
+                  secret:
+                    secretName: ${APP_NAME}-mirror-key
+                    defaultMode: 0440
 
   - apiVersion: v1
     kind: PersistentVolumeClaim
@@ -344,6 +399,8 @@ objects:
       selector:
         matchLabels:
           app: ${APP_NAME}-frontend
+      strategy:
+        type: Recreate
       template:
         metadata:
           labels:
