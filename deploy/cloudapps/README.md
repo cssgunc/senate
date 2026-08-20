@@ -44,6 +44,18 @@ anonymous `git clone` of the public GitHub repo (no GitHub auth needed —
 it's a public repo) and pushes `main` to sc.unc.edu with a dedicated,
 write-scoped deploy key.
 
+**The same CronJob run also triggers the OKD build**, immediately after a
+push that actually moved `main` (a no-op push, when there's nothing new,
+skips this). It does so by `curl`-ing the OKD generic webhook URLs itself
+from inside the job, using the `${APP_NAME}-generic-webhook` token. This
+is deliberate: earlier this triggered from `deploy.yml` on GitHub instead,
+right after CI passed, but that raced the mirror — the webhook could fire
+before the CronJob had synced that commit to sc.unc.edu yet, so OKD tried
+to build a commit sc.unc.edu didn't have and failed with
+`FetchSourceFailed`, with nothing to retry it once the mirror caught up.
+Having the mirror job trigger the build itself, in the same run, right
+after the push it just made, makes the ordering impossible to race.
+
 Bootstrap it with:
 
 ```bash
@@ -68,15 +80,18 @@ clone URL changes.
 
 ## GitHub CI/CD
 
-GitHub Actions handles CI in [/.github/workflows/ci.yml](../../.github/workflows/ci.yml)
-and deployment in [/.github/workflows/deploy.yml](../../.github/workflows/deploy.yml).
+GitHub Actions handles CI in [/.github/workflows/ci.yml](../../.github/workflows/ci.yml).
+[/.github/workflows/deploy.yml](../../.github/workflows/deploy.yml) is
+**manual-only** (`workflow_dispatch`) — a fallback for forcing OKD to
+rebuild whatever sc.unc.edu currently has, without waiting for the mirror
+CronJob's next run. It is *not* wired to fire automatically on push/CI
+anymore, for the FetchSourceFailed race reason explained above.
 
-The deployment workflow does not log into OpenShift. Instead, it posts a
-JSON payload to OKD generic webhook URLs stored in GitHub Secrets. OKD then
-clones the repo from sc.unc.edu with its own SSH deploy key, builds the
-backend and frontend images, and rolls the deployments when the image
-streams change. The mirror CronJob above is what keeps sc.unc.edu current
-enough for this to pick up recent commits (with up to ~10 minutes of lag).
+The normal path is: push to `main` on GitHub → next `senate-github-mirror`
+CronJob run (within 10 minutes) mirrors it to sc.unc.edu and triggers the
+OKD build itself → OKD clones from sc.unc.edu with its read-only deploy
+key, builds the backend and frontend images, and rolls the deployments
+when the image streams change.
 
 ### Secret locations
 

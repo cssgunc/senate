@@ -18,6 +18,9 @@ parameters:
   - name: GITHUB_MIRROR_SOURCE
     value: https://github.com/cssgunc/senate.git
     description: Public GitHub repo the mirror CronJob reads from.
+  - name: OKD_API_SERVER
+    value: https://api.cloudapps.unc.edu:6443
+    description: OKD API server the mirror CronJob calls to trigger builds after a successful mirror push.
   - name: MIRROR_SCHEDULE
     value: "*/10 * * * *"
     description: Cron schedule for syncing GITHUB_MIRROR_SOURCE's main branch to GIT_REPO.
@@ -141,6 +144,7 @@ objects:
                     - -c
                     - |
                       set -eu
+                      apk add --no-cache curl >/dev/null
                       mkdir -p "$HOME/.ssh"
                       cp /secrets/ssh-privatekey "$HOME/.ssh/id_ed25519"
                       cp /secrets/known_hosts "$HOME/.ssh/known_hosts"
@@ -148,7 +152,17 @@ objects:
                       chmod 600 "$HOME/.ssh/id_ed25519"
                       git clone --bare "$GITHUB_MIRROR_SOURCE" /tmp/mirror.git
                       cd /tmp/mirror.git
-                      git push "$GIT_REPO" "refs/heads/${GIT_REF}:refs/heads/${GIT_REF}"
+                      push_output="$(git push "$GIT_REPO" "refs/heads/${GIT_REF}:refs/heads/${GIT_REF}" 2>&1)" || { echo "$push_output"; exit 1; }
+                      echo "$push_output"
+                      if echo "$push_output" | grep -q "Everything up-to-date"; then
+                        echo "No new commits mirrored; not triggering a build."
+                        exit 0
+                      fi
+                      echo "New commits mirrored; triggering OKD build webhooks..."
+                      curl -sS -k -X POST -H "Content-Type: application/json" --data-binary "{}" \
+                        "${OKD_API_SERVER}/apis/build.openshift.io/v1/namespaces/${OPENSHIFT_PROJECT}/buildconfigs/${APP_NAME}-backend/webhooks/${WEBHOOK_TOKEN}/generic"
+                      curl -sS -k -X POST -H "Content-Type: application/json" --data-binary "{}" \
+                        "${OKD_API_SERVER}/apis/build.openshift.io/v1/namespaces/${OPENSHIFT_PROJECT}/buildconfigs/${APP_NAME}-frontend/webhooks/${WEBHOOK_TOKEN}/generic"
                   env:
                     - name: HOME
                       value: /tmp/home
@@ -158,6 +172,17 @@ objects:
                       value: ${GIT_REPO}
                     - name: GIT_REF
                       value: ${GIT_REF}
+                    - name: OKD_API_SERVER
+                      value: ${OKD_API_SERVER}
+                    - name: OPENSHIFT_PROJECT
+                      value: ${OPENSHIFT_PROJECT}
+                    - name: APP_NAME
+                      value: ${APP_NAME}
+                    - name: WEBHOOK_TOKEN
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${APP_NAME}-generic-webhook
+                          key: WebHookSecretKey
                   volumeMounts:
                     - name: mirror-key
                       mountPath: /secrets

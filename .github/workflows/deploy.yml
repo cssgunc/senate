@@ -1,10 +1,12 @@
 name: Deploy
 
+# Manual-only. Automatic deploys happen via the senate-github-mirror CronJob
+# in OKD: it mirrors main to sc.unc.edu and triggers the OKD build itself
+# right after a successful push, which avoids racing the mirror (see
+# deploy/cloudapps/README.md). This workflow is a fallback for forcing a
+# rebuild of whatever sc.unc.edu currently has, without waiting for the
+# CronJob's next scheduled run.
 on:
-  workflow_run:
-    workflows: ["CI"]
-    branches: [main]
-    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -14,7 +16,6 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     environment: senate
 
     steps:
@@ -22,8 +23,8 @@ jobs:
         id: env
         shell: bash
         run: |
-          echo "head_branch=${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref_name }}" >> "$GITHUB_OUTPUT"
-          echo "head_sha=${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "head_branch=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          echo "head_sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
       - name: Select webhook URLs
         shell: bash
