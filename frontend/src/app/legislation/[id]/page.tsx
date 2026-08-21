@@ -4,8 +4,6 @@ import type { Legislation, LegislationAction } from "@/types";
 import { format, parseISO } from "date-fns";
 import { notFound } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
 const STATUS_STYLES: Record<string, string> = {
   Passed: "bg-green-100 text-green-800",
   Failed: "bg-red-100 text-red-800",

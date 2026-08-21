@@ -5,8 +5,6 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
 export default async function NewsDetailPage({
   params,
 }: {
