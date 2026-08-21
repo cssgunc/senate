@@ -34,6 +34,8 @@ UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/app/uploads")
 UPLOAD_BASE_URL = os.getenv("UPLOAD_BASE_URL", "/api/uploads")
 MAX_UPLOAD_SIZE_BYTES = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(5 * 1024 * 1024)))
 
+ANALYTICS_INGEST_SECRET = os.getenv("ANALYTICS_INGEST_SECRET")
+
 SMTP_HOST = os.getenv("SMTP_HOST")
 SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
 SMTP_USER = os.getenv("SMTP_USER")

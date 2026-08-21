@@ -13,6 +13,7 @@ from .FinanceHearingDate import FinanceHearingDate
 from .Leadership import Leadership
 from .Legislation import Legislation
 from .LegislationAction import LegislationAction
+from .PageView import PageView
 from .Sections import AdminSections, Sections
 from .Senator import Senator
 
@@ -38,4 +39,5 @@ __all__ = [
     "Leadership",
     "Sections",
     "AdminSections",
+    "PageView",
 ]

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import CORS_ORIGINS
 from app.routers import (
+    analytics,
     auth,
     budget,
     carousel,
@@ -24,6 +25,7 @@ from app.routers import (
     uploads,
 )
 from app.routers.admin import accounts as admin_accounts
+from app.routers.admin import analytics as admin_analytics
 from app.routers.admin import budget as admin_budget
 from app.routers.admin import carousel as admin_carousel
 from app.routers.admin import committees as admin_committees
@@ -74,6 +76,7 @@ app.include_router(legislation.router)
 app.include_router(uploads.router)
 app.include_router(admin_news.router)
 app.include_router(contact.router)
+app.include_router(analytics.router)
 
 
 # Include Admin routers
@@ -91,6 +94,7 @@ app.include_router(admin_districts.router)
 app.include_router(admin_district_mapping.router)
 app.include_router(admin_accounts.router)
 app.include_router(admin_upload.router)
+app.include_router(admin_analytics.router)
 
 
 @app.get("/")

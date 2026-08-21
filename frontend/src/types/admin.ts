@@ -264,3 +264,27 @@ export interface AdminLeadership {
   session_number: number;
   is_current: boolean;
 }
+
+export interface DailyPageViewCount {
+  day: string;
+  count: number;
+}
+
+export interface TopPath {
+  path: string;
+  count: number;
+}
+
+export interface TopReferrer {
+  referrer_host: string;
+  count: number;
+}
+
+export interface AnalyticsSummary {
+  range_days: number;
+  total_pageviews: number;
+  unique_visitors: number;
+  daily_pageviews: DailyPageViewCount[];
+  top_paths: TopPath[];
+  top_referrers: TopReferrer[];
+}

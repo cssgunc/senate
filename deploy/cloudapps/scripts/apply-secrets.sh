@@ -15,6 +15,7 @@ SECRET_NAME="${APP_NAME}-secrets"
 existing_db="$(get_secret_value "$SECRET_NAME" DB_PASSWORD)"
 existing_mssql="$(get_secret_value "$SECRET_NAME" MSSQL_SA_PASSWORD)"
 existing_jwt="$(get_secret_value "$SECRET_NAME" JWT_SECRET)"
+existing_analytics_secret="$(get_secret_value "$SECRET_NAME" ANALYTICS_INGEST_SECRET)"
 existing_smtp_host="$(get_secret_value "$SECRET_NAME" SMTP_HOST)"
 existing_smtp_port="$(get_secret_value "$SECRET_NAME" SMTP_PORT)"
 existing_smtp_user="$(get_secret_value "$SECRET_NAME" SMTP_USER)"
@@ -24,6 +25,7 @@ existing_smtp_from="$(get_secret_value "$SECRET_NAME" SMTP_FROM)"
 DB_PASSWORD="${DB_PASSWORD:-${existing_db:-$(generate_sql_password)}}"
 MSSQL_SA_PASSWORD="${MSSQL_SA_PASSWORD:-${existing_mssql:-$(generate_sql_password)}}"
 JWT_SECRET="${JWT_SECRET:-${existing_jwt:-$(generate_jwt_secret)}}"
+ANALYTICS_INGEST_SECRET="${ANALYTICS_INGEST_SECRET:-${existing_analytics_secret:-$(generate_jwt_secret)}}"
 SMTP_HOST="${SMTP_HOST:-${existing_smtp_host:-}}"
 SMTP_PORT="${SMTP_PORT:-${existing_smtp_port:-587}}"
 SMTP_USER="${SMTP_USER:-${existing_smtp_user:-}}"
@@ -34,6 +36,7 @@ oc create secret generic "$SECRET_NAME" \
   --from-literal=DB_PASSWORD="$DB_PASSWORD" \
   --from-literal=MSSQL_SA_PASSWORD="$MSSQL_SA_PASSWORD" \
   --from-literal=JWT_SECRET="$JWT_SECRET" \
+  --from-literal=ANALYTICS_INGEST_SECRET="$ANALYTICS_INGEST_SECRET" \
   --from-literal=SMTP_HOST="$SMTP_HOST" \
   --from-literal=SMTP_PORT="$SMTP_PORT" \
   --from-literal=SMTP_USER="$SMTP_USER" \
