@@ -28,7 +28,7 @@ def _validate_and_load_image(content: bytes) -> tuple[Image.Image, str]:
     try:
         image = Image.open(BytesIO(content))
         image.load()
-    except (UnidentifiedImageError, OSError) as exc:
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
         raise HTTPException(status_code=400, detail="Unsupported file type") from exc
 
     fmt = (image.format or "").upper()
