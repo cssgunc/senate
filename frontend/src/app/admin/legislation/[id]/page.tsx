@@ -225,7 +225,11 @@ export default function LegislationDetailsPage() {
                     <>
                       <div className="flex justify-between">
                         <strong className="text-slate-900">
-                          {new Date(action.action_date).toLocaleDateString()} -{" "}
+                          {new Date(action.action_date).toLocaleDateString(
+                            "en-US",
+                            { timeZone: "UTC" },
+                          )}{" "}
+                          -{" "}
                           {action.action_type}
                         </strong>
                         <div className="flex gap-3 text-xs font-medium">
