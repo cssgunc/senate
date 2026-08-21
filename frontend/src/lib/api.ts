@@ -117,7 +117,7 @@ export async function fetchAPI<T>(
 
   let response: Response;
   try {
-    response = await fetch(url, options);
+    response = await fetch(url, { cache: "no-store", ...options });
   } catch (error) {
     throw new ApiError(0, "Network request failed", error);
   }

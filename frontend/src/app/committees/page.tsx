@@ -13,8 +13,6 @@ import { getCommittees } from "@/lib/api";
 import { stripHtmlTags } from "@/lib/html";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
-
 export default async function CommitteesPage() {
   let committees;
   try {

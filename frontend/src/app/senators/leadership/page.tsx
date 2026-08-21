@@ -5,8 +5,6 @@ import { IMAGE_PATHS } from "@/lib/imagePaths";
 import { loadLeadershipForPage } from "@/lib/leadership";
 import Image from "next/image";
 
-export const dynamic = "force-dynamic";
-
 export default async function LeadershipPage() {
   const leadership = await loadLeadershipForPage(() => getLeadership());
 

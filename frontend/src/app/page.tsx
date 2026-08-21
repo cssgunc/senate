@@ -8,8 +8,6 @@ import ErrorMessage from "@/components/ui/ErrorMessage";
 import { ApiError, getCarousel, getEvents, getFinanceHearings } from "@/lib/api";
 import { financeHearingsToCalendarEvents } from "@/lib/calendar";
 
-export const dynamic = "force-dynamic";
-
 export default async function Home() {
   let slides: Awaited<ReturnType<typeof getCarousel>> = [];
   let events: Awaited<ReturnType<typeof getEvents>> = [];

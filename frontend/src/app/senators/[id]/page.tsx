@@ -11,8 +11,6 @@ import { ApiError, getSenatorById } from "@/lib/api";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
 function initials(name: string) {
   return name
     .split(" ")
