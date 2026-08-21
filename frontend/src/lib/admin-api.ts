@@ -18,6 +18,7 @@ import type {
   AdminLeadership,
   AdminNews,
   AdminStaff,
+  AnalyticsSummary,
   AssignCommitteeMember,
   CreateAccount,
   CreateBudgetData,
@@ -533,6 +534,13 @@ export async function updateStaff(
 
 export async function deleteStaff(id: number): Promise<void> {
   return request<void>(`/admin/staff/${id}`, { method: "DELETE" });
+}
+
+// Analytics
+export async function getAnalyticsSummary(
+  days: number = 7,
+): Promise<AnalyticsSummary> {
+  return request(`/admin/analytics/summary?days=${days}`, { method: "GET" });
 }
 
 // Budget

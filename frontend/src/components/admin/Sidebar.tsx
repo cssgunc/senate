@@ -26,6 +26,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Budget", href: "/admin/budget" },
   { label: "Static Pages", href: "/admin/static-pages" },
   { label: "Districts", href: "/admin/districts" },
+  { label: "Analytics", href: "/admin/analytics" },
   { label: "Accounts", href: "/admin/accounts", adminOnly: true },
 ];
 
