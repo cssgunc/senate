@@ -334,6 +334,11 @@ objects:
                     secretKeyRef:
                       name: ${APP_NAME}-secrets
                       key: JWT_SECRET
+                - name: ANALYTICS_INGEST_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: ANALYTICS_INGEST_SECRET
                 - name: SQLALCHEMY_ECHO
                   value: "false"
                 - name: UPLOAD_DIR
@@ -450,6 +455,11 @@ objects:
                   value: "3000"
                 - name: NEXT_PUBLIC_API_URL
                   value: ${NEXT_PUBLIC_API_URL}
+                - name: ANALYTICS_INGEST_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: ANALYTICS_INGEST_SECRET
               resources:
                 requests:
                   memory: ${FRONTEND_MEMORY_REQUEST}
