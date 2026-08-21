@@ -236,7 +236,7 @@ export interface CreateLeadership {
   title: string;
   first_name: string;
   last_name: string;
-  email: string;
+  email: string | null;
   headshot_url?: string | null;
   is_active?: boolean;
   session_number: number;
@@ -247,7 +247,7 @@ export interface UpdateLeadership {
   title?: string;
   first_name?: string;
   last_name?: string;
-  email?: string;
+  email?: string | null;
   headshot_url?: string | null;
   is_active?: boolean;
   session_number?: number;
@@ -259,7 +259,7 @@ export interface AdminLeadership {
   title: string;
   first_name: string;
   last_name: string;
-  email: string;
+  email: string | null;
   photo_url: string | null;
   session_number: number;
   is_current: boolean;

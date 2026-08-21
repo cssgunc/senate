@@ -68,6 +68,23 @@ def test_create_admin_leadership(admin_client):
     assert data["session_number"] == 2026
 
 
+def test_create_admin_leadership_without_email(admin_client):
+    response = admin_client.post(
+        "/api/admin/leadership",
+        json={
+            "title": "Secretary",
+            "first_name": "Taylor",
+            "last_name": "Green",
+            "session_number": 2026,
+            "is_active": True,
+        },
+    )
+    assert response.status_code == 201
+
+    data = response.json()
+    assert data["email"] is None
+
+
 def test_create_admin_leadership_invalid_senator_returns_404(admin_client):
     response = admin_client.post(
         "/api/admin/leadership",

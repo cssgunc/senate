@@ -9,7 +9,7 @@ class LeadershipDTO(BaseModel):
     title: str
     first_name: str
     last_name: str
-    email: str
+    email: str | None
     photo_url: str | None
     session_number: int
     is_current: bool
@@ -22,7 +22,7 @@ class CreateLeadershipDTO(BaseModel):
     title: str
     first_name: str
     last_name: str
-    email: EmailStr
+    email: EmailStr | None = None
     headshot_url: str | None = None
     is_active: bool = True
     session_number: int

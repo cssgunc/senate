@@ -67,7 +67,7 @@ export function LeadershipForm({
       title,
       first_name: firstName,
       last_name: lastName,
-      email,
+      email: email || null,
       session_number: parseInt(sessionNumber),
       is_active: isActive,
       senator_id: senatorId,
@@ -132,10 +132,9 @@ export function LeadershipForm({
         {/* Email Field */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email <span className="text-red-500">*</span>
+            Email
           </label>
           <input
-            required
             type="email"
             className="w-full p-2 border rounded border-gray-300"
             value={email}
