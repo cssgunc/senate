@@ -1,13 +1,16 @@
 """Senator model."""
 
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import CHAR, Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from .base import Base
+
+if TYPE_CHECKING:
+    from .cms import CommitteeMembership
 
 
 class Senator(Base):
@@ -29,7 +32,7 @@ class Senator(Base):
     )
 
     # Relationships (referenced by cms.py)
-    committee_memberships: Mapped[list] = relationship(
+    committee_memberships: Mapped[list["CommitteeMembership"]] = relationship(
         "CommitteeMembership", back_populates="senator"
     )
 

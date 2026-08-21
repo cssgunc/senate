@@ -1,16 +1,18 @@
 import { Card } from "@/components/ui/card";
-import { getNews } from "@/lib/api";
 import { IMAGE_PATHS } from "@/lib/imagePaths";
 import type { News } from "@/types";
+import type { PaginatedResponse } from "@/types/api";
 import { format } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
 
-export default async function RecentNews() {
-  let newsData;
-  try {
-    newsData = await getNews(1, 3);
-  } catch {
+interface RecentNewsProps {
+  newsData: PaginatedResponse<News> | null;
+  error: boolean;
+}
+
+export default function RecentNews({ newsData, error }: RecentNewsProps) {
+  if (error || !newsData) {
     return (
       <div className="recent-news">
         <h2 className="text-2xl font-bold mb-4">Recent News</h2>

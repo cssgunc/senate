@@ -11,10 +11,10 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_, true
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models.cms import Committee, CommitteeMembership
+from app.models.cms import CommitteeMembership
 from app.models.Senator import Senator
 
 try:
@@ -28,33 +28,24 @@ except ImportError:  # pragma: no cover — removed once PR #37 merges
 router = APIRouter(prefix="/api/senators", tags=["senators"])
 
 
-def _senator_to_dict(senator: Senator, db: Session) -> dict[str, Any]:
+def _senator_to_dict(senator: Senator) -> dict[str, Any]:
     """Convert a Senator ORM row to a dict compatible with PR #37's SenatorDTO.
 
     Key remappings vs the model:
     - ``district``  (model column)  → ``district_id``  (DTO field in PR #37)
     - ``committee_memberships``  (relationship)  → ``committees``  (DTO field in PR #37)
 
-    Memberships are queried explicitly to avoid SQLAlchemy inference issues with
-    the untyped ``Mapped[list]`` annotation on ``Senator.committee_memberships``.
+    Relies on ``_base_query``'s ``selectinload`` to have eagerly loaded
+    ``committee_memberships`` (and each membership's ``committee``), so this
+    reads only already-fetched data instead of issuing per-senator queries.
     """
-    memberships = (
-        db.query(CommitteeMembership).filter(CommitteeMembership.senator_id == senator.id).all()
-    )
-    committee_ids = [m.committee_id for m in memberships]
-    committees_by_id = (
-        {c.id: c.name for c in db.query(Committee).filter(Committee.id.in_(committee_ids)).all()}
-        if committee_ids
-        else {}
-    )
-
     committees = [
         {
             "committee_id": m.committee_id,
-            "committee_name": committees_by_id.get(m.committee_id, ""),
+            "committee_name": m.committee.name if m.committee else "",
             "role": m.role,
         }
-        for m in memberships
+        for m in senator.committee_memberships
     ]
     return {
         "id": senator.id,
@@ -70,8 +61,10 @@ def _senator_to_dict(senator: Senator, db: Session) -> dict[str, Any]:
 
 
 def _base_query(db: Session):
-    """Base query for senators."""
-    return db.query(Senator)
+    """Base query for senators, with committee memberships eagerly loaded."""
+    return db.query(Senator).options(
+        selectinload(Senator.committee_memberships).selectinload(CommitteeMembership.committee)
+    )
 
 
 def _current_session(db: Session) -> int:
@@ -120,7 +113,7 @@ def list_senators(
         ).filter(CommitteeMembership.committee_id == committee)
 
     senators_orm = query.all()
-    dicts: list[Any] = [_senator_to_dict(s, db) for s in senators_orm]
+    dicts: list[Any] = [_senator_to_dict(s) for s in senators_orm]
 
     if _SENATOR_DTO_AVAILABLE:
         from app.schemas.senator import SenatorDTO
@@ -136,7 +129,7 @@ def get_senator(senator_id: int, db: Session = Depends(get_db)):
     if senator is None:
         raise HTTPException(status_code=404, detail="Senator not found")
 
-    data = _senator_to_dict(senator, db)
+    data = _senator_to_dict(senator)
     if _SENATOR_DTO_AVAILABLE:
         from app.schemas.senator import SenatorDTO
 
