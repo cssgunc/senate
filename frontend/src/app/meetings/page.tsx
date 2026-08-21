@@ -4,8 +4,6 @@ import ErrorMessage from "@/components/ui/ErrorMessage";
 import { getEvents, getFinanceHearings } from "@/lib/api";
 import { financeHearingsToCalendarEvents } from "@/lib/calendar";
 
-export const dynamic = "force-dynamic";
-
 export default async function MeetingsPage() {
   let events: Awaited<ReturnType<typeof getEvents>> = [];
   let financeHearings: Awaited<ReturnType<typeof getFinanceHearings>> | null =

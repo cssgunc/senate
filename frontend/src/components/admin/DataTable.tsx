@@ -51,8 +51,8 @@ export function DataTable<TData, TValue>({
         className="max-w-sm"
       />
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <table className="w-full text-sm text-left">
+      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+        <table className="w-full min-w-max text-sm text-left">
           <thead className="border-b border-slate-200 bg-slate-50">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
