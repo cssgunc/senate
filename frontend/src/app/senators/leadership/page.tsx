@@ -51,12 +51,14 @@ export default async function LeadershipPage() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     {leader.first_name} {leader.last_name}
                   </h3>
-                  <a
-                    href={`mailto:${leader.email}`}
-                    className="text-blue-600 hover:text-blue-800 text-sm"
-                  >
-                    {leader.email}
-                  </a>
+                  {leader.email && (
+                    <a
+                      href={`mailto:${leader.email}`}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      {leader.email}
+                    </a>
+                  )}
                 </CardContent>
               </Card>
             ))}

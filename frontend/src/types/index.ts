@@ -40,7 +40,7 @@ export interface Leadership {
   title: string;
   first_name: string;
   last_name: string;
-  email: string;
+  email: string | null;
   photo_url: string | null;
   session_number: number;
   is_current: boolean;
