@@ -112,12 +112,18 @@ async function extractErrorDetails(response: Response): Promise<unknown> {
 export async function fetchAPI<T>(
   endpoint: string,
   options?: RequestInit,
+  revalidateSeconds?: number,
 ): Promise<T> {
   const url = `${API_BASE_URL}${normalizeEndpoint(endpoint)}`;
 
+  const cacheOptions: RequestInit =
+    revalidateSeconds !== undefined
+      ? { next: { revalidate: revalidateSeconds } }
+      : { cache: "no-store" };
+
   let response: Response;
   try {
-    response = await fetch(url, { cache: "no-store", ...options });
+    response = await fetch(url, { ...cacheOptions, ...options });
   } catch (error) {
     throw new ApiError(0, "Network request failed", error);
   }
@@ -173,17 +179,17 @@ export async function getSenatorById(id: string | number): Promise<Senator> {
 }
 
 export async function getLeadership(session?: number): Promise<Leadership[]> {
-  return fetchAPI<Leadership[]>(buildLeadershipEndpoint(session));
+  return fetchAPI<Leadership[]>(buildLeadershipEndpoint(session), undefined, 60);
 }
 
 export async function getCommittees(): Promise<Committee[]> {
-  return fetchAPI<Committee[]>("/api/committees/");
+  return fetchAPI<Committee[]>("/api/committees/", undefined, 60);
 }
 
 export async function getCommitteeById(
   id: string | number,
 ): Promise<Committee> {
-  return fetchAPI<Committee>(`/api/committees/${id}`);
+  return fetchAPI<Committee>(`/api/committees/${id}`, undefined, 60);
 }
 
 export async function getLegislation(
@@ -231,11 +237,11 @@ export async function getCarousel(): Promise<CarouselSlide[]> {
 }
 
 export async function getFinanceHearings(): Promise<FinanceHearingConfig> {
-  return fetchAPI<FinanceHearingConfig>("/api/finance-hearings");
+  return fetchAPI<FinanceHearingConfig>("/api/finance-hearings", undefined, 60);
 }
 
 export async function getStaff(): Promise<Staff[]> {
-  return fetchAPI<Staff[]>("/api/staff");
+  return fetchAPI<Staff[]>("/api/staff", undefined, 60);
 }
 
 export async function getDistricts(): Promise<District[]> {

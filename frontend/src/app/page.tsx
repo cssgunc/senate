@@ -5,39 +5,46 @@ import FinanceHearingButton from "@/components/home/FinanceHearingButton";
 import RecentNews from "@/components/home/RecentNews";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorMessage from "@/components/ui/ErrorMessage";
-import { ApiError, getCarousel, getEvents, getFinanceHearings } from "@/lib/api";
+import {
+  ApiError,
+  getCarousel,
+  getEvents,
+  getFinanceHearings,
+  getNews,
+} from "@/lib/api";
 import { financeHearingsToCalendarEvents } from "@/lib/calendar";
 
 export default async function Home() {
-  let slides: Awaited<ReturnType<typeof getCarousel>> = [];
-  let events: Awaited<ReturnType<typeof getEvents>> = [];
+  const [slidesResult, eventsResult, financeHearingsResult, newsResult] =
+    await Promise.allSettled([
+      getCarousel(),
+      getEvents(),
+      getFinanceHearings(),
+      getNews(1, 3),
+    ]);
+
+  const slides = slidesResult.status === "fulfilled" ? slidesResult.value : [];
+  const carouselError = slidesResult.status === "rejected";
+
+  const events = eventsResult.status === "fulfilled" ? eventsResult.value : [];
+  const eventsError = eventsResult.status === "rejected";
+
   let financeHearings: Awaited<ReturnType<typeof getFinanceHearings>> | null =
     null;
-  let carouselError = false;
-  let eventsError = false;
   let financeError = false;
-
-  try {
-    slides = await getCarousel();
-  } catch {
-    carouselError = true;
-  }
-
-  try {
-    events = await getEvents();
-  } catch {
-    eventsError = true;
-  }
-
-  try {
-    financeHearings = await getFinanceHearings();
-  } catch (err) {
+  if (financeHearingsResult.status === "fulfilled") {
+    financeHearings = financeHearingsResult.value;
+  } else {
+    const err = financeHearingsResult.reason;
     if (err instanceof ApiError && err.status === 404) {
       // no config row exists yet — valid empty state
     } else {
       financeError = true;
     }
   }
+
+  const newsData = newsResult.status === "fulfilled" ? newsResult.value : null;
+  const newsError = newsResult.status === "rejected";
 
   const calendarEvents = [
     ...events,
@@ -66,7 +73,7 @@ export default async function Home() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           <div className="lg:col-span-2">
-            <RecentNews />
+            <RecentNews newsData={newsData} error={newsError} />
           </div>
           <div>
             {eventsError ? (
