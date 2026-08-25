@@ -155,7 +155,6 @@ export default function AdminLegislationPage() {
     <AdminPageShell>
       <AdminPageHeader
         title="Legislation Management"
-        description="Create, edit, and maintain legislation records and metadata."
         action={
           <Button
             type="button"

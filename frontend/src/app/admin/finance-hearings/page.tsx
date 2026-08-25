@@ -201,7 +201,6 @@ export default function AdminFinanceHearingsPage() {
     <AdminPageShell className="space-y-8">
       <AdminPageHeader
         title="Finance Hearings"
-        description="Manage hearing season availability and date slots."
       />
 
       {error ? (

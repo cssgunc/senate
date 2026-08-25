@@ -14,6 +14,7 @@ import type {
 } from "@/types";
 import type {
   Account,
+  ActiveUsers,
   AdminDistrict,
   AdminLeadership,
   AdminNews,
@@ -541,6 +542,10 @@ export async function getAnalyticsSummary(
   days: number = 7,
 ): Promise<AnalyticsSummary> {
   return request(`/admin/analytics/summary?days=${days}`, { method: "GET" });
+}
+
+export async function getActiveUsers(): Promise<ActiveUsers> {
+  return request(`/admin/analytics/active`, { method: "GET" });
 }
 
 // Budget

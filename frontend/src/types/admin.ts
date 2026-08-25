@@ -288,3 +288,7 @@ export interface AnalyticsSummary {
   top_paths: TopPath[];
   top_referrers: TopReferrer[];
 }
+
+export interface ActiveUsers {
+  active_users: number;
+}

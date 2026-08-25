@@ -311,7 +311,6 @@ export default function AdminBudgetPage() {
     <AdminPageShell className="space-y-8">
       <AdminPageHeader
         title="Budget"
-        description="Manage fiscal-year categories for the budget visualization."
       />
 
       {error ? (

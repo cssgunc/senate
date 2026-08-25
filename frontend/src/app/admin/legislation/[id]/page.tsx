@@ -147,7 +147,6 @@ export default function LegislationDetailsPage() {
 
       <AdminPageHeader
         title={`${legislation.bill_number}: ${legislation.title}`}
-        description="Review the legislation metadata and manage timeline actions."
       />
 
       <AdminCard>
