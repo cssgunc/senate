@@ -10,16 +10,6 @@ function getApiOrigin(): string | undefined {
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname, "../"),
-  async redirects() {
-    return [
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "senate.unc.edu" }],
-        destination: "https://www.senate.unc.edu/:path*",
-        permanent: true,
-      },
-    ];
-  },
   async rewrites() {
     const apiOrigin = getApiOrigin();
     if (!apiOrigin) return [];
