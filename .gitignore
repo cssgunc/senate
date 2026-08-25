@@ -142,6 +142,9 @@ deploy/cloudapps/secrets/
 deploy/cloudapps/*.local.env
 deploy/cloudapps/params/*.local.env
 *.key
+*.crt
+*.pem
+*.csr
 env/
 venv/
 ENV/
