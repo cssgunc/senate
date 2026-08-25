@@ -28,7 +28,10 @@ parameters:
     value: production
   - name: FRONTEND_HOST
     required: true
-    description: Public frontend hostname, without https://.
+    description: Public frontend apex hostname, without https:// (e.g. senate.unc.edu). The app itself 308-redirects requests on this host to FRONTEND_WWW_HOST.
+  - name: FRONTEND_WWW_HOST
+    required: true
+    description: Public frontend www hostname that serves the real app, without https:// (e.g. www.senate.unc.edu).
   - name: BACKEND_HOST
     required: true
     description: Public backend hostname, without https://.
@@ -496,6 +499,21 @@ objects:
       name: ${APP_NAME}-frontend
     spec:
       host: ${FRONTEND_HOST}
+      to:
+        kind: Service
+        name: ${APP_NAME}-frontend
+      port:
+        targetPort: http
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
+
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${APP_NAME}-frontend-www
+    spec:
+      host: ${FRONTEND_WWW_HOST}
       to:
         kind: Service
         name: ${APP_NAME}-frontend
