@@ -167,3 +167,137 @@ class TestAnalyticsSummary:
     def test_days_out_of_range_returns_422(self, admin_client):
         assert admin_client.get("/api/admin/analytics/summary?days=0").status_code == 422
         assert admin_client.get("/api/admin/analytics/summary?days=91").status_code == 422
+
+
+def _seed_navigation_flow(engine):
+    """Seed pageviews specifically shaped to exercise session reconstruction.
+
+    visitor-a: "/" -> "/about" (5 min apart, same session), then a 45-minute
+    gap, then "/legislation" (new session) -- 2 Start edges + 1 page edge.
+    visitor-b: single pageview on "/" -- 1 Start edge, no page edge.
+    visitor-c: "/" -> "/" (2 min apart, same path) -- 1 Start edge, self-loop dropped.
+    """
+    now = datetime.now()
+    Session = sessionmaker(bind=engine)
+    db = Session()
+    db.add(
+        Admin(
+            email="admin@unc.edu",
+            first_name="Admin",
+            last_name="User",
+            onyen="user100000001",
+            password_hash=hash_password("TestPassword123!"),
+            role="admin",
+        )
+    )
+    db.add_all(
+        [
+            PageView(
+                path="/",
+                visitor_hash="visitor-a",
+                created_at=now - timedelta(hours=2),
+            ),
+            PageView(
+                path="/about",
+                visitor_hash="visitor-a",
+                created_at=now - timedelta(hours=2) + timedelta(minutes=5),
+            ),
+            PageView(
+                path="/legislation",
+                visitor_hash="visitor-a",
+                created_at=now - timedelta(hours=2) + timedelta(minutes=50),
+            ),
+            PageView(
+                path="/",
+                visitor_hash="visitor-b",
+                created_at=now - timedelta(hours=1),
+            ),
+            PageView(
+                path="/",
+                visitor_hash="visitor-c",
+                created_at=now - timedelta(minutes=30),
+            ),
+            PageView(
+                path="/",
+                visitor_hash="visitor-c",
+                created_at=now - timedelta(minutes=28),
+            ),
+        ]
+    )
+    db.commit()
+    db.close()
+
+
+@pytest.fixture()
+def nav_flow_engine():
+    engine = _make_engine()
+    _seed_navigation_flow(engine)
+    yield engine
+    Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture()
+def nav_flow_client(nav_flow_engine):
+    TestSession = sessionmaker(bind=nav_flow_engine)
+
+    def _override_get_db():
+        db = TestSession()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    def _override_current_user():
+        db = TestSession()
+        user = db.query(Admin).filter(Admin.email == "admin@unc.edu").first()
+        db.close()
+        return user
+
+    app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_current_user] = _override_current_user
+    with TestClient(app) as c:
+        yield c
+    _clear()
+
+
+class TestNavigationFlow:
+    def test_unauthenticated_rejected(self):
+        saved = app.dependency_overrides.pop(get_current_user, None)
+        try:
+            with TestClient(app) as c:
+                assert c.get("/api/admin/analytics/navigation-flow").status_code in {401, 403, 501}
+        finally:
+            if saved:
+                app.dependency_overrides[get_current_user] = saved
+
+    def test_returns_200(self, nav_flow_client):
+        assert nav_flow_client.get("/api/admin/analytics/navigation-flow").status_code == 200
+
+    def test_gap_over_threshold_splits_session(self, nav_flow_client):
+        data = nav_flow_client.get("/api/admin/analytics/navigation-flow").json()
+        links = {(link["source"], link["target"]): link["count"] for link in data["links"]}
+        # visitor-a's first session, visitor-b, and visitor-c's first view all land here.
+        assert links[("__start__", "/")] == 3
+        assert links[("/", "/about")] == 1
+        assert links[("__start__", "/legislation")] == 1  # visitor-a's second session (gap > 30 min)
+
+    def test_self_loop_excluded(self, nav_flow_client):
+        data = nav_flow_client.get("/api/admin/analytics/navigation-flow").json()
+        links = {(link["source"], link["target"]) for link in data["links"]}
+        assert ("/", "/") not in links
+
+    def test_single_pageview_visitor_contributes_only_start_edge(self, nav_flow_client):
+        data = nav_flow_client.get("/api/admin/analytics/navigation-flow").json()
+        links = {(link["source"], link["target"]): link["count"] for link in data["links"]}
+        # visitor-b's only view and visitor-c's first view both land here; visitor-c
+        # contributes no page-to-page edge since its second view is a same-path self-loop.
+        assert links[("__start__", "/")] == 3
+
+    def test_total_sessions_counts_all_start_edges(self, nav_flow_client):
+        data = nav_flow_client.get("/api/admin/analytics/navigation-flow").json()
+        # visitor-a: 2 sessions, visitor-b: 1 session, visitor-c: 1 session
+        assert data["total_sessions"] == 4
+
+    def test_days_out_of_range_returns_422(self, nav_flow_client):
+        assert nav_flow_client.get("/api/admin/analytics/navigation-flow?days=0").status_code == 422
+        assert nav_flow_client.get("/api/admin/analytics/navigation-flow?days=91").status_code == 422

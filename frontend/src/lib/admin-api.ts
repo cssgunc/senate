@@ -38,6 +38,7 @@ import type {
   DistrictMapping,
   LoginCredentials,
   LoginResponse,
+  NavigationFlow,
   UpdateAccount,
   UpdateDistrict,
   UpdateFinanceHearingConfig,
@@ -546,6 +547,10 @@ export async function getAnalyticsSummary(
 
 export async function getActiveUsers(): Promise<ActiveUsers> {
   return request(`/admin/analytics/active`, { method: "GET" });
+}
+
+export async function getNavigationFlow(days: number = 7): Promise<NavigationFlow> {
+  return request(`/admin/analytics/navigation-flow?days=${days}`, { method: "GET" });
 }
 
 // Budget
