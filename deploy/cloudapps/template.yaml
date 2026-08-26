@@ -211,8 +211,16 @@ objects:
     metadata:
       name: ${APP_NAME}-uploads
     spec:
+      # ReadWriteMany (not ReadWriteOnce) so a RollingUpdate surge pod can
+      # mount this alongside the still-terminating old pod. With RWO, the
+      # new pod's mount races the old pod's release of the volume and can
+      # hit "Multi-Attach error ... already exclusively attached to one
+      # node" - see deploy/cloudapps/README.md's backend rollout section.
+      # Backed by the ontap-nas-economy (NFS) storage class, which supports
+      # RWX; this can't be changed in place on an existing bound PVC
+      # (accessModes is immutable) - see scripts/migrate-uploads-to-rwx.sh.
       accessModes:
-        - ReadWriteOnce
+        - ReadWriteMany
       resources:
         requests:
           storage: ${UPLOAD_STORAGE_SIZE}
@@ -299,7 +307,18 @@ objects:
         matchLabels:
           app: ${APP_NAME}-backend
       strategy:
-        type: Recreate
+        # RollingUpdate, not Recreate: the old pod keeps serving traffic
+        # until the new one passes its readiness probe, so a deploy no
+        # longer has a window with zero backend pods up. This and the
+        # frontend's own surge together fit the compute-resources quota
+        # exactly with zero slack left over - see the memory-limit note
+        # in deploy/cloudapps/README.md. Requires the uploads PVC to be
+        # ReadWriteMany (see that PVC's comment above) or the surge pod's
+        # volume mount will fail with a Multi-Attach error.
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
       template:
         metadata:
           labels:
@@ -312,6 +331,14 @@ objects:
               ports:
                 - containerPort: 8000
                   name: http
+              lifecycle:
+                preStop:
+                  exec:
+                    # Give the Service/Route time to stop sending new
+                    # requests to this pod (removing a terminating pod's
+                    # endpoint isn't instantaneous) before the container
+                    # actually receives SIGTERM.
+                    command: ["/bin/sh", "-c", "sleep 5"]
               env:
                 - name: ENVIRONMENT
                   value: ${RUNTIME_ENVIRONMENT}
@@ -381,17 +408,26 @@ objects:
               volumeMounts:
                 - name: uploads
                   mountPath: /app/uploads
+              startupProbe:
+                # Gates readiness/liveness until the process is actually up
+                # (init_db + uvicorn boot), polling often so a fast start
+                # doesn't sit behind a flat initialDelaySeconds. Generous
+                # failureThreshold covers a slow init_db run without either
+                # probe flapping the pod.
+                httpGet:
+                  path: /health
+                  port: 8000
+                periodSeconds: 2
+                failureThreshold: 30
               readinessProbe:
                 httpGet:
                   path: /health/db
                   port: 8000
-                initialDelaySeconds: 20
-                periodSeconds: 10
+                periodSeconds: 5
               livenessProbe:
                 httpGet:
                   path: /health
                   port: 8000
-                initialDelaySeconds: 20
                 periodSeconds: 20
           volumes:
             - name: uploads
@@ -438,7 +474,15 @@ objects:
         matchLabels:
           app: ${APP_NAME}-frontend
       strategy:
-        type: Recreate
+        # RollingUpdate, same reasoning as the backend. This only fits the
+        # compute-resources quota because BACKEND_MEMORY_LIMIT and
+        # FRONTEND_MEMORY_LIMIT were both trimmed toward measured usage
+        # (see params/senate.env and deploy/cloudapps/README.md) - at the
+        # old 512Mi/1Gi limits, a frontend surge pod didn't fit at all.
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
       template:
         metadata:
           labels:
@@ -451,6 +495,10 @@ objects:
               ports:
                 - containerPort: 3000
                   name: http
+              lifecycle:
+                preStop:
+                  exec:
+                    command: ["/bin/sh", "-c", "sleep 5"]
               env:
                 - name: NODE_ENV
                   value: production
@@ -468,17 +516,21 @@ objects:
                   memory: ${FRONTEND_MEMORY_REQUEST}
                 limits:
                   memory: ${FRONTEND_MEMORY_LIMIT}
+              startupProbe:
+                httpGet:
+                  path: /
+                  port: 3000
+                periodSeconds: 2
+                failureThreshold: 30
               readinessProbe:
                 httpGet:
                   path: /
                   port: 3000
-                initialDelaySeconds: 20
-                periodSeconds: 10
+                periodSeconds: 5
               livenessProbe:
                 httpGet:
                   path: /
                   port: 3000
-                initialDelaySeconds: 20
                 periodSeconds: 20
 
   - apiVersion: v1

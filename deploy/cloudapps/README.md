@@ -202,12 +202,129 @@ or recreate the old Route to restore service before investigating further.
 ## Storage and quota
 
 `dept-undergraduate-senate` has its own project quota (2.5Gi memory limit,
-5Gi storage, 10 pods, separate from `calebhan`'s). The frontend Deployment
-uses `strategy: type: Recreate` (matching backend/db) rather than the
-Kubernetes default `RollingUpdate` — with a tight memory quota,
-`RollingUpdate` needs headroom to run old and new pods simultaneously
-during rollout, which this project's quota often doesn't have. `Recreate`
-avoids that by stopping the old pod before starting the new one.
+5Gi storage, 10 pods, separate from `calebhan`'s) — a hard `ResourceQuota`
+object only UNC IT can raise, the same as the `routes/custom-host`
+permission described above. Storage is maxed outright: `requests.storage`
+is 5Gi/5Gi (DB's 4Gi + uploads' 1Gi), so no new PVC — of any size — can be
+created without freeing space first.
+
+The `db` Deployment uses `strategy: type: Recreate`: it's a single-writer
+stateful workload with a ReadWriteOnce PVC, so there's no meaningful way
+to run two Postgres instances against the same data directory during a
+rollout anyway — `Recreate` is the correct choice here, not a compromise.
+
+The `backend` and `frontend` Deployments both use `RollingUpdate`
+(`maxSurge: 1, maxUnavailable: 0`): the old pod keeps serving until the
+new one passes its readiness probe, so a deploy has no window with zero
+pods up. At the *original* `BACKEND_MEMORY_LIMIT`/`FRONTEND_MEMORY_LIMIT`
+(512Mi/1Gi), a frontend surge pod didn't fit the quota at all (2Gi
+steady-state + a 1Gi surge blows past the 2560Mi hard cap) — the honest
+fix there would have been asking UNC IT for more quota, with no control
+over the timeline.
+
+Live usage checked with `oc adm top pods` told a different story, though:
+actual memory use was ~85Mi for backend and ~94Mi for the DB against
+512Mi limits each, and ~550Mi for frontend against its 1Gi limit — a lot
+of committed-but-unused headroom. `BACKEND_MEMORY_LIMIT` was trimmed to
+256Mi (still ~3x its measured usage) and `FRONTEND_MEMORY_LIMIT` to 896Mi
+(~1.6x its measured peak), which frees just enough quota room for a
+frontend surge pod to fit too, with **zero UNC IT dependency**:
+
+```
+steady-state:      512(db) + 256(backend) + 896(frontend) = 1664Mi
+either surge pod:              + up to 896Mi              = 2560Mi  (exact cap)
+```
+
+`db`'s limit was deliberately left untouched even though it shows the
+same slack — Postgres OOM-kills are a worse failure mode than a slow web
+process (unclean termination mid-write, `Recreate` restart, connection
+storm on recovery), so it isn't a lever to reach for casually.
+
+This still leaves **zero slack** in the quota, with two consequences to
+know about, neither of which causes an outage (both strategies keep
+`maxUnavailable: 0`) but both of which can make a rollout stall:
+
+- A stray pod needing memory during a deploy (`oc debug`, etc.) will hold
+  up a surge pod in `Pending` until it clears.
+- If a single commit changes both frontend and backend, their rollouts
+  can overlap (the mirror CronJob triggers both BuildConfig webhooks
+  back-to-back, and each Deployment rolls independently once its own
+  image lands) and together need more than the 2560Mi available at once.
+  Whichever surge pod loses the race just waits — `Pending` — until the
+  other rollout finishes and releases its extra memory, then proceeds.
+
+These numbers are a single live snapshot at low traffic, not a load test.
+If `oc adm top pods` after a period of real traffic shows frontend
+consistently closer to 896Mi than the ~550Mi seen here, that limit (or a
+UNC IT quota increase) needs revisiting before it starts causing stalled
+rollouts or OOM kills.
+
+Both Deployments also set a `startupProbe` (polling every 2s, generous
+`failureThreshold`) so a fast container start isn't hidden behind a flat
+`initialDelaySeconds`, and a `preStop` hook (`sleep 5`) so the
+Service/Route has time to stop routing to a pod before it receives
+SIGTERM — general hardening independent of which rollout strategy is used.
+
+### Zero-downtime backend deploys and the uploads PVC
+
+`RollingUpdate` only works if the surge pod can actually start alongside
+the old one. The `${APP_NAME}-uploads` PVC was `ReadWriteOnce`, and this
+caused a real outage: during a backend rollout, the node hosting the new
+pod hit `DiskPressure`, and while Kubernetes retried scheduling it
+elsewhere, several attempts failed with `FailedAttachVolume: Multi-Attach
+error ... already exclusively attached to one node` — the new pod
+couldn't mount the same volume the old (still-terminating) pod held. That
+combined with `Recreate` (no old pod left to fall back to) turned a
+transient node problem into extended downtime, and left ~29 pods stuck in
+`ContainerStatusUnknown` that had to be force-deleted afterward.
+
+The fix is `ReadWriteMany`, which the backing `ontap-nas-economy`
+(NetApp Trident NFS) storage class supports. `accessModes` is immutable on
+an existing bound PVC, so this isn't a plain template change — run
+`deploy/cloudapps/scripts/migrate-uploads-to-rwx.sh senate` once, which
+backs up the uploads directory, deletes and recreates the PVC as RWX, and
+restores the data. It takes the backend offline for the duration (seconds,
+for the current ~5MB of uploads) and needs the same storage-quota headroom
+problem kept in mind: deleting the old PVC first is what makes room for
+the new one under the maxed-out 5Gi quota, so don't try to run it as a
+create-alongside operation.
+
+Run the migration script before applying a `template.yaml` that expects
+`ReadWriteMany` — `apply-environment.sh` does a plain `oc apply`, which
+will error on the PVC's immutable `accessModes` field if the live PVC is
+still RWO.
+
+### Schema changes and rolling deploys
+
+`script/init_db.py` runs on every container start
+(`python -m script.init_db && uvicorn ...`) and is deliberately
+additive-only: it creates missing tables and adds missing nullable/
+defaulted columns via `ALTER TABLE ... ADD COLUMN`, and silently skips any
+`NOT NULL` column with no default (it can't backfill existing rows safely
+on its own). It never drops or renames anything.
+
+This happens to be exactly the right shape for zero-downtime rolling
+deploys: during a `RollingUpdate`, the old pod (running the previous
+commit's code) stays up and serving traffic while the new pod starts, so
+briefly *both* code versions query the same database. Purely additive
+changes are safe under that overlap — old code ignores columns/tables it
+doesn't know about. Two things are not automatically safe, and need
+manual handling regardless of rollout strategy:
+
+- **Destructive or renaming changes** (drop/rename a column or table,
+  change a column's type, add a `NOT NULL` column with no default): these
+  need the standard expand/contract split across multiple deploys — add
+  the new shape in one deploy, backfill, then remove the old shape in a
+  later deploy once no running code references it anymore. Doing a rename
+  in one shot will break the old pod for the duration of the rollout
+  overlap.
+- **A migration that gets silently skipped** (the `NOT NULL`-without-
+  default case) doesn't fail the deploy — `init_db.py` logs and moves on,
+  and the pod still passes its readiness probe (which only checks DB
+  connectivity, not schema alignment). It'll surface as application
+  errors on whatever code path touches that column, not as a stalled
+  rollout. Check the `init_db` logs (`oc logs deploy/${APP_NAME}-backend`)
+  after a deploy that adds a required column.
 
 ## First deploy and database initialization
 
