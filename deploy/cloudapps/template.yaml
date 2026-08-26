@@ -309,11 +309,10 @@ objects:
       strategy:
         # RollingUpdate, not Recreate: the old pod keeps serving traffic
         # until the new one passes its readiness probe, so a deploy no
-        # longer has a window with zero backend pods up. maxSurge: 1 fits
-        # the project's compute-resources quota exactly (2Gi steady +
-        # this pod's 512Mi limit = 2560Mi = the 2.5Gi hard cap), so there
-        # is no headroom for anything else memory-hungry to run at the
-        # same time as a backend deploy. Requires the uploads PVC to be
+        # longer has a window with zero backend pods up. This and the
+        # frontend's own surge together fit the compute-resources quota
+        # exactly with zero slack left over - see the memory-limit note
+        # in deploy/cloudapps/README.md. Requires the uploads PVC to be
         # ReadWriteMany (see that PVC's comment above) or the surge pod's
         # volume mount will fail with a Multi-Attach error.
         type: RollingUpdate
@@ -475,14 +474,15 @@ objects:
         matchLabels:
           app: ${APP_NAME}-frontend
       strategy:
-        # Still Recreate, unlike the backend: a RollingUpdate surge pod
-        # would need another FRONTEND_MEMORY_LIMIT (1Gi) on top of the
-        # 2Gi already committed to steady-state pods, which exceeds this
-        # project's 2.5Gi compute-resources quota outright (there's only
-        # 512Mi of headroom total). Switching this to RollingUpdate needs
-        # a quota increase from UNC IT first - see deploy/cloudapps/README.md.
-        # The startupProbe below at least shrinks this gap in the meantime.
-        type: Recreate
+        # RollingUpdate, same reasoning as the backend. This only fits the
+        # compute-resources quota because BACKEND_MEMORY_LIMIT and
+        # FRONTEND_MEMORY_LIMIT were both trimmed toward measured usage
+        # (see params/senate.env and deploy/cloudapps/README.md) - at the
+        # old 512Mi/1Gi limits, a frontend surge pod didn't fit at all.
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
       template:
         metadata:
           labels:

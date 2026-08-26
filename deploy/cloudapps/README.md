@@ -202,35 +202,62 @@ or recreate the old Route to restore service before investigating further.
 ## Storage and quota
 
 `dept-undergraduate-senate` has its own project quota (2.5Gi memory limit,
-5Gi storage, 10 pods, separate from `calebhan`'s). At current memory
-limits (DB 512Mi + backend 512Mi + frontend 1Gi = 2Gi), there's only
-512Mi of headroom against the 2560Mi hard cap. Storage is maxed outright:
-`requests.storage` is 5Gi/5Gi (DB's 4Gi + uploads' 1Gi), so no new PVC —
-of any size — can be created without freeing space first.
+5Gi storage, 10 pods, separate from `calebhan`'s) — a hard `ResourceQuota`
+object only UNC IT can raise, the same as the `routes/custom-host`
+permission described above. Storage is maxed outright: `requests.storage`
+is 5Gi/5Gi (DB's 4Gi + uploads' 1Gi), so no new PVC — of any size — can be
+created without freeing space first.
 
 The `db` Deployment uses `strategy: type: Recreate`: it's a single-writer
 stateful workload with a ReadWriteOnce PVC, so there's no meaningful way
 to run two Postgres instances against the same data directory during a
 rollout anyway — `Recreate` is the correct choice here, not a compromise.
 
-The `frontend` Deployment also still uses `Recreate`, but for a different,
-fixable reason: it's stateless, so `RollingUpdate` would work cleanly
-*if* there were room. A rolling update pod briefly needs another
-`FRONTEND_MEMORY_LIMIT` (1Gi) on top of what's already running, which
-blows past the 512Mi of headroom the quota has today. Switching this to
-`RollingUpdate` (`maxSurge: 1, maxUnavailable: 0`) needs a memory quota
-increase from UNC IT first — ask for enough to cover the existing 2Gi
-steady-state plus a 1Gi frontend surge (i.e. at least ~3Gi) with some
-margin. Until then, a deploy has a real (if now shortened — see
-`startupProbe` below) window with zero frontend pods serving traffic.
+The `backend` and `frontend` Deployments both use `RollingUpdate`
+(`maxSurge: 1, maxUnavailable: 0`): the old pod keeps serving until the
+new one passes its readiness probe, so a deploy has no window with zero
+pods up. At the *original* `BACKEND_MEMORY_LIMIT`/`FRONTEND_MEMORY_LIMIT`
+(512Mi/1Gi), a frontend surge pod didn't fit the quota at all (2Gi
+steady-state + a 1Gi surge blows past the 2560Mi hard cap) — the honest
+fix there would have been asking UNC IT for more quota, with no control
+over the timeline.
 
-The `backend` Deployment uses `RollingUpdate` (`maxSurge: 1,
-maxUnavailable: 0`) — see the next section for why that's now safe and
-what it depends on. Note it fits the quota with *zero* slack left over
-(2Gi steady + 512Mi surge = 2560Mi, the exact hard cap): anything else in
-the namespace that needs memory during a backend deploy (a stray `oc
-debug` pod, etc.) will make the surge pod stall `Pending` until it clears,
-delaying the rollout without breaking traffic.
+Live usage checked with `oc adm top pods` told a different story, though:
+actual memory use was ~85Mi for backend and ~94Mi for the DB against
+512Mi limits each, and ~550Mi for frontend against its 1Gi limit — a lot
+of committed-but-unused headroom. `BACKEND_MEMORY_LIMIT` was trimmed to
+256Mi (still ~3x its measured usage) and `FRONTEND_MEMORY_LIMIT` to 896Mi
+(~1.6x its measured peak), which frees just enough quota room for a
+frontend surge pod to fit too, with **zero UNC IT dependency**:
+
+```
+steady-state:      512(db) + 256(backend) + 896(frontend) = 1664Mi
+either surge pod:              + up to 896Mi              = 2560Mi  (exact cap)
+```
+
+`db`'s limit was deliberately left untouched even though it shows the
+same slack — Postgres OOM-kills are a worse failure mode than a slow web
+process (unclean termination mid-write, `Recreate` restart, connection
+storm on recovery), so it isn't a lever to reach for casually.
+
+This still leaves **zero slack** in the quota, with two consequences to
+know about, neither of which causes an outage (both strategies keep
+`maxUnavailable: 0`) but both of which can make a rollout stall:
+
+- A stray pod needing memory during a deploy (`oc debug`, etc.) will hold
+  up a surge pod in `Pending` until it clears.
+- If a single commit changes both frontend and backend, their rollouts
+  can overlap (the mirror CronJob triggers both BuildConfig webhooks
+  back-to-back, and each Deployment rolls independently once its own
+  image lands) and together need more than the 2560Mi available at once.
+  Whichever surge pod loses the race just waits — `Pending` — until the
+  other rollout finishes and releases its extra memory, then proceeds.
+
+These numbers are a single live snapshot at low traffic, not a load test.
+If `oc adm top pods` after a period of real traffic shows frontend
+consistently closer to 896Mi than the ~550Mi seen here, that limit (or a
+UNC IT quota increase) needs revisiting before it starts causing stalled
+rollouts or OOM kills.
 
 Both Deployments also set a `startupProbe` (polling every 2s, generous
 `failureThreshold`) so a fast container start isn't hidden behind a flat
