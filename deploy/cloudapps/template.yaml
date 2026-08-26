@@ -211,8 +211,16 @@ objects:
     metadata:
       name: ${APP_NAME}-uploads
     spec:
+      # ReadWriteMany (not ReadWriteOnce) so a RollingUpdate surge pod can
+      # mount this alongside the still-terminating old pod. With RWO, the
+      # new pod's mount races the old pod's release of the volume and can
+      # hit "Multi-Attach error ... already exclusively attached to one
+      # node" - see deploy/cloudapps/README.md's backend rollout section.
+      # Backed by the ontap-nas-economy (NFS) storage class, which supports
+      # RWX; this can't be changed in place on an existing bound PVC
+      # (accessModes is immutable) - see scripts/migrate-uploads-to-rwx.sh.
       accessModes:
-        - ReadWriteOnce
+        - ReadWriteMany
       resources:
         requests:
           storage: ${UPLOAD_STORAGE_SIZE}
@@ -299,7 +307,19 @@ objects:
         matchLabels:
           app: ${APP_NAME}-backend
       strategy:
-        type: Recreate
+        # RollingUpdate, not Recreate: the old pod keeps serving traffic
+        # until the new one passes its readiness probe, so a deploy no
+        # longer has a window with zero backend pods up. maxSurge: 1 fits
+        # the project's compute-resources quota exactly (2Gi steady +
+        # this pod's 512Mi limit = 2560Mi = the 2.5Gi hard cap), so there
+        # is no headroom for anything else memory-hungry to run at the
+        # same time as a backend deploy. Requires the uploads PVC to be
+        # ReadWriteMany (see that PVC's comment above) or the surge pod's
+        # volume mount will fail with a Multi-Attach error.
+        type: RollingUpdate
+        rollingUpdate:
+          maxSurge: 1
+          maxUnavailable: 0
       template:
         metadata:
           labels:
@@ -312,6 +332,14 @@ objects:
               ports:
                 - containerPort: 8000
                   name: http
+              lifecycle:
+                preStop:
+                  exec:
+                    # Give the Service/Route time to stop sending new
+                    # requests to this pod (removing a terminating pod's
+                    # endpoint isn't instantaneous) before the container
+                    # actually receives SIGTERM.
+                    command: ["/bin/sh", "-c", "sleep 5"]
               env:
                 - name: ENVIRONMENT
                   value: ${RUNTIME_ENVIRONMENT}
@@ -381,17 +409,26 @@ objects:
               volumeMounts:
                 - name: uploads
                   mountPath: /app/uploads
+              startupProbe:
+                # Gates readiness/liveness until the process is actually up
+                # (init_db + uvicorn boot), polling often so a fast start
+                # doesn't sit behind a flat initialDelaySeconds. Generous
+                # failureThreshold covers a slow init_db run without either
+                # probe flapping the pod.
+                httpGet:
+                  path: /health
+                  port: 8000
+                periodSeconds: 2
+                failureThreshold: 30
               readinessProbe:
                 httpGet:
                   path: /health/db
                   port: 8000
-                initialDelaySeconds: 20
-                periodSeconds: 10
+                periodSeconds: 5
               livenessProbe:
                 httpGet:
                   path: /health
                   port: 8000
-                initialDelaySeconds: 20
                 periodSeconds: 20
           volumes:
             - name: uploads
@@ -438,6 +475,13 @@ objects:
         matchLabels:
           app: ${APP_NAME}-frontend
       strategy:
+        # Still Recreate, unlike the backend: a RollingUpdate surge pod
+        # would need another FRONTEND_MEMORY_LIMIT (1Gi) on top of the
+        # 2Gi already committed to steady-state pods, which exceeds this
+        # project's 2.5Gi compute-resources quota outright (there's only
+        # 512Mi of headroom total). Switching this to RollingUpdate needs
+        # a quota increase from UNC IT first - see deploy/cloudapps/README.md.
+        # The startupProbe below at least shrinks this gap in the meantime.
         type: Recreate
       template:
         metadata:
@@ -451,6 +495,10 @@ objects:
               ports:
                 - containerPort: 3000
                   name: http
+              lifecycle:
+                preStop:
+                  exec:
+                    command: ["/bin/sh", "-c", "sleep 5"]
               env:
                 - name: NODE_ENV
                   value: production
@@ -468,17 +516,21 @@ objects:
                   memory: ${FRONTEND_MEMORY_REQUEST}
                 limits:
                   memory: ${FRONTEND_MEMORY_LIMIT}
+              startupProbe:
+                httpGet:
+                  path: /
+                  port: 3000
+                periodSeconds: 2
+                failureThreshold: 30
               readinessProbe:
                 httpGet:
                   path: /
                   port: 3000
-                initialDelaySeconds: 20
-                periodSeconds: 10
+                periodSeconds: 5
               livenessProbe:
                 httpGet:
                   path: /
                   port: 3000
-                initialDelaySeconds: 20
                 periodSeconds: 20
 
   - apiVersion: v1
