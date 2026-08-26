@@ -292,3 +292,15 @@ export interface AnalyticsSummary {
 export interface ActiveUsers {
   active_users: number;
 }
+
+export interface NavigationFlowLink {
+  source: string;
+  target: string;
+  count: number;
+}
+
+export interface NavigationFlow {
+  range_days: number;
+  total_sessions: number;
+  links: NavigationFlowLink[];
+}

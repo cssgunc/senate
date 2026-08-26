@@ -9,8 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getActiveUsers, getAnalyticsSummary } from "@/lib/admin-api";
-import type { AnalyticsSummary } from "@/types/admin";
+import { getActiveUsers, getAnalyticsSummary, getNavigationFlow } from "@/lib/admin-api";
+import type { AnalyticsSummary, NavigationFlow } from "@/types/admin";
 import { useEffect, useState } from "react";
 
 const RANGE_OPTIONS = [
@@ -24,6 +24,7 @@ const ACTIVE_USERS_POLL_MS = 30_000;
 export default function AdminAnalyticsPage() {
   const [days, setDays] = useState(7);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [navigationFlow, setNavigationFlow] = useState<NavigationFlow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeUsers, setActiveUsers] = useState<number | null>(null);
@@ -31,21 +32,27 @@ export default function AdminAnalyticsPage() {
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchSummary() {
+    async function fetchData() {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getAnalyticsSummary(days);
-        if (isMounted) setSummary(data);
+        const [summaryData, flowData] = await Promise.all([
+          getAnalyticsSummary(days),
+          getNavigationFlow(days),
+        ]);
+        if (isMounted) {
+          setSummary(summaryData);
+          setNavigationFlow(flowData);
+        }
       } catch (err) {
-        console.error("Failed to fetch analytics summary:", err);
+        console.error("Failed to fetch analytics data:", err);
         if (isMounted) setError("Failed to load analytics data.");
       } finally {
         if (isMounted) setIsLoading(false);
       }
     }
 
-    fetchSummary();
+    fetchData();
 
     return () => {
       isMounted = false;
@@ -102,7 +109,7 @@ export default function AdminAnalyticsPage() {
         ) : error ? (
           <div className="py-20 text-center text-rose-600">{error}</div>
         ) : summary ? (
-          <AnalyticsCharts summary={summary} activeUsers={activeUsers} />
+          <AnalyticsCharts summary={summary} activeUsers={activeUsers} navigationFlow={navigationFlow} />
         ) : null}
       </AdminCard>
     </AdminPageShell>

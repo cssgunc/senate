@@ -1,11 +1,14 @@
 "use client";
 
-import type { AnalyticsSummary, DailyPageViewCount } from "@/types/admin";
+import type { AnalyticsSummary, DailyPageViewCount, NavigationFlow, NavigationFlowLink } from "@/types/admin";
 import {
   CartesianGrid,
+  Layer,
   Line,
   LineChart,
+  Rectangle,
   ResponsiveContainer,
+  Sankey,
   Tooltip,
   XAxis,
   YAxis,
@@ -110,12 +113,111 @@ function AnalyticsTooltip({
   );
 }
 
+const SANKEY_WIDTH = 760;
+const SANKEY_HEIGHT = 420;
+const SESSION_START_SENTINEL = "__start__";
+const SESSION_START_LABEL = "Session Start";
+
+function truncateLabel(name: string, max = 28): string {
+  return name.length > max ? `${name.slice(0, max - 1)}…` : name;
+}
+
+function buildSankeyData(links: NavigationFlowLink[]) {
+  const nodeIndex = new Map<string, number>();
+  const nodes: { name: string }[] = [];
+
+  function indexFor(rawName: string): number {
+    let index = nodeIndex.get(rawName);
+    if (index === undefined) {
+      index = nodes.length;
+      nodeIndex.set(rawName, index);
+      nodes.push({ name: rawName === SESSION_START_SENTINEL ? SESSION_START_LABEL : rawName });
+    }
+    return index;
+  }
+
+  return {
+    nodes,
+    links: links.map((link) => ({
+      source: indexFor(link.source),
+      target: indexFor(link.target),
+      value: link.count,
+    })),
+  };
+}
+
+function renderFlowNode({
+  x,
+  y,
+  width,
+  height,
+  payload,
+}: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  payload: { name: string };
+}) {
+  const isRightHalf = x + width / 2 > SANKEY_WIDTH / 2;
+  return (
+    <Layer>
+      <Rectangle x={x} y={y} width={width} height={height} fill="#2563eb" fillOpacity={0.85} />
+      <text
+        x={isRightHalf ? x - 6 : x + width + 6}
+        y={y + height / 2}
+        textAnchor={isRightHalf ? "end" : "start"}
+        dominantBaseline="middle"
+        fontSize={12}
+        fill="#334155"
+      >
+        {truncateLabel(payload.name)}
+      </text>
+    </Layer>
+  );
+}
+
+function NavigationFlowChart({ data }: { data: NavigationFlow | null }) {
+  return (
+    <div>
+      <h3 className="mb-2 text-sm font-semibold text-slate-700">
+        Navigation Flow
+        {data && data.total_sessions > 0 && (
+          <span className="ml-2 text-xs font-normal text-slate-400">
+            ({data.total_sessions.toLocaleString()} sessions analyzed)
+          </span>
+        )}
+      </h3>
+      {!data || data.links.length === 0 ? (
+        <p className="py-6 text-center text-sm text-slate-500">No data yet.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-slate-200 p-2">
+          <Sankey
+            width={SANKEY_WIDTH}
+            height={SANKEY_HEIGHT}
+            data={buildSankeyData(data.links)}
+            node={renderFlowNode}
+            link={{ stroke: "#94a3b8", strokeOpacity: 0.35 }}
+            nodePadding={20}
+            nodeWidth={10}
+            margin={{ top: 8, right: 140, bottom: 8, left: 8 }}
+          >
+            <Tooltip />
+          </Sankey>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AnalyticsCharts({
   summary,
   activeUsers,
+  navigationFlow,
 }: {
   summary: AnalyticsSummary;
   activeUsers: number | null;
+  navigationFlow: NavigationFlow | null;
 }) {
   const hourly = summary.range_days <= 1;
 
@@ -169,6 +271,8 @@ export function AnalyticsCharts({
           }))}
         />
       </div>
+
+      <NavigationFlowChart data={navigationFlow} />
     </div>
   );
 }

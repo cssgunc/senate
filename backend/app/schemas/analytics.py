@@ -44,3 +44,17 @@ class AnalyticsSummaryDTO(BaseModel):
     daily_pageviews: list[DailyPageViewCountDTO]
     top_paths: list[TopPathDTO]
     top_referrers: list[TopReferrerDTO]
+
+
+class NavigationFlowLinkDTO(BaseModel):
+    source: str
+    target: str
+    count: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class NavigationFlowDTO(BaseModel):
+    range_days: int
+    total_sessions: int
+    links: list[NavigationFlowLinkDTO]
