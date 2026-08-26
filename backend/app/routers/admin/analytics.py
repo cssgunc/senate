@@ -117,6 +117,43 @@ def get_active_users(
     return ActiveUsersDTO(active_users=active_users)
 
 
+def _break_cycles(
+    ranked_edges: list[tuple[tuple[str, str], int]],
+) -> list[tuple[tuple[str, str], int]]:
+    """Greedily keep the heaviest edges that don't close a cycle.
+
+    Sankey layout requires a DAG: recharts computes each node's column via
+    recursion over its outgoing edges, which stack-overflows on a cycle (e.g.
+    "/" -> "/about" -> "/", common in real navigation data where visitors go
+    back and forth). `ranked_edges` must already be sorted by descending
+    weight; an edge is dropped if its target can already reach its source in
+    the subgraph accepted so far, since adding it would close a cycle.
+    """
+    adjacency: dict[str, set[str]] = {}
+    accepted: list[tuple[tuple[str, str], int]] = []
+
+    def reaches(start: str, goal: str) -> bool:
+        stack = [start]
+        seen = {start}
+        while stack:
+            node = stack.pop()
+            if node == goal:
+                return True
+            for neighbor in adjacency.get(node, ()):
+                if neighbor not in seen:
+                    seen.add(neighbor)
+                    stack.append(neighbor)
+        return False
+
+    for (src, dst), count in ranked_edges:
+        if reaches(dst, src):
+            continue
+        adjacency.setdefault(src, set()).add(dst)
+        accepted.append(((src, dst), count))
+
+    return accepted
+
+
 @router.get("/navigation-flow", response_model=NavigationFlowDTO)
 def get_navigation_flow(
     days: int = Query(default=7, ge=1, le=90, description="Number of trailing days to summarize"),
@@ -154,11 +191,13 @@ def get_navigation_flow(
         count for (src, _dst), count in transitions.items() if src == SESSION_START_SENTINEL
     )
 
+    acyclic_edges = _break_cycles(transitions.most_common(NAV_FLOW_TOP_N))
+
     return NavigationFlowDTO(
         range_days=days,
         total_sessions=total_sessions,
         links=[
             NavigationFlowLinkDTO(source=src, target=dst, count=count)
-            for (src, dst), count in transitions.most_common(NAV_FLOW_TOP_N)
+            for (src, dst), count in acyclic_edges
         ],
     )

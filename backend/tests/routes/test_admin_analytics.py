@@ -301,3 +301,102 @@ class TestNavigationFlow:
     def test_days_out_of_range_returns_422(self, nav_flow_client):
         assert nav_flow_client.get("/api/admin/analytics/navigation-flow?days=0").status_code == 422
         assert nav_flow_client.get("/api/admin/analytics/navigation-flow?days=91").status_code == 422
+
+
+def _seed_cyclic_navigation_flow(engine):
+    """Seed pageviews that produce a page-to-page cycle: "/" <-> "/about".
+
+    visitor-a: "/" -> "/about" (2x, heavier edge)
+    visitor-b: "/about" -> "/" (1x, lighter reverse edge -- should be dropped
+    to keep the returned graph acyclic, since a cycle sends recharts' Sankey
+    layout into unbounded recursion).
+    """
+    now = datetime.now()
+    Session = sessionmaker(bind=engine)
+    db = Session()
+    db.add(
+        Admin(
+            email="admin@unc.edu",
+            first_name="Admin",
+            last_name="User",
+            onyen="user100000001",
+            password_hash=hash_password("TestPassword123!"),
+            role="admin",
+        )
+    )
+    db.add_all(
+        [
+            PageView(path="/", visitor_hash="visitor-a", created_at=now - timedelta(minutes=20)),
+            PageView(path="/about", visitor_hash="visitor-a", created_at=now - timedelta(minutes=18)),
+            PageView(path="/", visitor_hash="visitor-b", created_at=now - timedelta(minutes=10)),
+            PageView(path="/about", visitor_hash="visitor-b", created_at=now - timedelta(minutes=9)),
+            PageView(path="/", visitor_hash="visitor-b", created_at=now - timedelta(minutes=8)),
+        ]
+    )
+    db.commit()
+    db.close()
+
+
+@pytest.fixture()
+def cyclic_flow_engine():
+    engine = _make_engine()
+    _seed_cyclic_navigation_flow(engine)
+    yield engine
+    Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture()
+def cyclic_flow_client(cyclic_flow_engine):
+    TestSession = sessionmaker(bind=cyclic_flow_engine)
+
+    def _override_get_db():
+        db = TestSession()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    def _override_current_user():
+        db = TestSession()
+        user = db.query(Admin).filter(Admin.email == "admin@unc.edu").first()
+        db.close()
+        return user
+
+    app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_current_user] = _override_current_user
+    with TestClient(app) as c:
+        yield c
+    _clear()
+
+
+class TestNavigationFlowCycleBreaking:
+    def test_reverse_edge_dropped_to_keep_graph_acyclic(self, cyclic_flow_client):
+        data = cyclic_flow_client.get("/api/admin/analytics/navigation-flow").json()
+        links = {(link["source"], link["target"]): link["count"] for link in data["links"]}
+        assert links[("/", "/about")] == 2
+        assert ("/about", "/") not in links
+
+    def test_response_graph_has_no_cycles(self, cyclic_flow_client):
+        data = cyclic_flow_client.get("/api/admin/analytics/navigation-flow").json()
+        adjacency: dict[str, set[str]] = {}
+        for link in data["links"]:
+            adjacency.setdefault(link["source"], set()).add(link["target"])
+
+        def has_cycle() -> bool:
+            visiting: set[str] = set()
+            visited: set[str] = set()
+
+            def dfs(node: str) -> bool:
+                visiting.add(node)
+                for neighbor in adjacency.get(node, ()):
+                    if neighbor in visiting:
+                        return True
+                    if neighbor not in visited and dfs(neighbor):
+                        return True
+                visiting.discard(node)
+                visited.add(node)
+                return False
+
+            return any(dfs(node) for node in adjacency if node not in visited)
+
+        assert not has_cycle()
