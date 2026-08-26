@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAnalyticsSummary } from "@/lib/admin-api";
+import { getActiveUsers, getAnalyticsSummary } from "@/lib/admin-api";
 import type { AnalyticsSummary } from "@/types/admin";
 import { useEffect, useState } from "react";
 
@@ -19,11 +19,14 @@ const RANGE_OPTIONS = [
   { label: "Last 30 days", value: 30 },
 ];
 
+const ACTIVE_USERS_POLL_MS = 30_000;
+
 export default function AdminAnalyticsPage() {
   const [days, setDays] = useState(7);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeUsers, setActiveUsers] = useState<number | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -49,11 +52,31 @@ export default function AdminAnalyticsPage() {
     };
   }, [days]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchActiveUsers() {
+      try {
+        const data = await getActiveUsers();
+        if (isMounted) setActiveUsers(data.active_users);
+      } catch (err) {
+        console.error("Failed to fetch active users:", err);
+      }
+    }
+
+    fetchActiveUsers();
+    const interval = setInterval(fetchActiveUsers, ACTIVE_USERS_POLL_MS);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <AdminPageShell>
       <AdminPageHeader
         title="Analytics"
-        description="Server-side pageview stats collected via the site's proxy — no third-party scripts, cookies, or PII."
         action={
           <Select
             value={String(days)}
@@ -79,7 +102,7 @@ export default function AdminAnalyticsPage() {
         ) : error ? (
           <div className="py-20 text-center text-rose-600">{error}</div>
         ) : summary ? (
-          <AnalyticsCharts summary={summary} />
+          <AnalyticsCharts summary={summary} activeUsers={activeUsers} />
         ) : null}
       </AdminCard>
     </AdminPageShell>

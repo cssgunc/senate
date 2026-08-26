@@ -272,7 +272,6 @@ export default function AdminSenatorsPage() {
     <AdminPageShell>
       <AdminPageHeader
         title="Senators Management"
-        description="Manage the active roster, session assignments, and contact details."
         action={
           <Button
             type="button"

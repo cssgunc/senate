@@ -118,7 +118,6 @@ export default function AdminStaticPagesPage() {
     <AdminPageShell>
       <AdminPageHeader
         title="Static Pages"
-        description="These pages are pre-configured. You can edit content but cannot add or remove pages."
       />
 
       <AdminCard>
