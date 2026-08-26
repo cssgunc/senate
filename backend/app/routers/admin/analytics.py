@@ -55,7 +55,8 @@ def get_analytics_summary(
     )
 
     # A 1-day range is bucketed by hour (daily buckets would collapse to one point).
-    # Buckets are computed in the database's session timezone (UTC in production).
+    # Buckets are computed in the database's session timezone (UTC in production);
+    # DailyPageViewCountDTO attaches UTC tzinfo so clients render them in local time.
     bucket_col = (
         func.date_trunc("hour", PageView.created_at).label("day")
         if days <= 1
