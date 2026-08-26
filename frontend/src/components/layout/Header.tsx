@@ -161,7 +161,7 @@ export function Header() {
                       <li>
                         <NavigationMenuLink asChild>
                           <a
-                            href="https://drive.google.com/"
+                            href="https://drive.google.com/drive/folders/1xmWhZ5MLD9OQEMFmc5JbGLu1XZQwJqGa?usp=sharing"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="block select-none space-y-1 rounded-lg border border-transparent p-3 leading-none no-underline outline-none transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950 focus:border-slate-200 focus:bg-slate-50"
@@ -342,7 +342,7 @@ export function Header() {
                         </Link>
                       ))}
                       <a
-                        href="https://drive.google.com/"
+                        href="https://drive.google.com/drive/folders/1xmWhZ5MLD9OQEMFmc5JbGLu1XZQwJqGa?usp=sharing"
                         onClick={() => setIsOpen(false)}
                         target="_blank"
                         rel="noopener noreferrer"
