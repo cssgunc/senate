@@ -67,13 +67,13 @@ function TopList({
   );
 }
 
-// Bucket timestamps are UTC (the database's session timezone); format in UTC
-// so the axis/tooltip stay consistent with how buckets were computed.
+// Bucket timestamps arrive as UTC instants (see DailyPageViewCountDTO); format
+// them without an explicit timeZone so they render in the viewer's local time.
 function formatBucketLabel(value: string, hourly: boolean): string {
   const date = new Date(value);
   return hourly
-    ? date.toLocaleTimeString("en-US", { hour: "numeric", timeZone: "UTC" })
-    : date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+    ? date.toLocaleTimeString("en-US", { hour: "numeric" })
+    : date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function AnalyticsTooltip({
@@ -230,10 +230,7 @@ export function AnalyticsCharts({
       </div>
 
       <div>
-        <h3 className="mb-2 text-sm font-semibold text-slate-700">
-          Pageviews over time
-          {hourly && <span className="ml-2 text-xs font-normal text-slate-400">(times in UTC)</span>}
-        </h3>
+        <h3 className="mb-2 text-sm font-semibold text-slate-700">Pageviews over time</h3>
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={summary.daily_pageviews}>

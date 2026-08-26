@@ -1,8 +1,8 @@
 """Analytics schemas — pageview ingest and admin summary DTOs."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class PageViewCreateDTO(BaseModel):
@@ -17,6 +17,14 @@ class DailyPageViewCountDTO(BaseModel):
     count: int
 
     model_config = ConfigDict(from_attributes=True)
+
+    # created_at is stored naive in the DB (UTC). Attach UTC tzinfo so the
+    # serialized timestamp carries an offset and clients parse it correctly
+    # instead of misreading it as local time.
+    @field_validator("day")
+    @classmethod
+    def _ensure_utc(cls, value: datetime) -> datetime:
+        return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
 
 
 class ActiveUsersDTO(BaseModel):
