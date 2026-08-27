@@ -24,35 +24,58 @@ const ACTIVE_USERS_POLL_MS = 30_000;
 export default function AdminAnalyticsPage() {
   const [days, setDays] = useState(7);
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
-  const [navigationFlow, setNavigationFlow] = useState<NavigationFlow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeUsers, setActiveUsers] = useState<number | null>(null);
 
+  const [navigationFlow, setNavigationFlow] = useState<NavigationFlow | null>(null);
+  const [isFlowLoading, setIsFlowLoading] = useState(true);
+
+  // Kept separate from the navigation-flow fetch below: the flow query scans
+  // and sorts every pageview in range, so it can lag well behind the summary
+  // stats. Gating the whole page on both left visitors staring at a blank
+  // spinner for the slower of the two; the summary and line chart should
+  // render as soon as they're ready.
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchData() {
+    async function fetchSummary() {
       setIsLoading(true);
       setError(null);
       try {
-        const [summaryData, flowData] = await Promise.all([
-          getAnalyticsSummary(days),
-          getNavigationFlow(days),
-        ]);
-        if (isMounted) {
-          setSummary(summaryData);
-          setNavigationFlow(flowData);
-        }
+        const summaryData = await getAnalyticsSummary(days);
+        if (isMounted) setSummary(summaryData);
       } catch (err) {
-        console.error("Failed to fetch analytics data:", err);
+        console.error("Failed to fetch analytics summary:", err);
         if (isMounted) setError("Failed to load analytics data.");
       } finally {
         if (isMounted) setIsLoading(false);
       }
     }
 
-    fetchData();
+    fetchSummary();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [days]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchNavigationFlow() {
+      setIsFlowLoading(true);
+      try {
+        const flowData = await getNavigationFlow(days);
+        if (isMounted) setNavigationFlow(flowData);
+      } catch (err) {
+        console.error("Failed to fetch navigation flow:", err);
+      } finally {
+        if (isMounted) setIsFlowLoading(false);
+      }
+    }
+
+    fetchNavigationFlow();
 
     return () => {
       isMounted = false;
@@ -109,7 +132,12 @@ export default function AdminAnalyticsPage() {
         ) : error ? (
           <div className="py-20 text-center text-rose-600">{error}</div>
         ) : summary ? (
-          <AnalyticsCharts summary={summary} activeUsers={activeUsers} navigationFlow={navigationFlow} />
+          <AnalyticsCharts
+            summary={summary}
+            activeUsers={activeUsers}
+            navigationFlow={navigationFlow}
+            isNavigationFlowLoading={isFlowLoading}
+          />
         ) : null}
       </AdminCard>
     </AdminPageShell>
