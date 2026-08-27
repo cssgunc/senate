@@ -9,8 +9,13 @@ function resolveNextPath(rawNext: string | null): string {
     return "/admin";
   }
 
-  // Prevent open redirects by only allowing internal admin paths.
-  if (!rawNext.startsWith("/admin") || rawNext.startsWith("/admin/login")) {
+  // Prevent open redirects by only allowing internal admin paths, and never
+  // loop back into an auth-flow page itself.
+  if (
+    !rawNext.startsWith("/admin") ||
+    rawNext.startsWith("/admin/login") ||
+    rawNext.startsWith("/admin/sso-callback")
+  ) {
     return "/admin";
   }
 
