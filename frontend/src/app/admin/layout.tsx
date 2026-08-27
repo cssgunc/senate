@@ -30,10 +30,11 @@ export default function AdminLayout({
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const isLoginRoute = pathname === "/admin/login";
+  const isPublicAuthRoute =
+    pathname === "/admin/login" || pathname === "/admin/sso-callback";
 
   useEffect(() => {
-    if (isLoginRoute) {
+    if (isPublicAuthRoute) {
       setIsCheckingAuth(false);
       return;
     }
@@ -63,14 +64,14 @@ export default function AdminLayout({
     return () => {
       isMounted = false;
     };
-  }, [isLoginRoute, router]);
+  }, [isPublicAuthRoute, router]);
 
   const handleLogout = () => {
     logout();
     router.push("/admin/login");
   };
 
-  if (isLoginRoute) {
+  if (isPublicAuthRoute) {
     return children;
   }
 
