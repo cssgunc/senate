@@ -11,11 +11,12 @@ environment variables. It never drops tables and never clears application data.
 from __future__ import annotations
 
 import os
+import re
 import sys
 
 from sqlalchemy import inspect, or_, text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.schema import CreateColumn
+from sqlalchemy.schema import CreateColumn, CreateIndex
 
 from app.database import (
     Base,
@@ -65,6 +66,33 @@ def sync_missing_columns() -> None:
                 column_ddl = CreateColumn(column).compile(dialect=engine.dialect)
                 conn.execute(text(f"ALTER TABLE {table.name} ADD COLUMN {column_ddl}"))
                 print(f"Added missing column {table.name}.{column.name}")
+
+
+def sync_missing_indexes() -> None:
+    """Add indexes present on the ORM models but missing from deployed tables.
+
+    create_all() only creates indexes when it creates the table itself; it
+    never alters a table that's already there (same gap sync_missing_columns()
+    covers for columns). Runs CREATE INDEX CONCURRENTLY so building the index
+    on a large existing table doesn't hold a lock against writes.
+    """
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        for table in Base.metadata.sorted_tables:
+            if table.name not in existing_tables:
+                continue  # just created by create_missing_tables()
+
+            existing_indexes = {ix["name"] for ix in inspector.get_indexes(table.name)}
+            for index in table.indexes:
+                if index.name in existing_indexes:
+                    continue
+
+                index_ddl = str(CreateIndex(index).compile(dialect=engine.dialect))
+                index_ddl = re.sub(r"^CREATE( UNIQUE)? INDEX", r"CREATE\1 INDEX CONCURRENTLY", index_ddl)
+                conn.execute(text(index_ddl))
+                print(f"Added missing index {index.name} on {table.name}")
 
 
 def bootstrap_initial_admin() -> None:
@@ -132,5 +160,6 @@ if __name__ == "__main__":
     print("Initializing deployed database")
     create_missing_tables()
     sync_missing_columns()
+    sync_missing_indexes()
     bootstrap_initial_admin()
     print("Database initialization complete")

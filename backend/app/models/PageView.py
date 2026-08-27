@@ -26,6 +26,10 @@ class PageView(Base):
     __table_args__ = (
         Index("ix_page_view_created_at", "created_at"),
         Index("ix_page_view_path", "path"),
+        # Matches the navigation-flow query's ORDER BY (see
+        # app/routers/admin/analytics.py), which reconstructs sessions per
+        # visitor and otherwise forces a full sort of the date-range scan.
+        Index("ix_page_view_visitor_created", "visitor_hash", "created_at", "id"),
     )
 
     def __repr__(self) -> str:
