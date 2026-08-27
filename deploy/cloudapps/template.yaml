@@ -400,6 +400,16 @@ objects:
                     secretKeyRef:
                       name: ${APP_NAME}-secrets
                       key: SMTP_FROM
+                - name: SAML_SP_CERT
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: SAML_SP_CERT
+                - name: SAML_SP_PRIVATE_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${APP_NAME}-secrets
+                      key: SAML_SP_PRIVATE_KEY
               resources:
                 requests:
                   memory: ${BACKEND_MEMORY_REQUEST}

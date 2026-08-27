@@ -39,7 +39,6 @@ from app.models import (
     StaticPageContent,
 )
 from app.static_pages import STATIC_PAGE_DEFAULTS
-from app.utils.passwords import hash_password
 
 CURRENT_SESSION = 111
 
@@ -101,28 +100,18 @@ def clear_existing_data(db: Session) -> None:
 def seed_admins(db: Session) -> list[Admin]:
     admins = [
         Admin(
-            email="alex.thompson@unc.edu",
-            onyen="athompson",
-            password_hash=hash_password("SenateDev2026!"),
-            first_name="Alex",
-            last_name="Thompson",
+            email="calebhan@unc.edu",
+            onyen="calebhan",
+            first_name="Caleb",
+            last_name="Han",
             role="admin",
         ),
         Admin(
-            email="morgan.lee@unc.edu",
-            onyen="mlee",
-            password_hash=hash_password("SenateDev2026!"),
-            first_name="Morgan",
-            last_name="Lee",
+            email="mmines@unc.edu",
+            onyen="mmines",
+            first_name="Mason",
+            last_name="Mines",
             role="admin",
-        ),
-        Admin(
-            email="jordan.rivera@unc.edu",
-            onyen="jrivera",
-            password_hash=hash_password("SenateDev2026!"),
-            first_name="Jordan",
-            last_name="Rivera",
-            role="staff",
         ),
     ]
     db.add_all(admins)
@@ -144,15 +133,10 @@ def seed_sections(db: Session, admins: list[Admin]) -> None:
     db.flush()
 
     admin_sections = [
-        AdminSections(section_id=section.id, admin_id=admins[0].id) for section in sections
+        AdminSections(section_id=section.id, admin_id=admin.id)
+        for section in sections
+        for admin in admins
     ]
-    admin_sections.extend(
-        [
-            AdminSections(section_id=sections[0].id, admin_id=admins[1].id),
-            AdminSections(section_id=sections[1].id, admin_id=admins[1].id),
-            AdminSections(section_id=sections[4].id, admin_id=admins[2].id),
-        ]
-    )
     db.add_all(admin_sections)
 
 

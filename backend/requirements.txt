@@ -26,6 +26,9 @@ bleach==6.1.0
 # JSON Web Token
 python-jose[cryptography]==3.3.0
 
+# SAML SSO (UNC Onyen)
+python3-saml==1.16.0
+
 # Uploads & image processing
 python-multipart==0.0.20
 Pillow==11.2.1

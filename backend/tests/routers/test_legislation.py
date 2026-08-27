@@ -29,7 +29,7 @@ def create_action_payload():
 
 def test_create_legislation(client, seeded_admins):
     login = client.post(
-        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+        "/api/auth/dev-login", json={"onyen": "user123456789"}
     )
     token = login.json()["access_token"]
 
@@ -46,7 +46,7 @@ def test_create_legislation(client, seeded_admins):
 
 def test_add_legislation_action(client, seeded_admins):
     login = client.post(
-        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+        "/api/auth/dev-login", json={"onyen": "user123456789"}
     )
     token = login.json()["access_token"]
 
@@ -74,7 +74,7 @@ def test_add_legislation_action(client, seeded_admins):
 
 def test_update_legislation(client, seeded_admins):
     login = client.post(
-        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+        "/api/auth/dev-login", json={"onyen": "user123456789"}
     )
     token = login.json()["access_token"]
     # Create legislation
@@ -97,7 +97,7 @@ def test_update_legislation(client, seeded_admins):
 
 def test_update_legislation_action(client, seeded_admins):
     login = client.post(
-        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+        "/api/auth/dev-login", json={"onyen": "user123456789"}
     )
     token = login.json()["access_token"]
     # Create legislation and action
@@ -148,7 +148,7 @@ def test_update_legislation_action(client, seeded_admins):
 
 def test_delete_legislation_action(client, seeded_admins):
     login = client.post(
-        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+        "/api/auth/dev-login", json={"onyen": "user123456789"}
     )
     token = login.json()["access_token"]
     # Create legislation and action
@@ -196,7 +196,7 @@ def test_delete_legislation_action(client, seeded_admins):
 
 def test_delete_legislation_and_cascade_actions(client, seeded_admins):
     login = client.post(
-        "/api/auth/login", json={"onyen": "user123456789", "password": "TestPassword123!"}
+        "/api/auth/dev-login", json={"onyen": "user123456789"}
     )
     token = login.json()["access_token"]
     # Create legislation

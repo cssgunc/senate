@@ -17,7 +17,6 @@ interface AccountFormProps {
   isLoading?: boolean;
 }
 
-const MIN_PASSWORD_LENGTH = 12;
 const ONYEN_PATTERN = /^[A-Za-z0-9._-]{2,64}$/;
 
 export function AccountForm({
@@ -30,14 +29,10 @@ export function AccountForm({
   const [lastName, setLastName] = useState(initialData?.last_name ?? "");
   const [email, setEmail] = useState(initialData?.email ?? "");
   const [onyen, setOnyen] = useState(initialData?.onyen ?? "");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState<"admin" | "staff">(
     initialData?.role ?? "staff",
   );
   const [onyenError, setOnyenError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-
-  const isEditing = Boolean(initialData);
 
   const handleOnyenChange = (value: string) => {
     setOnyen(value);
@@ -46,18 +41,6 @@ export function AccountForm({
     } else {
       setOnyenError("");
     }
-  };
-
-  const validatePassword = (value: string) => {
-    if ((!isEditing || value) && value.length < MIN_PASSWORD_LENGTH) {
-      return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
-    }
-    return "";
-  };
-
-  const handlePasswordChange = (value: string) => {
-    setPassword(value);
-    setPasswordError(validatePassword(value));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -69,19 +52,12 @@ export function AccountForm({
       return;
     }
 
-    const nextPasswordError = validatePassword(password);
-    if (nextPasswordError) {
-      setPasswordError(nextPasswordError);
-      return;
-    }
-
     const payload = {
       first_name: firstName,
       last_name: lastName,
       email,
       onyen: trimmedOnyen,
       role,
-      ...(password ? { password } : {}),
     };
 
     onSubmit(payload as CreateAccount | UpdateAccount);
@@ -149,24 +125,6 @@ export function AccountForm({
           />
           {onyenError && (
             <p className="text-xs text-red-600 mt-1">{onyenError}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
-          <input
-            required={!isEditing}
-            type="password"
-            autoComplete={isEditing ? "new-password" : "new-password"}
-            className={`w-full p-2 border rounded ${passwordError ? "border-red-500" : "border-gray-300"}`}
-            value={password}
-            onChange={(e) => handlePasswordChange(e.target.value)}
-            placeholder={isEditing ? "Leave blank to keep current password" : "12+ characters"}
-          />
-          {passwordError && (
-            <p className="text-xs text-red-600 mt-1">{passwordError}</p>
           )}
         </div>
 
