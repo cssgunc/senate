@@ -1,5 +1,7 @@
 """FastAPI application entry point"""
 
+import logging
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -42,6 +44,12 @@ from app.routers.admin import staff as admin_staff
 from app.routers.admin import upload as admin_upload
 
 load_dotenv()
+
+# Without this, app-level logger.info/warning calls (e.g. SAML login
+# diagnostics in app.routers.auth) are silently dropped — the root logger
+# defaults to WARNING, and uvicorn only configures its own access/error
+# loggers, not application code's.
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(
     title="Senate API",
