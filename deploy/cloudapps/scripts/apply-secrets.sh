@@ -21,6 +21,8 @@ existing_smtp_port="$(get_secret_value "$SECRET_NAME" SMTP_PORT)"
 existing_smtp_user="$(get_secret_value "$SECRET_NAME" SMTP_USER)"
 existing_smtp_password="$(get_secret_value "$SECRET_NAME" SMTP_PASSWORD)"
 existing_smtp_from="$(get_secret_value "$SECRET_NAME" SMTP_FROM)"
+existing_saml_sp_cert="$(get_secret_value "$SECRET_NAME" SAML_SP_CERT)"
+existing_saml_sp_key="$(get_secret_value "$SECRET_NAME" SAML_SP_PRIVATE_KEY)"
 
 DB_PASSWORD="${DB_PASSWORD:-${existing_db:-$(generate_sql_password)}}"
 MSSQL_SA_PASSWORD="${MSSQL_SA_PASSWORD:-${existing_mssql:-$(generate_sql_password)}}"
@@ -31,6 +33,11 @@ SMTP_PORT="${SMTP_PORT:-${existing_smtp_port:-587}}"
 SMTP_USER="${SMTP_USER:-${existing_smtp_user:-}}"
 SMTP_PASSWORD="${SMTP_PASSWORD:-${existing_smtp_password:-}}"
 SMTP_FROM="${SMTP_FROM:-${existing_smtp_from:-speaker@unc.edu}}"
+# SP certificate/private key for Onyen SSO (SAML). Generated with:
+#   openssl req -x509 -newkey rsa:2048 -nodes -keyout sp.key -out sp.crt -days 3650 -subj "/CN=senate.unc.edu"
+# Leave unset until that keypair exists — SSO login just stays unconfigured (503) until it's set.
+SAML_SP_CERT="${SAML_SP_CERT:-${existing_saml_sp_cert:-}}"
+SAML_SP_PRIVATE_KEY="${SAML_SP_PRIVATE_KEY:-${existing_saml_sp_key:-}}"
 
 oc create secret generic "$SECRET_NAME" \
   --from-literal=DB_PASSWORD="$DB_PASSWORD" \
@@ -42,6 +49,8 @@ oc create secret generic "$SECRET_NAME" \
   --from-literal=SMTP_USER="$SMTP_USER" \
   --from-literal=SMTP_PASSWORD="$SMTP_PASSWORD" \
   --from-literal=SMTP_FROM="$SMTP_FROM" \
+  --from-literal=SAML_SP_CERT="$SAML_SP_CERT" \
+  --from-literal=SAML_SP_PRIVATE_KEY="$SAML_SP_PRIVATE_KEY" \
   --dry-run=client \
   -o yaml \
   | oc apply -f -

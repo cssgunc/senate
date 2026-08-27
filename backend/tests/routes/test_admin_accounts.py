@@ -162,7 +162,6 @@ def write_staff_client(write_engine):
 _CREATE_PAYLOAD = {
     "email": "newuser@unc.edu",
     "onyen": "newuser",
-    "password": "TestPassword123!",
     "first_name": "New",
     "last_name": "User",
     "role": "staff",

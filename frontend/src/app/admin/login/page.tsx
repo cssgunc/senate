@@ -3,9 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getMe, login } from "@/lib/admin-api";
+import { devLogin, getMe, samlLoginUrl } from "@/lib/admin-api";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
+
+const IS_DEV = process.env.NODE_ENV !== "production";
 
 function resolveNextPath(rawNext: string | null): string {
   if (!rawNext) {
@@ -23,14 +25,19 @@ function resolveNextPath(rawNext: string | null): string {
 function AdminLoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [onyen, setOnyen] = useState("");
-  const [password, setPassword] = useState("");
+  const [devOnyen, setDevOnyen] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const redirectTarget = resolveNextPath(searchParams.get("next"));
 
-  const isFormValid = onyen.trim() !== "" && password !== "";
+  useEffect(() => {
+    if (searchParams.get("error") === "no_access") {
+      setError(
+        "Your UNC account signed in, but it isn't on the admin allowlist. Contact an admin to be added.",
+      );
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -55,22 +62,28 @@ function AdminLoginContent() {
     };
   }, [redirectTarget, router]);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSsoLogin = () => {
+    const url = new URL(samlLoginUrl());
+    url.searchParams.set("next", redirectTarget);
+    window.location.href = url.toString();
+  };
+
+  const handleDevSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
 
-    if (!isFormValid) {
-      setError("Please enter your Onyen and password.");
+    if (!devOnyen.trim()) {
+      setError("Please enter an Onyen.");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await login(onyen.trim(), password);
+      await devLogin(devOnyen.trim());
       router.replace(redirectTarget);
     } catch {
-      setError("Invalid credentials. Please check your Onyen and password.");
+      setError("No account found for that Onyen.");
     } finally {
       setIsSubmitting(false);
     }
@@ -90,61 +103,44 @@ function AdminLoginContent() {
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">UNC</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-900">Admin Login</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Sign in with your Onyen credentials to access the admin dashboard.
+          Sign in with your Onyen to access the admin dashboard.
         </p>
 
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-1">
-            <label
-              className="text-sm font-medium text-slate-700"
-              htmlFor="onyen"
-            >
-              Onyen
-            </label>
-            <Input
-              id="onyen"
-              name="onyen"
-              type="text"
-              autoComplete="username"
-              value={onyen}
-              onChange={(event) => setOnyen(event.target.value)}
-              placeholder="onyen"
-              required
-            />
-          </div>
+        {error ? (
+          <p className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </p>
+        ) : null}
 
-          <div className="space-y-1">
-            <label
-              className="text-sm font-medium text-slate-700"
-              htmlFor="password"
-            >
-              Password
-            </label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </div>
+        <Button className="mt-6 w-full" type="button" onClick={handleSsoLogin}>
+          Log in with Onyen
+        </Button>
 
-          {error ? (
-            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
+        {IS_DEV ? (
+          <div className="mt-6 border-t pt-6">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+              Dev-only bypass
             </p>
-          ) : null}
-
-          <Button
-            className="w-full"
-            type="submit"
-            disabled={isSubmitting || !isFormValid}
-          >
-            {isSubmitting ? "Signing in..." : "Sign in"}
-          </Button>
-        </form>
+            <p className="mt-1 text-xs text-slate-500">
+              Not available in production. Logs in as any onyen already on the
+              accounts allowlist, no SSO round-trip required.
+            </p>
+            <form className="mt-3 flex gap-2" onSubmit={handleDevSubmit}>
+              <Input
+                id="dev-onyen"
+                name="dev-onyen"
+                type="text"
+                autoComplete="off"
+                value={devOnyen}
+                onChange={(event) => setDevOnyen(event.target.value)}
+                placeholder="onyen"
+              />
+              <Button type="submit" variant="outline" disabled={isSubmitting}>
+                {isSubmitting ? "Signing in..." : "Dev sign in"}
+              </Button>
+            </form>
+          </div>
+        ) : null}
       </Card>
     </section>
   );

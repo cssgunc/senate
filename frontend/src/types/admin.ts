@@ -1,6 +1,5 @@
-export interface LoginCredentials {
+export interface DevLoginCredentials {
   onyen: string;
-  password: string;
 }
 
 export interface LoginResponse {
@@ -216,7 +215,6 @@ export interface UpdateStaticPage {
 export interface CreateAccount {
   email: string;
   onyen: string;
-  password: string;
   first_name: string;
   last_name: string;
   role: "admin" | "staff";
@@ -225,7 +223,6 @@ export interface CreateAccount {
 export interface UpdateAccount {
   email: string;
   onyen: string;
-  password?: string;
   first_name: string;
   last_name: string;
   role: "admin" | "staff";

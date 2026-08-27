@@ -41,3 +41,33 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
 SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 SMTP_FROM = os.getenv("SMTP_FROM", "speaker@unc.edu")
+
+# UNC Onyen SSO (SAML).
+#
+# SP side is our own registration with ITS (entity ID, ACS URL) — defaults below
+# match what was submitted. IdP side is UNC's, fetched and verified against
+# https://sso.unc.edu/metadata/idp on 2026-08-27; defaults below match that.
+# Overridable via env in case either ever needs to change without a code deploy.
+SAML_SP_ENTITY_ID = os.getenv("SAML_SP_ENTITY_ID", "https://senate.unc.edu")
+SAML_SP_ACS_URL = os.getenv(
+    "SAML_SP_ACS_URL",
+    "https://senate-backend-dept-undergraduate-senate.apps.cloudapps.unc.edu/api/auth/saml/acs",
+)
+# Our SP certificate/private key — never committed. Must be set via the
+# OpenShift secret (see deploy/cloudapps/template.yaml) before SSO can work;
+# the IdP requires signed AuthnRequests (WantAuthnRequestsSigned=true).
+SAML_SP_CERT = os.getenv("SAML_SP_CERT")
+SAML_SP_PRIVATE_KEY = os.getenv("SAML_SP_PRIVATE_KEY")
+
+SAML_IDP_ENTITY_ID = os.getenv("SAML_IDP_ENTITY_ID", "https://sso.unc.edu/idp")
+SAML_IDP_SSO_URL = os.getenv(
+    "SAML_IDP_SSO_URL", "https://sso.unc.edu/idp/profile/SAML2/Redirect/SSO"
+)
+SAML_IDP_CERT = os.getenv(
+    "SAML_IDP_CERT",
+    "MIIC/zCCAeegAwIBAgIJAKbdYCfHuaO6MA0GCSqGSIb3DQEBCwUAMBYxFDASBgNVBAMMC3Nzby51bmMuZWR1MB4XDTE2MDgxMjE1MzUyMFoXDTM2MDgxMjE1MzUyMFowFjEUMBIGA1UEAwwLc3NvLnVuYy5lZHUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCclewnsUf+I4ykc+gHILGPVCMkT4AoLOchiXYzk21KhlaKlpj6LoQokZG381V53jST4tl9kq8cK6hgDa7Sr9uAtH/AYfNNmNjVpmZho6zPsZzrmH9UJ7MID8Nd2H4YpTb4MTPhhf10nCiVd6TIuuNw5WVa79Bfoas8eKR25aTQgZAci+bGAURjJxCxBZTI2mG2kVymTW6mk4/g9LmzerQerAQtqNHZJ9cwDv6kFnvv6TIMDaSOMgPsU4rAWyPO7yBi4fmjWLtuEzo3ld4mPQQ0FwqHa6E/gIgqDbj4akfT5mbS726WjGK8qqJxeq4oN5mhkLC0xpdvLuqldRl9max/AgMBAAGjUDBOMB0GA1UdDgQWBBT6sAuFGcdqPD1zPa8aNO2gMUIJUTAfBgNVHSMEGDAWgBT6sAuFGcdqPD1zPa8aNO2gMUIJUTAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQAK2oJw+TWofs88vOvmC3UBm0buOP7nsVGoVALhIbn5ZpmNz6uTrHnyMBmjEBXx1/3br7JkzMdcTX/BamHrgfzhTp1WutCJZ5OtVZGv+ADX3g1o/dN4612wl29+6rFrAKIxfFbpK4VZtp9l1UXUQhkR62ShU0+iT+Aku5g4Pmi5iMkqcPBGwkHLw8enbCUdaRftpYGkvfXPKnhYlGAFmfCB1Qb8xMsjIZghf+XXsM5rq4IxnOPLaWGbmlKOqLMcm4s+ToxdeOKEyNWYnLRrYhQH5Onj/0AX9U+unabDJzCBUng/vVPjlhQOuoX24oTjN4LMnBr7sy3/SJbBLZ0AU8n8",
+)
+
+# Where to redirect the browser back to once SSO completes. Reuses the first
+# configured CORS origin (the frontend) rather than adding a separate param.
+FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", CORS_ORIGINS[0] if CORS_ORIGINS else "")

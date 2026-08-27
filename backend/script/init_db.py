@@ -24,9 +24,8 @@ from app.database import (
     engine,
 )
 from app.models import Admin  # noqa: F401 - importing app.models registers all tables
-from app.schemas.account import MIN_PASSWORD_LENGTH, validate_onyen
+from app.schemas.account import validate_onyen
 from app.static_pages import ensure_default_static_pages
-from app.utils.passwords import hash_password
 
 
 def create_missing_tables() -> None:
@@ -67,6 +66,21 @@ def sync_missing_columns() -> None:
                 conn.execute(text(f"ALTER TABLE {table.name} ADD COLUMN {column_ddl}"))
                 print(f"Added missing column {table.name}.{column.name}")
 
+            # A column that already exists but became nullable on the model
+            # (e.g. Admin.password_hash once accounts stopped requiring a
+            # local password) needs its NOT NULL constraint relaxed too —
+            # ADD COLUMN above only handles columns that don't exist yet.
+            existing_column_info = {col["name"]: col for col in inspector.get_columns(table.name)}
+            for column in table.columns:
+                info = existing_column_info.get(column.name)
+                if info is None:
+                    continue  # just added above, already matches the model
+                if column.nullable and not info["nullable"]:
+                    conn.execute(
+                        text(f"ALTER TABLE {table.name} ALTER COLUMN {column.name} DROP NOT NULL")
+                    )
+                    print(f"Relaxed NOT NULL on {table.name}.{column.name}")
+
 
 def sync_missing_indexes() -> None:
     """Add indexes present on the ORM models but missing from deployed tables.
@@ -96,31 +110,29 @@ def sync_missing_indexes() -> None:
 
 
 def bootstrap_initial_admin() -> None:
+    """Add the first onyen to the accounts allowlist so someone can log in via SSO.
+
+    No password: accounts are provisioned by onyen and authenticate through
+    UNC's Onyen SSO (or the dev-only bypass login outside production).
+    """
     email = os.getenv("INITIAL_ADMIN_EMAIL")
     onyen = os.getenv("INITIAL_ADMIN_ONYEN")
-    password = os.getenv("INITIAL_ADMIN_PASSWORD")
     first_name = os.getenv("INITIAL_ADMIN_FIRST_NAME", "Initial")
     last_name = os.getenv("INITIAL_ADMIN_LAST_NAME", "Admin")
     role = os.getenv("INITIAL_ADMIN_ROLE", "admin")
 
-    if not email and not onyen and not password:
+    if not email and not onyen:
         print("No initial admin requested")
         return
 
-    if not email or not onyen or not password:
-        print(
-            "INITIAL_ADMIN_EMAIL, INITIAL_ADMIN_ONYEN, and INITIAL_ADMIN_PASSWORD must be set together"
-        )
+    if not email or not onyen:
+        print("INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_ONYEN must be set together")
         sys.exit(1)
 
     try:
         onyen = validate_onyen(onyen)
     except ValueError as exc:
         print(str(exc))
-        sys.exit(1)
-
-    if len(password) < MIN_PASSWORD_LENGTH:
-        print(f"INITIAL_ADMIN_PASSWORD must be at least {MIN_PASSWORD_LENGTH} characters")
         sys.exit(1)
 
     if role not in {"admin", "staff"}:
@@ -138,7 +150,6 @@ def bootstrap_initial_admin() -> None:
         admin = Admin(
             email=email,
             onyen=onyen,
-            password_hash=hash_password(password),
             first_name=first_name,
             last_name=last_name,
             role=role,

@@ -35,8 +35,8 @@ import type {
   CreateNews,
   CreateSenator,
   CreateStaff,
+  DevLoginCredentials,
   DistrictMapping,
-  LoginCredentials,
   LoginResponse,
   NavigationFlow,
   UpdateAccount,
@@ -180,12 +180,13 @@ export async function uploadAdminPdf(
 }
 
 // Auth
-export async function login(
-  onyen: string,
-  password: string,
-): Promise<LoginResponse> {
-  const body: LoginCredentials = { onyen, password };
-  const data = await request<LoginResponse>("/auth/login", {
+export function samlLoginUrl(): string {
+  return `${API_BASE}${buildApiPath("/auth/saml/login")}`;
+}
+
+export async function devLogin(onyen: string): Promise<LoginResponse> {
+  const body: DevLoginCredentials = { onyen };
+  const data = await request<LoginResponse>("/auth/dev-login", {
     method: "POST",
     body: JSON.stringify(body),
   });
