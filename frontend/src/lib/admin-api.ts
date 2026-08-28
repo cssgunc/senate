@@ -49,6 +49,7 @@ import type {
   UpdateSenator,
   UpdateStaff,
   UpdateStaticPage,
+  UptimeSummary,
 } from "@/types/admin";
 import type { PaginatedResponse } from "@/types/api";
 import { clearToken, getToken, setToken } from "./token";
@@ -552,6 +553,10 @@ export async function getActiveUsers(): Promise<ActiveUsers> {
 
 export async function getNavigationFlow(days: number = 7): Promise<NavigationFlow> {
   return request(`/admin/analytics/navigation-flow?days=${days}`, { method: "GET" });
+}
+
+export async function getUptimeSummary(days: number = 7): Promise<UptimeSummary> {
+  return request(`/admin/analytics/uptime?days=${days}`, { method: "GET" });
 }
 
 // Budget

@@ -15,6 +15,7 @@ from app.main import app
 from app.models import Admin
 from app.models.base import Base
 from app.models.PageView import PageView
+from app.models.UptimeCheck import UptimeCheck
 from app.utils.passwords import hash_password
 
 _SQLITE_URL = "sqlite:///:memory:"
@@ -400,3 +401,123 @@ class TestNavigationFlowCycleBreaking:
             return any(dfs(node) for node in adjacency if node not in visited)
 
         assert not has_cycle()
+
+
+def _seed_uptime(engine):
+    """Seed UptimeCheck rows shaped to exercise both uptime math and incident
+    reconstruction:
+
+    backend: up, then a down streak (2 rows) that resolves (closed incident,
+    duration 20 min), then a later down row with nothing after it (ongoing
+    incident).
+    frontend: always up, contributes no incidents.
+    """
+    now = datetime.now()
+    Session = sessionmaker(bind=engine)
+    db = Session()
+    db.add(
+        Admin(
+            email="admin@unc.edu",
+            first_name="Admin",
+            last_name="User",
+            onyen="user100000001",
+            password_hash=hash_password("TestPassword123!"),
+            role="admin",
+        )
+    )
+    db.add_all(
+        [
+            UptimeCheck(target="backend", is_up=True, checked_at=now - timedelta(hours=6)),
+            UptimeCheck(target="backend", is_up=False, checked_at=now - timedelta(hours=5)),
+            UptimeCheck(target="backend", is_up=False, checked_at=now - timedelta(hours=4, minutes=50)),
+            UptimeCheck(target="backend", is_up=True, checked_at=now - timedelta(hours=4, minutes=40)),
+            UptimeCheck(target="backend", is_up=False, checked_at=now - timedelta(minutes=10)),
+            UptimeCheck(target="frontend", is_up=True, checked_at=now - timedelta(hours=3)),
+            UptimeCheck(target="frontend", is_up=True, checked_at=now - timedelta(hours=2)),
+        ]
+    )
+    db.commit()
+    db.close()
+
+
+@pytest.fixture()
+def uptime_engine():
+    engine = _make_engine()
+    _seed_uptime(engine)
+    yield engine
+    Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture()
+def uptime_client(uptime_engine):
+    TestSession = sessionmaker(bind=uptime_engine)
+
+    def _override_get_db():
+        db = TestSession()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    def _override_current_user():
+        db = TestSession()
+        user = db.query(Admin).filter(Admin.email == "admin@unc.edu").first()
+        db.close()
+        return user
+
+    app.dependency_overrides[get_db] = _override_get_db
+    app.dependency_overrides[get_current_user] = _override_current_user
+    with TestClient(app) as c:
+        yield c
+    _clear()
+
+
+class TestUptimeSummary:
+    def test_unauthenticated_rejected(self):
+        saved = app.dependency_overrides.pop(get_current_user, None)
+        try:
+            with TestClient(app) as c:
+                assert c.get("/api/admin/analytics/uptime").status_code in {401, 403, 501}
+        finally:
+            if saved:
+                app.dependency_overrides[get_current_user] = saved
+
+    def test_returns_200(self, uptime_client):
+        assert uptime_client.get("/api/admin/analytics/uptime").status_code == 200
+
+    def test_overall_uptime_pct(self, uptime_client):
+        data = uptime_client.get("/api/admin/analytics/uptime").json()
+        # 4 up out of 7 total checks (backend 2/5, frontend 2/2).
+        assert data["overall_uptime_pct"] == pytest.approx(4 / 7 * 100)
+
+    def test_per_target_uptime_pct(self, uptime_client):
+        data = uptime_client.get("/api/admin/analytics/uptime").json()
+        by_target = {row["target"]: row["uptime_pct"] for row in data["targets"]}
+        assert by_target["backend"] == pytest.approx(40.0)
+        assert by_target["frontend"] == pytest.approx(100.0)
+
+    def test_closed_incident_reconstructed(self, uptime_client):
+        data = uptime_client.get("/api/admin/analytics/uptime").json()
+        closed = [inc for inc in data["incidents"] if inc["ended_at"] is not None]
+        assert len(closed) == 1
+        assert closed[0]["target"] == "backend"
+        assert closed[0]["duration_seconds"] == pytest.approx(20 * 60)
+
+    def test_ongoing_incident_has_no_end(self, uptime_client):
+        data = uptime_client.get("/api/admin/analytics/uptime").json()
+        ongoing = [inc for inc in data["incidents"] if inc["ended_at"] is None]
+        assert len(ongoing) == 1
+        assert ongoing[0]["target"] == "backend"
+        assert ongoing[0]["duration_seconds"] is None
+
+    def test_incidents_sorted_most_recent_first(self, uptime_client):
+        data = uptime_client.get("/api/admin/analytics/uptime").json()
+        assert data["incidents"][0]["ended_at"] is None  # the ongoing one started most recently
+
+    def test_frontend_has_no_incidents(self, uptime_client):
+        data = uptime_client.get("/api/admin/analytics/uptime").json()
+        assert all(inc["target"] != "frontend" for inc in data["incidents"])
+
+    def test_days_out_of_range_returns_422(self, uptime_client):
+        assert uptime_client.get("/api/admin/analytics/uptime?days=0").status_code == 422
+        assert uptime_client.get("/api/admin/analytics/uptime?days=91").status_code == 422

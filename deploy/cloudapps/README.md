@@ -326,6 +326,45 @@ manual handling regardless of rollout strategy:
   rollout. Check the `init_db` logs (`oc logs deploy/${APP_NAME}-backend`)
   after a deploy that adds a required column.
 
+## Uptime monitoring
+
+The `${APP_NAME}-uptime-probe` CronJob checks backend and frontend health
+every `UPTIME_PROBE_SCHEDULE` (default 2 minutes) and records each result,
+visible on the admin dashboard at `/admin/analytics` (a new "Uptime"
+section alongside the existing pageview analytics). This exists to answer
+"did the last deploy actually cause downtime?" after the fact, since
+Kubernetes events (the only other source for that) age out after about an
+hour — see the deploy-history discussion this was built to replace.
+
+It's deliberately built with no external dependency and no ITS ask:
+
+- The probe hits `http://${APP_NAME}-backend/health` and
+  `http://${APP_NAME}-frontend/` over **cluster-internal Service DNS**,
+  never the public Route. It can't be affected by (and needs nothing from)
+  external DNS/TLS — including whatever happens with a future
+  `www.senate.unc.edu`-style hostname change.
+- Results post to `POST /api/analytics/uptime-check`, reusing the exact
+  same shared-secret pattern (`ANALYTICS_INGEST_SECRET`) the pageview
+  ingest already uses — no new OpenShift Secret to create or rotate.
+- The probe pod's `activeDeadlineSeconds` puts it in the `Terminating`
+  quota scope (like the mirror job), not the tight `compute-resources`
+  (`NotTerminating`) scope the backend/frontend Deployments compete over —
+  see "Storage and quota" above. It doesn't eat into that headroom.
+- Row growth is negligible (2 targets × the probe schedule, e.g. ~1,440
+  rows/day at the default 2-minute cadence) — no retention/pruning job
+  was added since it isn't warranted at this scale.
+
+**Known limitation:** a *total* backend outage can't record itself,
+because the probe reports through the backend's own ingest endpoint — if
+the backend is fully unreachable, there's nothing to POST to. Both the
+`/api/admin/analytics/uptime` response and the CronJob's own pod logs
+(`oc logs -l job-name=... `, or the `oc get cronjob senate-uptime-probe`
+history — kept for 5 runs instead of the k8s default of 3) treat that
+case the same way: it shows up as a gap in `checked_at` wider than the
+probe's schedule once the backend recovers and starts posting again,
+rather than as an explicit down row. That gap is still diagnostic (its
+bounds are the outage's bounds), just not real-time.
+
 ## First deploy and database initialization
 
 After the first webhook-triggered deploy completes, run the database and

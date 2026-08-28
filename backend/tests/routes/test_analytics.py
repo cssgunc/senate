@@ -12,6 +12,7 @@ from app.database import get_db
 from app.main import app
 from app.models.base import Base
 from app.models.PageView import PageView
+from app.models.UptimeCheck import UptimeCheck
 
 _SQLITE_URL = "sqlite:///:memory:"
 
@@ -123,3 +124,69 @@ class TestCreatePageview:
 
         resp = client.post("/api/analytics/pageview", json=_PAYLOAD, headers=headers)
         assert resp.status_code == 429
+
+
+_UPTIME_PAYLOAD = {
+    "target": "backend",
+    "is_up": True,
+    "latency_ms": 42.5,
+    "error": None,
+}
+
+
+class TestCreateUptimeCheck:
+    def test_rejects_missing_secret(self, write_client):
+        client, _ = write_client
+        resp = client.post("/api/analytics/uptime-check", json=_UPTIME_PAYLOAD)
+        assert resp.status_code == 401
+
+    def test_rejects_wrong_secret(self, write_client):
+        client, _ = write_client
+        resp = client.post(
+            "/api/analytics/uptime-check", json=_UPTIME_PAYLOAD, headers={"X-Analytics-Secret": "wrong"}
+        )
+        assert resp.status_code == 401
+
+    def test_accepts_correct_secret(self, write_client):
+        client, _ = write_client
+        resp = client.post(
+            "/api/analytics/uptime-check",
+            json=_UPTIME_PAYLOAD,
+            headers={"X-Analytics-Secret": "test-ingest-secret"},
+        )
+        assert resp.status_code == 204
+
+    def test_persists_uptime_check_row(self, write_client):
+        client, TestSession = write_client
+        client.post(
+            "/api/analytics/uptime-check",
+            json={"target": "frontend", "is_up": False, "latency_ms": None, "error": "connection refused"},
+            headers={"X-Analytics-Secret": "test-ingest-secret"},
+        )
+        db = TestSession()
+        try:
+            rows = db.query(UptimeCheck).all()
+            assert len(rows) == 1
+            assert rows[0].target == "frontend"
+            assert rows[0].is_up is False
+            assert rows[0].error == "connection refused"
+        finally:
+            db.close()
+
+    def test_unknown_target_returns_422(self, write_client):
+        client, _ = write_client
+        bad = {**_UPTIME_PAYLOAD, "target": "database"}
+        resp = client.post(
+            "/api/analytics/uptime-check", json=bad, headers={"X-Analytics-Secret": "test-ingest-secret"}
+        )
+        assert resp.status_code == 422
+
+    def test_not_rate_limited_like_pageview(self, write_client, monkeypatch):
+        # Rate limiting is per-visitor-IP for the pageview endpoint; the probe
+        # is a single trusted in-cluster caller and shouldn't be throttled.
+        client, _ = write_client
+        monkeypatch.setattr(analytics_router, "RATE_LIMIT_MAX_REQUESTS", 2)
+        headers = {"X-Analytics-Secret": "test-ingest-secret"}
+        for _ in range(5):
+            resp = client.post("/api/analytics/uptime-check", json=_UPTIME_PAYLOAD, headers=headers)
+            assert resp.status_code == 204

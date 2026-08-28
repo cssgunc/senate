@@ -2,6 +2,7 @@
 
 import { AdminCard, AdminPageHeader, AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AnalyticsCharts } from "@/components/admin/AnalyticsCharts";
+import { UptimeChart } from "@/components/admin/UptimeChart";
 import {
   Select,
   SelectContent,
@@ -9,8 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getActiveUsers, getAnalyticsSummary, getNavigationFlow } from "@/lib/admin-api";
-import type { AnalyticsSummary, NavigationFlow } from "@/types/admin";
+import {
+  getActiveUsers,
+  getAnalyticsSummary,
+  getNavigationFlow,
+  getUptimeSummary,
+} from "@/lib/admin-api";
+import type { AnalyticsSummary, NavigationFlow, UptimeSummary } from "@/types/admin";
 import { useEffect, useState } from "react";
 
 const RANGE_OPTIONS = [
@@ -30,6 +36,10 @@ export default function AdminAnalyticsPage() {
 
   const [navigationFlow, setNavigationFlow] = useState<NavigationFlow | null>(null);
   const [isFlowLoading, setIsFlowLoading] = useState(true);
+
+  const [uptime, setUptime] = useState<UptimeSummary | null>(null);
+  const [isUptimeLoading, setIsUptimeLoading] = useState(true);
+  const [uptimeError, setUptimeError] = useState<string | null>(null);
 
   // Kept separate from the navigation-flow fetch below: the flow query scans
   // and sorts every pageview in range, so it can lag well behind the summary
@@ -76,6 +86,30 @@ export default function AdminAnalyticsPage() {
     }
 
     fetchNavigationFlow();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [days]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchUptime() {
+      setIsUptimeLoading(true);
+      setUptimeError(null);
+      try {
+        const uptimeData = await getUptimeSummary(days);
+        if (isMounted) setUptime(uptimeData);
+      } catch (err) {
+        console.error("Failed to fetch uptime summary:", err);
+        if (isMounted) setUptimeError("Failed to load uptime data.");
+      } finally {
+        if (isMounted) setIsUptimeLoading(false);
+      }
+    }
+
+    fetchUptime();
 
     return () => {
       isMounted = false;
@@ -138,6 +172,17 @@ export default function AdminAnalyticsPage() {
             navigationFlow={navigationFlow}
             isNavigationFlowLoading={isFlowLoading}
           />
+        ) : null}
+      </AdminCard>
+
+      <AdminCard>
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">Uptime</h2>
+        {isUptimeLoading ? (
+          <div className="py-20 text-center text-slate-500">Loading data...</div>
+        ) : uptimeError ? (
+          <div className="py-20 text-center text-rose-600">{uptimeError}</div>
+        ) : uptime ? (
+          <UptimeChart summary={uptime} />
         ) : null}
       </AdminCard>
     </AdminPageShell>
