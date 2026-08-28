@@ -360,9 +360,11 @@ class TestCalendarEventModel:
     def test_fk_to_admin(self):
         assert "admin" in get_fk_target_tables(CalendarEvent)
 
-    def test_created_by_not_nullable(self):
+    def test_created_by_nullable(self):
+        # Nullable + ON DELETE SET NULL so deleting the creating admin account
+        # doesn't fail — same pattern as News.author_id.
         cols = get_columns(CalendarEvent)
-        assert cols["created_by"].nullable is False
+        assert cols["created_by"].nullable is True
 
     def test_description_nullable(self):
         cols = get_columns(CalendarEvent)
@@ -408,8 +410,8 @@ class TestCalendarEventModel:
         assert event.description is None
         assert event.location is None
 
-    def test_calendar_event_requires_created_by(self, session):
-        """created_by is NOT NULL — omitting it must fail."""
+    def test_calendar_event_allows_null_created_by(self, session):
+        """created_by is nullable — an event can exist without a linked creator."""
         event = CalendarEvent(
             title="No Creator",
             start_datetime=datetime(2026, 9, 1, 14, 0, 0),
@@ -419,8 +421,9 @@ class TestCalendarEventModel:
             created_by=None,
         )
         session.add(event)
-        with pytest.raises(IntegrityError):
-            session.flush()
+        session.flush()
+
+        assert event.created_by is None
 
 
 # ===========================================================================
@@ -772,9 +775,11 @@ class TestBudgetDataModel:
         cols = get_columns(BudgetData)
         assert cols["parent_category_id"].nullable is True
 
-    def test_updated_by_not_nullable(self):
+    def test_updated_by_nullable(self):
+        # Nullable + ON DELETE SET NULL so deleting the updating admin account
+        # doesn't fail — same pattern as News.author_id.
         cols = get_columns(BudgetData)
-        assert cols["updated_by"].nullable is False
+        assert cols["updated_by"].nullable is True
 
     def test_updated_at_has_onupdate(self):
         cols = get_columns(BudgetData)

@@ -16,4 +16,7 @@ class CalendarEvent(Base):
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     event_type: Mapped[str] = mapped_column(String(50), nullable=False)
     is_published: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    created_by: Mapped[int] = mapped_column(ForeignKey("admin.id"), nullable=False)
+    # Nullable FK — creator may not be present if the admin account is deleted
+    created_by: Mapped[int | None] = mapped_column(
+        ForeignKey("admin.id", ondelete="SET NULL"), nullable=True
+    )

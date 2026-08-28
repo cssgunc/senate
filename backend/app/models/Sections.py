@@ -18,4 +18,7 @@ class AdminSections(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     section_id: Mapped[int] = mapped_column(Integer, ForeignKey("sections.id"), nullable=False)
-    admin_id: Mapped[int] = mapped_column(Integer, ForeignKey("admin.id"), nullable=False)
+    # Membership row is meaningless without the admin — delete it alongside them.
+    admin_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("admin.id", ondelete="CASCADE"), nullable=False
+    )

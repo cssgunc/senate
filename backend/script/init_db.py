@@ -82,6 +82,61 @@ def sync_missing_columns() -> None:
                     print(f"Relaxed NOT NULL on {table.name}.{column.name}")
 
 
+def _normalize_ondelete(value: str | None) -> str:
+    return (value or "NO ACTION").upper()
+
+
+def sync_foreign_key_actions() -> None:
+    """Fix the ON DELETE behavior of FK constraints already deployed.
+
+    create_all() and sync_missing_columns() only handle tables/columns that
+    don't exist yet; changing what happens on delete for an already-deployed
+    foreign key (e.g. author_id columns moving from a hard block to SET NULL
+    so deleting an admin account no longer fails) requires dropping and
+    recreating the constraint.
+    """
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if table.name not in existing_tables:
+                continue  # just created by create_missing_tables(), already correct
+
+            deployed_fks = {
+                tuple(fk["constrained_columns"]): fk
+                for fk in inspector.get_foreign_keys(table.name)
+            }
+
+            for column in table.columns:
+                for fk in column.foreign_keys:
+                    deployed = deployed_fks.get((column.name,))
+                    if deployed is None:
+                        continue  # newly added FK, already created with the right action
+
+                    desired = _normalize_ondelete(fk.ondelete)
+                    current = _normalize_ondelete(deployed["options"].get("ondelete"))
+                    if desired == current:
+                        continue
+
+                    constraint_name = deployed["name"]
+                    conn.execute(
+                        text(f'ALTER TABLE {table.name} DROP CONSTRAINT "{constraint_name}"')
+                    )
+                    conn.execute(
+                        text(
+                            f'ALTER TABLE {table.name} ADD CONSTRAINT "{constraint_name}" '
+                            f"FOREIGN KEY ({column.name}) REFERENCES "
+                            f"{fk.column.table.name} ({fk.column.name}) "
+                            f"ON DELETE {desired}"
+                        )
+                    )
+                    print(
+                        f"Updated ON DELETE action for {table.name}.{column.name}: "
+                        f"{current} -> {desired}"
+                    )
+
+
 def sync_missing_indexes() -> None:
     """Add indexes present on the ORM models but missing from deployed tables.
 
@@ -171,6 +226,7 @@ if __name__ == "__main__":
     print("Initializing deployed database")
     create_missing_tables()
     sync_missing_columns()
+    sync_foreign_key_actions()
     sync_missing_indexes()
     bootstrap_initial_admin()
     print("Database initialization complete")
