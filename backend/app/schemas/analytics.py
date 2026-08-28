@@ -66,3 +66,53 @@ class NavigationFlowDTO(BaseModel):
     range_days: int
     total_sessions: int
     links: list[NavigationFlowLinkDTO]
+
+
+class UptimeCheckCreateDTO(BaseModel):
+    target: str
+    is_up: bool
+    latency_ms: float | None = None
+    error: str | None = None
+
+
+class UptimeBucketDTO(BaseModel):
+    bucket: datetime
+    total_checks: int
+    up_checks: int
+    uptime_pct: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("bucket")
+    @classmethod
+    def _ensure_utc(cls, value: datetime) -> datetime:
+        return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+
+
+class UptimeIncidentDTO(BaseModel):
+    target: str
+    started_at: datetime
+    ended_at: datetime | None
+    duration_seconds: float | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("started_at", "ended_at")
+    @classmethod
+    def _ensure_utc(cls, value: datetime | None) -> datetime | None:
+        if value is None or value.tzinfo is not None:
+            return value
+        return value.replace(tzinfo=timezone.utc)
+
+
+class TargetUptimeDTO(BaseModel):
+    target: str
+    uptime_pct: float
+    buckets: list[UptimeBucketDTO]
+
+
+class UptimeSummaryDTO(BaseModel):
+    range_days: int
+    overall_uptime_pct: float
+    targets: list[TargetUptimeDTO]
+    incidents: list[UptimeIncidentDTO]

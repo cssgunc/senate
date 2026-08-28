@@ -301,3 +301,30 @@ export interface NavigationFlow {
   total_sessions: number;
   links: NavigationFlowLink[];
 }
+
+export interface UptimeBucket {
+  bucket: string;
+  total_checks: number;
+  up_checks: number;
+  uptime_pct: number;
+}
+
+export interface UptimeIncident {
+  target: string;
+  started_at: string;
+  ended_at: string | null;
+  duration_seconds: number | null;
+}
+
+export interface TargetUptime {
+  target: string;
+  uptime_pct: number;
+  buckets: UptimeBucket[];
+}
+
+export interface UptimeSummary {
+  range_days: number;
+  overall_uptime_pct: number;
+  targets: TargetUptime[];
+  incidents: UptimeIncident[];
+}

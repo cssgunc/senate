@@ -16,6 +16,7 @@ from .LegislationAction import LegislationAction
 from .PageView import PageView
 from .Sections import AdminSections, Sections
 from .Senator import Senator
+from .UptimeCheck import UptimeCheck
 
 __all__ = [
     "News",
@@ -40,4 +41,5 @@ __all__ = [
     "Sections",
     "AdminSections",
     "PageView",
+    "UptimeCheck",
 ]

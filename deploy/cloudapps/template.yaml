@@ -24,6 +24,9 @@ parameters:
   - name: MIRROR_SCHEDULE
     value: "*/10 * * * *"
     description: Cron schedule for syncing GITHUB_MIRROR_SOURCE's main branch to GIT_REPO.
+  - name: UPTIME_PROBE_SCHEDULE
+    value: "*/2 * * * *"
+    description: Cron schedule for probing backend/frontend health over the cluster-internal Services and recording the result.
   - name: RUNTIME_ENVIRONMENT
     value: production
   - name: FRONTEND_HOST
@@ -191,6 +194,83 @@ objects:
                   secret:
                     secretName: ${APP_NAME}-mirror-key
                     defaultMode: 0440
+
+  - apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: ${APP_NAME}-uptime-probe
+    spec:
+      schedule: ${UPTIME_PROBE_SCHEDULE}
+      concurrencyPolicy: Forbid
+      # Keep a bit more history than the default (3/1): this job's own pod
+      # logs are the only fallback record of a check if the result can't be
+      # written to the DB (see the "not set -e" note below).
+      successfulJobsHistoryLimit: 5
+      failedJobsHistoryLimit: 5
+      jobTemplate:
+        spec:
+          backoffLimit: 0
+          activeDeadlineSeconds: 60
+          template:
+            spec:
+              restartPolicy: Never
+              containers:
+                - name: probe
+                  image: alpine/git:latest
+                  command:
+                    - /bin/sh
+                    - -c
+                    - |
+                      # Deliberately no `set -e`: this job's only purpose is
+                      # to always emit a best-effort result, so one malformed
+                      # measurement (e.g. if a future base image's busybox
+                      # date doesn't support %N) must not abort the run.
+                      #
+                      # Hits both targets over cluster-internal Service DNS,
+                      # never the public Route - this can't be affected by
+                      # (or need anything from) external DNS/ITS.
+                      check_target() {
+                        target="$1"
+                        url="$2"
+                        start_ns=$(date +%s%N 2>/dev/null)
+                        http_code="$(wget -T 5 -O /dev/null -S "$url" 2>&1 | awk '/^  HTTP/{print $2; exit}')"
+                        end_ns=$(date +%s%N 2>/dev/null)
+
+                        latency_ms=null
+                        case "$start_ns$end_ns" in
+                          *[!0-9]*) ;; # non-numeric (e.g. unexpanded %N) - leave latency_ms as null
+                          *) latency_ms=$(( (end_ns - start_ns) / 1000000 )) ;;
+                        esac
+
+                        if [ "$http_code" = "200" ]; then
+                          is_up=true
+                          error_json=null
+                        else
+                          is_up=false
+                          error_json="\"HTTP ${http_code:-no response}\""
+                        fi
+
+                        echo "${target}: is_up=${is_up} http_code=${http_code:-none} latency_ms=${latency_ms}"
+
+                        payload="{\"target\":\"${target}\",\"is_up\":${is_up},\"latency_ms\":${latency_ms},\"error\":${error_json}}"
+                        wget -q -O /dev/null \
+                          --header="Content-Type: application/json" \
+                          --header="X-Analytics-Secret: ${ANALYTICS_INGEST_SECRET}" \
+                          --post-data="${payload}" \
+                          "http://${APP_NAME}-backend/api/analytics/uptime-check" \
+                          || echo "${target}: failed to record check (backend ingest unreachable)"
+                      }
+
+                      check_target backend "http://${APP_NAME}-backend/health"
+                      check_target frontend "http://${APP_NAME}-frontend/"
+                  env:
+                    - name: APP_NAME
+                      value: ${APP_NAME}
+                    - name: ANALYTICS_INGEST_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${APP_NAME}-secrets
+                          key: ANALYTICS_INGEST_SECRET
 
   - apiVersion: v1
     kind: PersistentVolumeClaim

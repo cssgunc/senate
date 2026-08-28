@@ -14,13 +14,16 @@ from sqlalchemy.orm import Session
 from app.config import ANALYTICS_INGEST_SECRET
 from app.database import get_db
 from app.models.PageView import PageView
-from app.schemas.analytics import PageViewCreateDTO
+from app.models.UptimeCheck import UptimeCheck
+from app.schemas.analytics import PageViewCreateDTO, UptimeCheckCreateDTO
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 RATE_LIMIT_MAX_REQUESTS = 120
 RATE_LIMIT_WINDOW = timedelta(minutes=1)
 _ingest_requests: Dict[str, List[datetime]] = {}
+
+UPTIME_CHECK_TARGETS = {"backend", "frontend"}
 
 
 def _check_rate_limit(client_ip: str) -> None:
@@ -62,4 +65,28 @@ def create_pageview(
         visitor_hash=body.visitor_hash,
     )
     db.add(view)
+    db.commit()
+
+
+@router.post("/uptime-check", status_code=status.HTTP_204_NO_CONTENT)
+def create_uptime_check(
+    body: UptimeCheckCreateDTO,
+    db: Session = Depends(get_db),
+    _secret: None = Depends(_verify_ingest_secret),
+):
+    """Record one health-probe result from the uptime-probe CronJob.
+
+    No rate limit here (unlike pageview ingest): the caller is a trusted,
+    fixed-cadence in-cluster job, not one entry per browser visitor.
+    """
+    if body.target not in UPTIME_CHECK_TARGETS:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Unknown target")
+
+    check = UptimeCheck(
+        target=body.target,
+        is_up=body.is_up,
+        latency_ms=body.latency_ms,
+        error=body.error,
+    )
+    db.add(check)
     db.commit()
