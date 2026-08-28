@@ -20,7 +20,10 @@ class BudgetData(Base):
     )
 
     display_order: Mapped[int] = mapped_column(Integer, nullable=False)
-    updated_by: Mapped[int] = mapped_column(ForeignKey("admin.id"), nullable=False)
+    # Nullable FK — updater may not be present if the admin account is deleted
+    updated_by: Mapped[int | None] = mapped_column(
+        ForeignKey("admin.id", ondelete="SET NULL"), nullable=True
+    )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), onupdate=func.now()

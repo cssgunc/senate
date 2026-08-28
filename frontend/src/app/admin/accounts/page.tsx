@@ -78,7 +78,7 @@ export default function AdminAccountsPage() {
       await fetchAccounts();
     } catch (error) {
       console.error("Failed to delete account:", error);
-      alert("Failed to delete account");
+      alert(error instanceof Error ? error.message : "Failed to delete account");
     }
   };
 
@@ -95,7 +95,11 @@ export default function AdminAccountsPage() {
       fetchAccounts();
     } catch (error) {
       console.error("Failed to save account:", error);
-      alert("Failed to save account. The email or Onyen may already be in use.");
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to save account. The email or Onyen may already be in use.",
+      );
     } finally {
       setIsSaving(false);
     }

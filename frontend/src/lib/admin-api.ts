@@ -85,9 +85,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const errorText = await res.text();
-    throw new Error(
-      `Admin API request failed (${res.status} ${res.statusText}): ${errorText}`,
-    );
+    let message = `Admin API request failed (${res.status} ${res.statusText}): ${errorText}`;
+    if (errorText) {
+      try {
+        const parsed = JSON.parse(errorText) as { detail?: string };
+        if (parsed.detail) {
+          message = parsed.detail;
+        }
+      } catch {
+        // errorText wasn't JSON — keep the default message above.
+      }
+    }
+    throw new Error(message);
   }
 
   // Some successful endpoints may return no response body.

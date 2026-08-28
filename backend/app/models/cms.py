@@ -157,13 +157,16 @@ class StaticPageContent(Base):
     page_slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
-    last_edited_by: Mapped[int] = mapped_column(Integer, ForeignKey("admin.id"), nullable=False)
+    # Nullable FK — editor may not be present if the admin account is deleted
+    last_edited_by: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("admin.id", ondelete="SET NULL"), nullable=True
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
 
     # Relationships
-    editor: Mapped[Admin] = relationship("Admin", back_populates="edited_pages")
+    editor: Mapped[Optional[Admin]] = relationship("Admin", back_populates="edited_pages")
 
     def __repr__(self) -> str:
         return f"<StaticPageContent id={self.id} slug={self.page_slug!r}>"
@@ -182,15 +185,16 @@ class AppConfig(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     key: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     value: Mapped[str] = mapped_column(String(500), nullable=False)
-    updated_by: Mapped[int] = mapped_column(
-        Integer, ForeignKey("admin.id", ondelete="NO ACTION"), nullable=False
+    # Nullable FK — updater may not be present if the admin account is deleted
+    updated_by: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("admin.id", ondelete="SET NULL"), nullable=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=func.now(), onupdate=func.now()
     )
 
     # Relationships
-    updater: Mapped[Admin] = relationship("Admin", back_populates="config_updates")
+    updater: Mapped[Optional[Admin]] = relationship("Admin", back_populates="config_updates")
 
     def __repr__(self) -> str:
         return f"<AppConfig id={self.id} key={self.key!r} value={self.value!r}>"

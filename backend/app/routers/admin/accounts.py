@@ -4,6 +4,12 @@ GET    /api/admin/accounts       — paginated list of admin/staff accounts
 POST   /api/admin/accounts       — create account
 PUT    /api/admin/accounts/{id}  — update account fields
 DELETE /api/admin/accounts/{id}  — delete account
+
+Any admin can create, edit, or delete any other admin or staff account,
+including changing roles — there is no hierarchy beyond the flat admin/staff
+split. The one guardrail is that the last remaining admin account can never
+be deleted or demoted to staff, so account management can never lock itself
+out. Self-deletion is also blocked.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -21,6 +27,15 @@ router = APIRouter(
     prefix="/api/admin/accounts",
     tags=["admin", "accounts"],
 )
+
+
+def _other_admin_exists(db: Session, excluding_id: int) -> bool:
+    return (
+        db.query(Admin)
+        .filter(Admin.role == "admin", Admin.id != excluding_id)
+        .first()
+        is not None
+    )
 
 
 @router.get("", response_model=PaginatedResponse[AccountDTO])
@@ -78,7 +93,19 @@ def update_admin_account(
     if account is None:
         raise HTTPException(status_code=404, detail="Account not found")
 
-    for field, value in body.model_dump(exclude_unset=True).items():
+    fields = body.model_dump(exclude_unset=True)
+    demoting_last_admin = (
+        account.role == "admin"
+        and fields.get("role", "admin") != "admin"
+        and not _other_admin_exists(db, excluding_id=account.id)
+    )
+    if demoting_last_admin:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot change the role of the last admin account",
+        )
+
+    for field, value in fields.items():
         setattr(account, field, value)
 
     try:
@@ -103,7 +130,8 @@ def delete_admin_account(
     current_user: Admin = Depends(require_role("admin")),
     db: Session = Depends(get_db),
 ):
-    """Delete an account. Admin role required. Cannot delete your own account."""
+    """Delete an account. Admin role required. Cannot delete your own account
+    or the last remaining admin account."""
     if account_id == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot delete your own account")
 
@@ -111,6 +139,16 @@ def delete_admin_account(
     if account is None:
         raise HTTPException(status_code=404, detail="Account not found")
 
+    if account.role == "admin" and not _other_admin_exists(db, excluding_id=account.id):
+        raise HTTPException(status_code=400, detail="Cannot delete the last admin account")
+
     db.delete(account)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot delete this account: it is still referenced by other records",
+        )
     return None
