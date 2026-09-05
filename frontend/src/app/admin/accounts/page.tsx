@@ -1,6 +1,7 @@
 "use client";
 
 import { AccountForm } from "@/components/admin/AccountForm";
+import { AccountReferencesDialog } from "@/components/admin/AccountReferencesDialog";
 import {
   AdminBackButton,
   AdminCard,
@@ -12,11 +13,17 @@ import { Button } from "@/components/ui/button";
 import {
   createAccount,
   deleteAccount,
+  getAccountReferences,
   getMe,
   listAdminAccounts,
   updateAccount,
 } from "@/lib/admin-api";
-import type { Account, CreateAccount, UpdateAccount } from "@/types/admin";
+import type {
+  Account,
+  AccountReferenceGroup,
+  CreateAccount,
+  UpdateAccount,
+} from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -31,6 +38,13 @@ export default function AdminAccountsPage() {
     undefined,
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Account | null>(null);
+  const [pendingReferences, setPendingReferences] = useState<
+    AccountReferenceGroup[] | null
+  >(null);
+  const [isLoadingReferences, setIsLoadingReferences] = useState(false);
+  const [referencesError, setReferencesError] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchAccounts = async () => {
     setIsLoading(true);
@@ -66,19 +80,55 @@ export default function AdminAccountsPage() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (accountId: number) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this account? This action cannot be undone.",
-      )
-    )
-      return;
+  const loadReferences = async (accountId: number) => {
+    setIsLoadingReferences(true);
+    setReferencesError(false);
     try {
-      await deleteAccount(accountId);
+      const { references } = await getAccountReferences(accountId);
+      setPendingReferences(references);
+    } catch (error) {
+      console.error("Failed to load account references:", error);
+      // Leave pendingReferences as null (distinct from a confirmed-empty
+      // []) so the dialog can't present a failed check as "safe to delete".
+      setPendingReferences(null);
+      setReferencesError(true);
+    } finally {
+      setIsLoadingReferences(false);
+    }
+  };
+
+  const handleDeleteClick = (account: Account) => {
+    setPendingDelete(account);
+    setPendingReferences(null);
+    setReferencesError(false);
+    loadReferences(account.id);
+  };
+
+  const handleRetryReferences = () => {
+    if (!pendingDelete) return;
+    loadReferences(pendingDelete.id);
+  };
+
+  const handleCancelDelete = () => {
+    setPendingDelete(null);
+    setPendingReferences(null);
+    setReferencesError(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteAccount(pendingDelete.id);
+      setPendingDelete(null);
+      setPendingReferences(null);
+      setReferencesError(false);
       await fetchAccounts();
     } catch (error) {
       console.error("Failed to delete account:", error);
       alert(error instanceof Error ? error.message : "Failed to delete account");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -152,7 +202,7 @@ export default function AdminAccountsPage() {
             </button>
             {!isSelf && (
               <button
-                onClick={() => handleDelete(account.id)}
+                onClick={() => handleDeleteClick(account)}
                 className="text-sm font-medium text-rose-700 hover:text-rose-800"
               >
                 Delete
@@ -163,6 +213,19 @@ export default function AdminAccountsPage() {
       },
     },
   ];
+
+  const deleteDialog = pendingDelete && (
+    <AccountReferencesDialog
+      account={pendingDelete}
+      references={pendingReferences}
+      isLoadingReferences={isLoadingReferences}
+      referencesError={referencesError}
+      isDeleting={isDeleting}
+      onConfirm={handleConfirmDelete}
+      onCancel={handleCancelDelete}
+      onRetry={handleRetryReferences}
+    />
+  );
 
   if (isFormOpen) {
     return (
@@ -213,6 +276,8 @@ export default function AdminAccountsPage() {
           <DataTable columns={columns} data={data} />
         )}
       </AdminCard>
+
+      {deleteDialog}
     </AdminPageShell>
   );
 }

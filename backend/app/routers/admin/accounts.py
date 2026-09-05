@@ -18,8 +18,23 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies.auth import require_role
+from app.models import (
+    AppConfig,
+    BudgetData,
+    CalendarEvent,
+    FinanceHearingConfig,
+    News,
+    StaticPageContent,
+)
 from app.models.Admin import Admin
-from app.schemas.account import AccountDTO, CreateAccountDTO, UpdateAccountDTO
+from app.schemas.account import (
+    AccountDTO,
+    AccountReferenceGroup,
+    AccountReferenceItem,
+    AccountReferencesDTO,
+    CreateAccountDTO,
+    UpdateAccountDTO,
+)
 from app.schemas.pagination import PaginatedResponse
 from app.utils.pagination import paginate
 
@@ -27,6 +42,90 @@ router = APIRouter(
     prefix="/api/admin/accounts",
     tags=["admin", "accounts"],
 )
+
+# Records that hold a nullable "who touched this" reference to an admin
+# account. Deleting the account sets these to NULL (see each model's FK),
+# which silently erases the record's authorship/audit trail unless the
+# admin doing the deleting sees this list first and reassigns them.
+_REFERENCE_SPECS = [
+    {
+        "type": "news",
+        "label": "News articles authored",
+        "manage_url": "/admin/news",
+        "model": News,
+        "fk_column": "author_id",
+        "item_label": lambda row: row.title,
+    },
+    {
+        "type": "static_pages",
+        "label": "Static pages edited",
+        "manage_url": "/admin/static-pages",
+        "model": StaticPageContent,
+        "fk_column": "last_edited_by",
+        "item_label": lambda row: row.title,
+    },
+    {
+        "type": "app_config",
+        "label": "App config entries updated",
+        "manage_url": None,
+        "model": AppConfig,
+        "fk_column": "updated_by",
+        "item_label": lambda row: row.key,
+    },
+    {
+        "type": "budget_data",
+        "label": "Budget entries updated",
+        "manage_url": "/admin/budget",
+        "model": BudgetData,
+        "fk_column": "updated_by",
+        "item_label": lambda row: f"{row.category} ({row.fiscal_year})",
+    },
+    {
+        "type": "finance_hearing_config",
+        "label": "Finance hearing settings updated",
+        "manage_url": "/admin/finance-hearings",
+        "model": FinanceHearingConfig,
+        "fk_column": "updated_by",
+        "item_label": lambda row: "Finance hearing settings",
+    },
+    {
+        "type": "calendar_events",
+        "label": "Calendar events created",
+        "manage_url": "/admin/events",
+        "model": CalendarEvent,
+        "fk_column": "created_by",
+        "item_label": lambda row: row.title,
+    },
+]
+
+_MAX_ITEMS_PER_GROUP = 5
+
+
+def _build_account_references(db: Session, account_id: int) -> list[AccountReferenceGroup]:
+    groups: list[AccountReferenceGroup] = []
+    for spec in _REFERENCE_SPECS:
+        model = spec["model"]
+        fk_column = getattr(model, spec["fk_column"])
+        query = db.query(model).filter(fk_column == account_id)
+
+        count = query.count()
+        if count == 0:
+            continue
+
+        items = [
+            AccountReferenceItem(id=row.id, label=spec["item_label"](row))
+            for row in query.order_by(model.id).limit(_MAX_ITEMS_PER_GROUP).all()
+        ]
+        groups.append(
+            AccountReferenceGroup(
+                type=spec["type"],
+                label=spec["label"],
+                count=count,
+                items=items,
+                manage_url=spec["manage_url"],
+            )
+        )
+    return groups
 
 
 def _other_admin_exists(db: Session, excluding_id: int) -> bool:
@@ -118,6 +217,25 @@ def update_admin_account(
         )
     db.refresh(account)
     return AccountDTO.model_validate(account)
+
+
+@router.get(
+    "/{account_id}/references",
+    response_model=AccountReferencesDTO,
+    responses={404: {"description": "Account not found"}},
+)
+def get_admin_account_references(
+    account_id: int,
+    _current_user: Admin = Depends(require_role("admin")),
+    db: Session = Depends(get_db),
+):
+    """List records that reference this account, so an admin can review or
+    reassign them before deleting. Admin role required."""
+    account = db.query(Admin).filter(Admin.id == account_id).first()
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    return AccountReferencesDTO(references=_build_account_references(db, account_id))
 
 
 @router.delete(

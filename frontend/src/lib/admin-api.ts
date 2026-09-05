@@ -14,6 +14,7 @@ import type {
 } from "@/types";
 import type {
   Account,
+  AccountReferences,
   ActiveUsers,
   AdminDistrict,
   AdminLeadership,
@@ -690,6 +691,12 @@ export async function updateAccount(
 
 export async function deleteAccount(id: number): Promise<void> {
   return request<void>(`/admin/accounts/${id}`, { method: "DELETE" });
+}
+
+export async function getAccountReferences(id: number): Promise<AccountReferences> {
+  return request<AccountReferences>(`/admin/accounts/${id}/references`, {
+    method: "GET",
+  });
 }
 
 export async function getAdminEvents(): Promise<CalendarEvent[]> {

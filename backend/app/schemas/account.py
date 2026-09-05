@@ -45,6 +45,23 @@ class CreateAccountDTO(BaseModel):
         return validate_onyen(v)
 
 
+class AccountReferenceItem(BaseModel):
+    id: int
+    label: str
+
+
+class AccountReferenceGroup(BaseModel):
+    type: str
+    label: str
+    count: int
+    items: list[AccountReferenceItem]
+    manage_url: str | None = None
+
+
+class AccountReferencesDTO(BaseModel):
+    references: list[AccountReferenceGroup]
+
+
 class UpdateAccountDTO(BaseModel):
     email: EmailStr | None = None
     onyen: str | None = None

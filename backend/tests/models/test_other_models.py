@@ -546,9 +546,11 @@ class TestFinanceHearingConfigModel:
     def test_fk_to_admin(self):
         assert "admin" in get_fk_target_tables(FinanceHearingConfig)
 
-    def test_updated_by_not_nullable(self):
+    def test_updated_by_nullable(self):
+        """updated_by is nullable — settings can exist without a linked updater
+        once the admin who last touched them is deleted (SET NULL on delete)."""
         cols = get_columns(FinanceHearingConfig)
-        assert cols["updated_by"].nullable is False
+        assert cols["updated_by"].nullable is True
 
     def test_season_start_nullable(self):
         cols = get_columns(FinanceHearingConfig)

@@ -15,6 +15,23 @@ export interface Account {
   role: "admin" | "staff";
 }
 
+export interface AccountReferenceItem {
+  id: number;
+  label: string;
+}
+
+export interface AccountReferenceGroup {
+  type: string;
+  label: string;
+  count: number;
+  items: AccountReferenceItem[];
+  manage_url: string | null;
+}
+
+export interface AccountReferences {
+  references: AccountReferenceGroup[];
+}
+
 export interface CreateSenator {
   first_name: string;
   last_name: string;
