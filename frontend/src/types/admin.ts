@@ -26,6 +26,7 @@ export interface AccountReferenceGroup {
   count: number;
   items: AccountReferenceItem[];
   manage_url: string | null;
+  behavior: "unlink" | "remove";
 }
 
 export interface AccountReferences {

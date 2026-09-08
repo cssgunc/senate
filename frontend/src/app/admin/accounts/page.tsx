@@ -26,7 +26,7 @@ import type {
 } from "@/types/admin";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function AdminAccountsPage() {
   const router = useRouter();
@@ -45,6 +45,11 @@ export default function AdminAccountsPage() {
   const [isLoadingReferences, setIsLoadingReferences] = useState(false);
   const [referencesError, setReferencesError] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  // Tracks which account the dialog is currently open for, so a slow
+  // references response for an account that's no longer the open one
+  // (cancelled, or superseded by a click on a different account) can be
+  // discarded instead of silently overwriting the dialog with stale data.
+  const activeDeleteAccountId = useRef<number | null>(null);
 
   const fetchAccounts = async () => {
     setIsLoading(true);
@@ -85,19 +90,27 @@ export default function AdminAccountsPage() {
     setReferencesError(false);
     try {
       const { references } = await getAccountReferences(accountId);
+      // The dialog may have been cancelled or reopened for a different
+      // account while this request was in flight — only apply the result
+      // if it's still the one being reviewed.
+      if (activeDeleteAccountId.current !== accountId) return;
       setPendingReferences(references);
     } catch (error) {
       console.error("Failed to load account references:", error);
+      if (activeDeleteAccountId.current !== accountId) return;
       // Leave pendingReferences as null (distinct from a confirmed-empty
       // []) so the dialog can't present a failed check as "safe to delete".
       setPendingReferences(null);
       setReferencesError(true);
     } finally {
-      setIsLoadingReferences(false);
+      if (activeDeleteAccountId.current === accountId) {
+        setIsLoadingReferences(false);
+      }
     }
   };
 
   const handleDeleteClick = (account: Account) => {
+    activeDeleteAccountId.current = account.id;
     setPendingDelete(account);
     setPendingReferences(null);
     setReferencesError(false);
@@ -110,6 +123,8 @@ export default function AdminAccountsPage() {
   };
 
   const handleCancelDelete = () => {
+    if (isDeleting) return;
+    activeDeleteAccountId.current = null;
     setPendingDelete(null);
     setPendingReferences(null);
     setReferencesError(false);
@@ -120,6 +135,7 @@ export default function AdminAccountsPage() {
     setIsDeleting(true);
     try {
       await deleteAccount(pendingDelete.id);
+      activeDeleteAccountId.current = null;
       setPendingDelete(null);
       setPendingReferences(null);
       setReferencesError(false);

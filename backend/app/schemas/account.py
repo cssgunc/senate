@@ -56,6 +56,10 @@ class AccountReferenceGroup(BaseModel):
     count: int
     items: list[AccountReferenceItem]
     manage_url: str | None = None
+    # "unlink": the FK is set NULL, the record survives (news, budget, ...).
+    # "remove": the row is deleted outright alongside the account (e.g.
+    # section access assignments, which are ondelete=CASCADE).
+    behavior: Literal["unlink", "remove"] = "unlink"
 
 
 class AccountReferencesDTO(BaseModel):

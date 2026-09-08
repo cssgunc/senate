@@ -12,6 +12,8 @@ be deleted or demoted to staff, so account management can never lock itself
 out. Self-deletion is also blocked.
 """
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -27,6 +29,7 @@ from app.models import (
     StaticPageContent,
 )
 from app.models.Admin import Admin
+from app.models.Sections import AdminSections, Sections
 from app.schemas.account import (
     AccountDTO,
     AccountReferenceGroup,
@@ -37,6 +40,8 @@ from app.schemas.account import (
 )
 from app.schemas.pagination import PaginatedResponse
 from app.utils.pagination import paginate
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/api/admin/accounts",
@@ -123,9 +128,49 @@ def _build_account_references(db: Session, account_id: int) -> list[AccountRefer
                 count=count,
                 items=items,
                 manage_url=spec["manage_url"],
+                behavior="unlink",
             )
         )
+
+    section_group = _build_section_membership_group(db, account_id)
+    if section_group is not None:
+        groups.append(section_group)
+
     return groups
+
+
+def _build_section_membership_group(
+    db: Session, account_id: int
+) -> AccountReferenceGroup | None:
+    """Section access assignments aren't a "who touched this" reference like
+    the specs above — AdminSections.admin_id is ondelete=CASCADE, so these
+    rows are deleted outright alongside the account, not nulled out. That
+    makes them invisible to _build_account_references' spec loop even though
+    deleting the account destroys them just the same, so they're surfaced
+    here as a "remove" behavior rather than an "unlink" one.
+    """
+    query = (
+        db.query(Sections)
+        .join(AdminSections, AdminSections.section_id == Sections.id)
+        .filter(AdminSections.admin_id == account_id)
+    )
+
+    count = query.count()
+    if count == 0:
+        return None
+
+    items = [
+        AccountReferenceItem(id=row.id, label=row.name)
+        for row in query.order_by(Sections.id).limit(_MAX_ITEMS_PER_GROUP).all()
+    ]
+    return AccountReferenceGroup(
+        type="section_memberships",
+        label="Section access assignments",
+        count=count,
+        items=items,
+        manage_url=None,
+        behavior="remove",
+    )
 
 
 def _other_admin_exists(db: Session, excluding_id: int) -> bool:
@@ -263,8 +308,9 @@ def delete_admin_account(
     db.delete(account)
     try:
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
+        logger.warning("Failed to delete account %s: %s", account_id, exc)
         raise HTTPException(
             status_code=409,
             detail="Cannot delete this account: it is still referenced by other records",

@@ -70,10 +70,8 @@ export function AccountReferencesDialog({
         ) : hasReferences ? (
           <div className="space-y-4">
             <p className="text-sm text-slate-700">
-              This account is linked to the following records. Deleting it will
-              remove the author/editor link from each — the records themselves
-              will not be deleted. Review or reassign them first if you want to
-              keep that history.
+              This account is linked to the following records. Review each
+              group below before deleting.
             </p>
             <ul className="space-y-3">
               {references?.map((group) => (
@@ -89,6 +87,11 @@ export function AccountReferencesDialog({
                       {group.count}
                     </span>
                   </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {group.behavior === "remove"
+                      ? "Deleting this account will permanently remove these — there is nothing to reassign."
+                      : "Deleting this account will clear the author/editor link — the records themselves will not be deleted."}
+                  </p>
                   <ul className="mt-1 space-y-0.5">
                     {group.items.map((item) => (
                       <li key={item.id} className="text-xs text-slate-600">
