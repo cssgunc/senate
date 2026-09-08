@@ -6,6 +6,8 @@ All routes are admin-role only — staff users should receive 403 on all endpoin
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import CheckConstraint, create_engine, event
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -535,6 +537,29 @@ class TestDeleteAdminAccountWithAuthoredContent:
         db.close()
         assert membership is None
 
+    def test_delete_logs_the_integrity_error_on_conflict(
+        self, write_admin_client, monkeypatch, caplog
+    ):
+        # The 409 path used to swallow the underlying IntegrityError with a
+        # bare `except IntegrityError:` — the exact bug that made a
+        # DB-constraint mismatch invisible in server logs (it took a live
+        # DB query to diagnose instead of reading a log line). It should
+        # now be logged before the generic response goes out.
+        author_id = self._create_author_admin(write_admin_client)
+
+        def _raise_integrity_error(self):
+            raise IntegrityError("DELETE", {}, Exception("simulated FK violation"))
+
+        monkeypatch.setattr(OrmSession, "commit", _raise_integrity_error)
+
+        with caplog.at_level("WARNING"):
+            resp = write_admin_client.delete(f"/api/admin/accounts/{author_id}")
+
+        assert resp.status_code == 409
+        assert any(
+            "Failed to delete account" in record.message for record in caplog.records
+        )
+
 
 # ---------------------------------------------------------------------------
 # GET /api/admin/accounts/{id}/references
@@ -586,6 +611,7 @@ class TestAccountReferences:
         assert group is not None
         assert group["count"] == 1
         assert group["manage_url"] == "/admin/news"
+        assert group["behavior"] == "unlink"
         assert group["items"][0]["label"] == "Test Article"
 
     def test_includes_static_pages_edited(self, write_admin_client, write_engine):
@@ -685,6 +711,49 @@ class TestAccountReferences:
         assert group is not None
         assert group["count"] == 1
         assert group["items"][0]["label"] == "Test Event"
+
+    def test_includes_section_membership(self, write_admin_client, write_engine):
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        section = Sections(name="Finance")
+        db.add(section)
+        db.flush()
+        db.add(AdminSections(section_id=section.id, admin_id=author_id))
+        db.commit()
+        db.close()
+
+        data = write_admin_client.get(f"/api/admin/accounts/{author_id}/references").json()
+        group = self._find_group(data["references"], "section_memberships")
+        assert group is not None
+        assert group["count"] == 1
+        assert group["manage_url"] is None
+        assert group["behavior"] == "remove"
+        assert group["items"][0]["label"] == "Finance"
+
+    def test_section_membership_alone_is_not_reported_as_empty(
+        self, write_admin_client, write_engine
+    ):
+        # Section membership is invisible to the other 6 specs (it's
+        # cascade-deleted, not nulled), so an account whose only tie is a
+        # section assignment used to come back as `references: []` — read
+        # by the dialog as "safe to delete" — even though deleting it does
+        # remove something. Regression test for that gap.
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        section = Sections(name="News")
+        db.add(section)
+        db.flush()
+        db.add(AdminSections(section_id=section.id, admin_id=author_id))
+        db.commit()
+        db.close()
+
+        resp = write_admin_client.get(f"/api/admin/accounts/{author_id}/references")
+        assert resp.status_code == 200
+        assert resp.json()["references"] != []
 
     def test_count_exceeds_returned_items(self, write_admin_client, write_engine):
         author_id = self._create_author_admin(write_admin_client)

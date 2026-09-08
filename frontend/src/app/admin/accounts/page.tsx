@@ -10,6 +10,7 @@ import {
 } from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { Button } from "@/components/ui/button";
+import { shouldApplyReferencesResponse } from "@/lib/account-references";
 import {
   createAccount,
   deleteAccount,
@@ -90,20 +91,21 @@ export default function AdminAccountsPage() {
     setReferencesError(false);
     try {
       const { references } = await getAccountReferences(accountId);
-      // The dialog may have been cancelled or reopened for a different
-      // account while this request was in flight — only apply the result
-      // if it's still the one being reviewed.
-      if (activeDeleteAccountId.current !== accountId) return;
+      if (!shouldApplyReferencesResponse(activeDeleteAccountId.current, accountId)) {
+        return;
+      }
       setPendingReferences(references);
     } catch (error) {
       console.error("Failed to load account references:", error);
-      if (activeDeleteAccountId.current !== accountId) return;
+      if (!shouldApplyReferencesResponse(activeDeleteAccountId.current, accountId)) {
+        return;
+      }
       // Leave pendingReferences as null (distinct from a confirmed-empty
       // []) so the dialog can't present a failed check as "safe to delete".
       setPendingReferences(null);
       setReferencesError(true);
     } finally {
-      if (activeDeleteAccountId.current === accountId) {
+      if (shouldApplyReferencesResponse(activeDeleteAccountId.current, accountId)) {
         setIsLoadingReferences(false);
       }
     }
