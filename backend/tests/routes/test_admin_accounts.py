@@ -6,6 +6,8 @@ All routes are admin-role only — staff users should receive 403 on all endpoin
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import CheckConstraint, create_engine, event
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -19,6 +21,8 @@ from app.models import (
     AppConfig,
     BudgetData,
     CalendarEvent,
+    FinanceHearingConfig,
+    News,
     Sections,
     StaticPageContent,
 )
@@ -495,6 +499,25 @@ class TestDeleteAdminAccountWithAuthoredContent:
         assert event is not None
         assert event.created_by is None
 
+    def test_deleting_admin_nulls_finance_hearing_config_updater(
+        self, write_admin_client, write_engine
+    ):
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        db.add(FinanceHearingConfig(updated_by=author_id))
+        db.commit()
+        db.close()
+
+        assert write_admin_client.delete(f"/api/admin/accounts/{author_id}").status_code == 204
+
+        db = Session()
+        config = db.query(FinanceHearingConfig).first()
+        db.close()
+        assert config is not None
+        assert config.updated_by is None
+
     def test_deleting_admin_cascades_section_membership(self, write_admin_client, write_engine):
         author_id = self._create_author_admin(write_admin_client)
 
@@ -513,3 +536,264 @@ class TestDeleteAdminAccountWithAuthoredContent:
         membership = db.query(AdminSections).filter(AdminSections.admin_id == author_id).first()
         db.close()
         assert membership is None
+
+    def test_delete_logs_the_integrity_error_on_conflict(
+        self, write_admin_client, monkeypatch, caplog
+    ):
+        # The 409 path used to swallow the underlying IntegrityError with a
+        # bare `except IntegrityError:` — the exact bug that made a
+        # DB-constraint mismatch invisible in server logs (it took a live
+        # DB query to diagnose instead of reading a log line). It should
+        # now be logged before the generic response goes out.
+        author_id = self._create_author_admin(write_admin_client)
+
+        def _raise_integrity_error(self):
+            raise IntegrityError("DELETE", {}, Exception("simulated FK violation"))
+
+        monkeypatch.setattr(OrmSession, "commit", _raise_integrity_error)
+
+        with caplog.at_level("WARNING"):
+            resp = write_admin_client.delete(f"/api/admin/accounts/{author_id}")
+
+        assert resp.status_code == 409
+        assert any(
+            "Failed to delete account" in record.message for record in caplog.records
+        )
+
+
+# ---------------------------------------------------------------------------
+# GET /api/admin/accounts/{id}/references
+# ---------------------------------------------------------------------------
+
+
+class TestAccountReferences:
+    def _create_author_admin(self, client) -> int:
+        return client.post(
+            "/api/admin/accounts",
+            json={
+                **_CREATE_PAYLOAD,
+                "onyen": "author-admin",
+                "email": "author-admin@unc.edu",
+                "role": "admin",
+            },
+        ).json()["id"]
+
+    def _find_group(self, references: list[dict], type_: str) -> dict | None:
+        return next((g for g in references if g["type"] == type_), None)
+
+    def test_returns_404_for_missing_account(self, write_admin_client):
+        assert write_admin_client.get("/api/admin/accounts/999999/references").status_code == 404
+
+    def test_empty_when_no_linked_records(self, write_admin_client):
+        author_id = self._create_author_admin(write_admin_client)
+        resp = write_admin_client.get(f"/api/admin/accounts/{author_id}/references")
+        assert resp.status_code == 200
+        assert resp.json() == {"references": []}
+
+    def test_includes_news_authored(self, write_admin_client, write_engine):
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        db.add(
+            News(
+                title="Test Article",
+                body="Body",
+                summary="Summary",
+                author_id=author_id,
+            )
+        )
+        db.commit()
+        db.close()
+
+        data = write_admin_client.get(f"/api/admin/accounts/{author_id}/references").json()
+        group = self._find_group(data["references"], "news")
+        assert group is not None
+        assert group["count"] == 1
+        assert group["manage_url"] == "/admin/news"
+        assert group["behavior"] == "unlink"
+        assert group["items"][0]["label"] == "Test Article"
+
+    def test_includes_static_pages_edited(self, write_admin_client, write_engine):
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        db.add(
+            StaticPageContent(
+                page_slug="test-page", title="Test Page", body="Body", last_edited_by=author_id
+            )
+        )
+        db.commit()
+        db.close()
+
+        data = write_admin_client.get(f"/api/admin/accounts/{author_id}/references").json()
+        group = self._find_group(data["references"], "static_pages")
+        assert group is not None
+        assert group["count"] == 1
+        assert group["items"][0]["label"] == "Test Page"
+
+    def test_includes_app_config_updated(self, write_admin_client, write_engine):
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        db.add(AppConfig(key="test_flag", value="true", updated_by=author_id))
+        db.commit()
+        db.close()
+
+        data = write_admin_client.get(f"/api/admin/accounts/{author_id}/references").json()
+        group = self._find_group(data["references"], "app_config")
+        assert group is not None
+        assert group["count"] == 1
+        assert group["manage_url"] is None
+        assert group["items"][0]["label"] == "test_flag"
+
+    def test_includes_budget_data_updated(self, write_admin_client, write_engine):
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        db.add(
+            BudgetData(
+                fiscal_year="2026",
+                category="Test",
+                amount=100,
+                display_order=0,
+                updated_by=author_id,
+            )
+        )
+        db.commit()
+        db.close()
+
+        data = write_admin_client.get(f"/api/admin/accounts/{author_id}/references").json()
+        group = self._find_group(data["references"], "budget_data")
+        assert group is not None
+        assert group["count"] == 1
+        assert group["items"][0]["label"] == "Test (2026)"
+
+    def test_includes_finance_hearing_config_updated(self, write_admin_client, write_engine):
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        db.add(FinanceHearingConfig(updated_by=author_id))
+        db.commit()
+        db.close()
+
+        data = write_admin_client.get(f"/api/admin/accounts/{author_id}/references").json()
+        group = self._find_group(data["references"], "finance_hearing_config")
+        assert group is not None
+        assert group["count"] == 1
+
+    def test_includes_calendar_events_created(self, write_admin_client, write_engine):
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        from datetime import datetime
+
+        db.add(
+            CalendarEvent(
+                title="Test Event",
+                start_datetime=datetime(2026, 1, 1),
+                end_datetime=datetime(2026, 1, 2),
+                event_type="meeting",
+                is_published=False,
+                created_by=author_id,
+            )
+        )
+        db.commit()
+        db.close()
+
+        data = write_admin_client.get(f"/api/admin/accounts/{author_id}/references").json()
+        group = self._find_group(data["references"], "calendar_events")
+        assert group is not None
+        assert group["count"] == 1
+        assert group["items"][0]["label"] == "Test Event"
+
+    def test_includes_section_membership(self, write_admin_client, write_engine):
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        section = Sections(name="Finance")
+        db.add(section)
+        db.flush()
+        db.add(AdminSections(section_id=section.id, admin_id=author_id))
+        db.commit()
+        db.close()
+
+        data = write_admin_client.get(f"/api/admin/accounts/{author_id}/references").json()
+        group = self._find_group(data["references"], "section_memberships")
+        assert group is not None
+        assert group["count"] == 1
+        assert group["manage_url"] is None
+        assert group["behavior"] == "remove"
+        assert group["items"][0]["label"] == "Finance"
+
+    def test_section_membership_alone_is_not_reported_as_empty(
+        self, write_admin_client, write_engine
+    ):
+        # Section membership is invisible to the other 6 specs (it's
+        # cascade-deleted, not nulled), so an account whose only tie is a
+        # section assignment used to come back as `references: []` — read
+        # by the dialog as "safe to delete" — even though deleting it does
+        # remove something. Regression test for that gap.
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        section = Sections(name="News")
+        db.add(section)
+        db.flush()
+        db.add(AdminSections(section_id=section.id, admin_id=author_id))
+        db.commit()
+        db.close()
+
+        resp = write_admin_client.get(f"/api/admin/accounts/{author_id}/references")
+        assert resp.status_code == 200
+        assert resp.json()["references"] != []
+
+    def test_count_exceeds_returned_items(self, write_admin_client, write_engine):
+        author_id = self._create_author_admin(write_admin_client)
+
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        for i in range(7):
+            db.add(
+                News(
+                    title=f"Article {i}",
+                    body="Body",
+                    summary="Summary",
+                    author_id=author_id,
+                )
+            )
+        db.commit()
+        db.close()
+
+        data = write_admin_client.get(f"/api/admin/accounts/{author_id}/references").json()
+        group = self._find_group(data["references"], "news")
+        assert group["count"] == 7
+        assert len(group["items"]) == 5
+
+    def test_staff_cannot_view_references(self, write_staff_client, write_engine):
+        Session = sessionmaker(bind=write_engine)
+        db = Session()
+        admin = db.query(Admin).filter(Admin.email == "admin@unc.edu").first()
+        admin_id = admin.id
+        db.close()
+
+        assert (
+            write_staff_client.get(f"/api/admin/accounts/{admin_id}/references").status_code
+            == 403
+        )
+
+    def test_unauthenticated_rejected(self):
+        saved = app.dependency_overrides.pop(get_current_user, None)
+        try:
+            with TestClient(app) as c:
+                assert c.get("/api/admin/accounts/1/references").status_code in {401, 403, 501}
+        finally:
+            if saved:
+                app.dependency_overrides[get_current_user] = saved

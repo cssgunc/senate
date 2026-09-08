@@ -45,6 +45,27 @@ class CreateAccountDTO(BaseModel):
         return validate_onyen(v)
 
 
+class AccountReferenceItem(BaseModel):
+    id: int
+    label: str
+
+
+class AccountReferenceGroup(BaseModel):
+    type: str
+    label: str
+    count: int
+    items: list[AccountReferenceItem]
+    manage_url: str | None = None
+    # "unlink": the FK is set NULL, the record survives (news, budget, ...).
+    # "remove": the row is deleted outright alongside the account (e.g.
+    # section access assignments, which are ondelete=CASCADE).
+    behavior: Literal["unlink", "remove"] = "unlink"
+
+
+class AccountReferencesDTO(BaseModel):
+    references: list[AccountReferenceGroup]
+
+
 class UpdateAccountDTO(BaseModel):
     email: EmailStr | None = None
     onyen: str | None = None
