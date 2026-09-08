@@ -32,6 +32,15 @@ const nextConfig: NextConfig = {
         hostname: "images.unc.edu",
       },
     ],
+    // Defaults (8 deviceSizes x 8 imageSizes) generate a lot of distinct
+    // sharp-optimized variants per source image, each re-processed after
+    // the cache TTL expires. On a small site this is the main driver of
+    // the frontend's memory growth (see deploy/cloudapps/README.md's
+    // memory-limit notes) - fewer buckets and a longer cache TTL trade a
+    // little responsive-image granularity for a much smaller working set.
+    deviceSizes: [640, 828, 1080, 1920, 3840],
+    imageSizes: [64, 96, 128, 192, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24,
   },
 };
 

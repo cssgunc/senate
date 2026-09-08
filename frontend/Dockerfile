@@ -26,4 +26,10 @@ RUN chgrp -R 0 /app \
 
 EXPOSE 3000
 
+# Caps V8's heap below the container's memory limit (896Mi in
+# deploy/cloudapps/params/senate.env) so the process has headroom left for
+# non-heap allocations (native modules like sharp's image processing) and
+# can be GC-pressured instead of only ever hitting a hard kernel OOM-kill.
+ENV NODE_OPTIONS="--max-old-space-size=512"
+
 CMD ["node", "server.js"]
