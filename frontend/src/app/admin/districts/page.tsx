@@ -8,6 +8,7 @@ import {
 } from "@/components/admin/AdminPageShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { DistrictForm } from "@/components/admin/DistrictForm";
+import { HtmlContent } from "@/components/content/HtmlContent";
 import { Button } from "@/components/ui/button";
 import {
   createDistrict,
@@ -108,7 +109,7 @@ export default function AdminDistrictsPage() {
       cell: ({ row }) => {
         const desc = row.getValue("description") as string | null;
         return desc ? (
-          <span className="text-slate-700">{desc}</span>
+          <HtmlContent html={desc} className="text-slate-700" />
         ) : (
           <span className="text-slate-400 italic">No description</span>
         );
