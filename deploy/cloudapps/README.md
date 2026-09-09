@@ -201,12 +201,17 @@ or recreate the old Route to restore service before investigating further.
 
 ## Storage and quota
 
-`dept-undergraduate-senate` has its own project quota (2.5Gi memory limit,
-5Gi storage, 10 pods, separate from `calebhan`'s) — a hard `ResourceQuota`
-object only UNC IT can raise, the same as the `routes/custom-host`
-permission described above. Storage is maxed outright: `requests.storage`
-is 5Gi/5Gi (DB's 4Gi + uploads' 1Gi), so no new PVC — of any size — can be
-created without freeing space first.
+`dept-undergraduate-senate` has its own project quota, separate from
+`calebhan`'s — a hard `ResourceQuota` object only UNC IT can raise, the
+same as the `routes/custom-host` permission described above. As of
+2026-09-09 that's **3584Mi memory / 4 CPU** (`NotTerminating` scope) and
+**7Gi storage**, both raised by UNC IT from the original 2560Mi/5Gi after
+the frontend's repeated OOM-kills (below) made the case for it. Actual
+disk usage is nowhere near either PVC's provisioned size (DB ~228Mi/4Gi,
+uploads ~5.6Mi/1Gi as of the same date) — the storage quota was maxed out
+by *provisioned* size (`requests.storage` = 4Gi + 1Gi = 5Gi old hard cap),
+not real usage, so the extra 2Gi is headroom for future growth rather
+than a fix for a currently-full disk. No PVC has been resized to use it.
 
 The `db` Deployment uses `strategy: type: Recreate`: it's a single-writer
 stateful workload with a ReadWriteOnce PVC, so there's no meaningful way
@@ -216,48 +221,63 @@ rollout anyway — `Recreate` is the correct choice here, not a compromise.
 The `backend` and `frontend` Deployments both use `RollingUpdate`
 (`maxSurge: 1, maxUnavailable: 0`): the old pod keeps serving until the
 new one passes its readiness probe, so a deploy has no window with zero
-pods up. At the *original* `BACKEND_MEMORY_LIMIT`/`FRONTEND_MEMORY_LIMIT`
-(512Mi/1Gi), a frontend surge pod didn't fit the quota at all (2Gi
-steady-state + a 1Gi surge blows past the 2560Mi hard cap) — the honest
-fix there would have been asking UNC IT for more quota, with no control
-over the timeline.
+pods up. That strategy needs `2 x limit + the other Deployment's limit`
+of headroom during a rollout, which is what actually sizes
+`FRONTEND_MEMORY_LIMIT` — not steady-state usage.
 
-Live usage checked with `oc adm top pods` told a different story, though:
-actual memory use was ~85Mi for backend and ~94Mi for the DB against
-512Mi limits each, and ~550Mi for frontend against its 1Gi limit — a lot
-of committed-but-unused headroom. `BACKEND_MEMORY_LIMIT` was trimmed to
-256Mi (still ~3x its measured usage) and `FRONTEND_MEMORY_LIMIT` to 896Mi
-(~1.6x its measured peak), which frees just enough quota room for a
-frontend surge pod to fit too, with **zero UNC IT dependency**:
+At the original 2560Mi quota, `BACKEND_MEMORY_LIMIT`/`FRONTEND_MEMORY_LIMIT`
+were trimmed to 256Mi/896Mi (against measured usage of ~85Mi/~550Mi at the
+time) specifically so a frontend surge pod would fit at all, consuming
+the quota exactly:
 
 ```
-steady-state:      512(db) + 256(backend) + 896(frontend) = 1664Mi
-either surge pod:              + up to 896Mi              = 2560Mi  (exact cap)
+old quota (2560Mi): 512(db) + 256(backend) + 2x896(frontend surge) = 2560Mi  (exact cap, zero slack)
 ```
 
-`db`'s limit was deliberately left untouched even though it shows the
-same slack — Postgres OOM-kills are a worse failure mode than a slow web
-process (unclean termination mid-write, `Recreate` restart, connection
-storm on recovery), so it isn't a lever to reach for casually.
+That "~550Mi measured" turned out to be a low-traffic snapshot, not
+representative: under real traffic the frontend climbed to its 896Mi
+limit and got OOM-killed repeatedly (55 times over 10 days at one point).
+2026-09-08 shipped a mitigation (trimmed `images.deviceSizes`/`imageSizes`
+and a longer `minimumCacheTTL` in `frontend/next.config.ts`, plus a
+`NODE_OPTIONS=--max-old-space-size` in `frontend/Dockerfile` so V8
+self-limits below the container ceiling instead of only ever hitting a
+hard kernel OOM-kill) aimed at the likely cause — `sharp`'s native image
+processing for the `images.unsplash.com`/`images.unc.edu` remote
+patterns, which allocates outside the V8 heap. That mitigation alone
+didn't stop the kills (still OOM-killing every 65-90 minutes after
+shipping it), which is what justified the 2026-09-09 quota increase.
 
-This still leaves **zero slack** in the quota, with two consequences to
-know about, neither of which causes an outage (both strategies keep
-`maxUnavailable: 0`) but both of which can make a rollout stall:
+With the new 3584Mi quota, `FRONTEND_MEMORY_LIMIT` was raised to 1280Mi
+and `FRONTEND_MEMORY_REQUEST` to 512Mi (closer to real usage than the old
+384Mi), deliberately **not** maxing out the quota this time:
 
-- A stray pod needing memory during a deploy (`oc debug`, etc.) will hold
-  up a surge pod in `Pending` until it clears.
-- If a single commit changes both frontend and backend, their rollouts
-  can overlap (the mirror CronJob triggers both BuildConfig webhooks
-  back-to-back, and each Deployment rolls independently once its own
-  image lands) and together need more than the 2560Mi available at once.
-  Whichever surge pod loses the race just waits — `Pending` — until the
-  other rollout finishes and releases its extra memory, then proceeds.
+```
+new quota (3584Mi): 512(db) + 256(backend) + 2x1280(frontend surge) = 3328Mi, leaving 256Mi slack
+```
 
-These numbers are a single live snapshot at low traffic, not a load test.
-If `oc adm top pods` after a period of real traffic shows frontend
-consistently closer to 896Mi than the ~550Mi seen here, that limit (or a
-UNC IT quota increase) needs revisiting before it starts causing stalled
-rollouts or OOM kills.
+`db` and `backend`'s limits were left untouched — `db` because Postgres
+OOM-kills are a worse failure mode than a slow web process (unclean
+termination mid-write, `Recreate` restart, connection storm on recovery),
+so it isn't a lever to reach for casually; `backend` because it isn't the
+one OOM-killing (measured usage has stayed well under its 256Mi limit).
+
+The **256Mi of reserved slack** is new and deliberate: the old zero-slack
+sizing had two known consequences (neither an outage, since both
+strategies keep `maxUnavailable: 0`, but both able to stall a rollout) —
+a stray pod needing memory during a deploy (`oc debug`, etc.) holding up
+a surge pod in `Pending` until it clears, and backend+frontend rollouts
+overlapping (the mirror CronJob triggers both BuildConfig webhooks
+back-to-back) needing more than the quota has at once, so whichever
+surge pod loses the race waits until the other rollout finishes. Keeping
+slack this time reduces how often either happens.
+
+**If the frontend is still OOM-killing (or its measured peak via
+`oc adm top pods` is closing in on 1280Mi) after this change has had a
+day or two of real traffic**, that means the mitigation didn't address
+the actual leak — treat it as a code-level memory investigation, not
+another quota-increase request; there's no more quota to trim into
+without asking UNC IT again, and repeatedly widening the limit without
+finding the leak just delays the same failure.
 
 Both Deployments also set a `startupProbe` (polling every 2s, generous
 `failureThreshold`) so a fast container start isn't hidden behind a flat
