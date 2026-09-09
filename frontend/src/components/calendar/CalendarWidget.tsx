@@ -1,5 +1,6 @@
 "use client";
 
+import { HtmlContent } from "@/components/content/HtmlContent";
 import { Card } from "@/components/ui/card";
 import type { CalendarEvent } from "@/types";
 import {
@@ -302,7 +303,10 @@ export default function CalendarWidget({
                     {event.event_type}
                   </p>
                   {event.description && (
-                    <p className="text-gray-600">{event.description}</p>
+                    <HtmlContent
+                      html={event.description}
+                      className="prose prose-sm max-w-none text-gray-600"
+                    />
                   )}
                 </div>
               </Card>
