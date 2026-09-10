@@ -271,13 +271,49 @@ back-to-back) needing more than the quota has at once, so whichever
 surge pod loses the race waits until the other rollout finishes. Keeping
 slack this time reduces how often either happens.
 
-**If the frontend is still OOM-killing (or its measured peak via
-`oc adm top pods` is closing in on 1280Mi) after this change has had a
-day or two of real traffic**, that means the mitigation didn't address
-the actual leak — treat it as a code-level memory investigation, not
-another quota-increase request; there's no more quota to trim into
-without asking UNC IT again, and repeatedly widening the limit without
-finding the leak just delays the same failure.
+The 2026-09-08 mitigation didn't stop the kills because it was aimed at
+the wrong layer. A follow-up investigation (reproduced locally outside
+the cluster, with real heap snapshots and `process.memoryUsage()` deltas
+via the inspector protocol, not just log-watching) found:
+
+- Hammering the homepage alone (no images) grows RSS to a bounded
+  ~300Mi plateau under sustained load and then holds flat indefinitely —
+  consistent with a known, currently-unresolved Next.js 16.x memory
+  behavior around `fetch()`/RSC internals, but not itself a threat to a
+  1280Mi limit.
+- The real, unbounded driver was `next/image`'s built-in optimizer:
+  processing a single large image through Next's `/_next/image` request
+  path cost ~130-170Mi of RSS, **permanently**, the first time any
+  distinct image+width+quality combination was ever requested — never
+  released, invisible to `heapTotal`/`heapUsed`/`external`/`arrayBuffers`
+  (confirming native, off-heap memory), and not reduced by libvips' own
+  tuning knobs (`VIPS_CACHE_MAX=0`, `VIPS_CONCURRENCY=1`,
+  `MALLOC_ARENA_MAX=2` were all tested and made no measurable difference).
+  Calling `sharp` directly with identical operations on the same source
+  image cost only ~15-25Mi — the excess lives in Next's own
+  server-side request-handling code around the optimizer, not in
+  sharp/libvips itself, so there was no sharp-level setting left to try.
+  With dozens of real senator/staff/news photos in production, each
+  touched at multiple responsive breakpoints, this was guaranteed to
+  eventually exceed any reasonable memory limit.
+
+The fix: `images.unoptimized: true` in `frontend/next.config.ts`, which
+removes the optimizer (and the `/_next/image` route) from the request
+path entirely — the browser fetches each image's original URL directly
+instead. Verified locally: RSS plateaus at the same bounded ~300Mi as the
+image-free case even under 2000+ requests with real external images
+mixed in, versus unbounded growth before. The cost is real but different
+in kind: images are served at their original size/format rather than
+Next's automatically resized/compressed variants, which matters most for
+`images.unc.edu`/admin-uploaded photos (unsplash URLs already carry their
+own `?w=` sizing param, so that source is largely unaffected).
+
+**If OOM-kills resume despite `unoptimized: true`**, that means a
+different mechanism is at play — the image-optimizer path is verified
+closed, so re-open this investigation rather than reaching for another
+quota increase; there's no more quota to trim into without asking UNC IT
+again, and repeatedly widening the limit without finding the actual cause
+just delays the same failure.
 
 Both Deployments also set a `startupProbe` (polling every 2s, generous
 `failureThreshold`) so a fast container start isn't hidden behind a flat
